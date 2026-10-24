@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+ <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#11163a"/><stop offset="0.6" stop-color="#2b2b5e"/><stop offset="1" stop-color="#7a4c78"/></linearGradient>
+ <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2f5f"/><stop offset="1" stop-color="#0b1030"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#f5952c"/></linearGradient>
+ <radialGradient id="glow" cx="512" cy="580" r="360" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffb04a" stop-opacity="0.85"/><stop offset="0.4" stop-color="#e57a5c" stop-opacity="0.35"/><stop offset="1" stop-color="#b05a8a" stop-opacity="0"/></radialGradient>
+ <linearGradient id="refl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffc35a" stop-opacity="0"/><stop offset="0.5" stop-color="#ffd27a" stop-opacity="1"/><stop offset="1" stop-color="#ffc35a" stop-opacity="0"/></linearGradient>
+ <clipPath id="sq"><rect x="100" y="100" width="824" height="824" rx="185"/></clipPath>
+ <clipPath id="above"><rect x="0" y="0" width="1024" height="580"/></clipPath>
+ <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="18"/></filter>
+</defs>
+<g clip-path="url(#sq)">
+ <rect x="100" y="100" width="824" height="824" fill="url(#sky)"/>
+ <g fill="#fff"><circle cx="290" cy="240" r="4" opacity=".7"/><circle cx="710" cy="200" r="3.5" opacity=".6"/><circle cx="790" cy="320" r="3" opacity=".45"/><circle cx="430" cy="180" r="3" opacity=".45"/><circle cx="220" cy="380" r="2.5" opacity=".35"/></g>
+ <rect x="0" y="0" width="1024" height="580" fill="url(#glow)"/>
+ <g clip-path="url(#above)">
+  <rect x="302" y="475.0" width="380" height="210" rx="48" fill="#ffb347" filter="url(#blur)" opacity=".6"/>
+  <rect x="302" y="475.0" width="380" height="210" rx="48" fill="url(#gold)"/>
+  <rect x="324" y="497.0" width="336" height="166" rx="30" fill="none" stroke="#fff3c8" stroke-opacity=".55" stroke-width="6"/>
+  <rect x="692" y="536" width="30" height="88" rx="13" fill="url(#gold)"/>
+ </g>
+ <rect x="100" y="580" width="824" height="344" fill="url(#sea)"/>
+ <rect x="100" y="579" width="824" height="3" fill="#ffd590" opacity=".45"/>
+ <rect x="312.0" y="600" width="372" height="16" rx="8.0" fill="url(#refl)" opacity="1"/>
+ <rect x="357.0" y="633" width="330" height="13" rx="6.5" fill="url(#refl)" opacity="0.85"/>
+ <rect x="361.0" y="663" width="286" height="11" rx="5.5" fill="url(#refl)" opacity="0.7"/>
+ <rect x="400.0" y="691" width="236" height="10" rx="5.0" fill="url(#refl)" opacity="0.55"/>
+ <rect x="418.0" y="718" width="180" height="9" rx="4.5" fill="url(#refl)" opacity="0.42"/>
+ <rect x="453.0" y="744" width="124" height="8" rx="4.0" fill="url(#refl)" opacity="0.3"/>
+ <rect x="476.0" y="769" width="72" height="7" rx="3.5" fill="url(#refl)" opacity="0.2"/>
+</g></svg>
