@@ -81,6 +81,7 @@ jobs:
           forecast/.venv/Scripts/python.exe tools/smoke_package.py artifacts/BatteryForecast --arch ${{ matrix.arch }} --report artifacts/package-smoke-${{ matrix.arch }}.json
           if ($LASTEXITCODE) { throw "Frozen package smoke test failed" }
       - name: Install, verify, update and uninstall on disposable runner
+        timeout-minutes: 20
         shell: pwsh
         run: |
           $setup = (Get-ChildItem artifacts/BatteryForecast-Setup-*-${{ matrix.arch }}.exe | Select-Object -First 1).FullName
