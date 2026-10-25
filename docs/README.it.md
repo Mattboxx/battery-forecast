@@ -112,9 +112,10 @@ nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
   rubare il focus, e si richiude quando il puntatore si allontana; un clic lo tiene aperto.
 - **Dimensione a piacere:** scala (80–160%) e larghezza del pannello, applicate mentre muovi i cursori.
   Se è già occupata, resta quella precedente. Supportati Ctrl o Alt con lettere/cifre/tasti F tranne F12.
-- **Ricarica fino alla soglia scelta:** obiettivo 50–100%, inizialmente 80%. Stima sperimentale dal ritmo
-  di ricarica osservato o da sessioni precedenti comparabili. Oltre 80% serve abbastanza storico per
-  considerare il rallentamento finale. Non cambia il limite di ricarica del firmware.
+- **Previsione anche in carica:** obiettivo 50–100%, inizialmente 80%. Mentre carichi, Timestral impara dalle
+  tue ricariche e prevede quando arriverai all'obiettivo, con fascia, grafico e lo stesso rigore della scarica,
+  compreso il rallentamento vicino al pieno. Il ritmo di carica attuale è mostrato accanto come confronto e usato
+  da solo finché le ricariche registrate non bastano. Non cambia il limite di ricarica del firmware.
 - **Contesto hardware locale:** CPU aggregata, frequenza, memoria, watt batteria, luminosità, profilo
   energetico e temperature disponibili. Timestral riceve canali storici utilizzabili e il pannello dice
   quali ha usato. Sensori mancanti restano non disponibili; zona ACPI, CPU e batteria sono distinte.

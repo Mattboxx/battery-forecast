@@ -63,6 +63,7 @@ def parse_request(line: bytes) -> dict:
             "reserve": float(req.get("reserve_pct", DEFAULT_RESERVE)),
             "horizon": int(req.get("horizon_steps", HORIZON_STEPS)),
             "scenario": req.get("scenario", "no_charge"),
+            "target": float(req.get("target_pct", 80)),
             "samples": [(s[0], s[1], s[2] if len(s) > 2 else None) for s in req.get("samples", [])],
         }
     except (KeyError, TypeError, ValueError, IndexError) as e:
@@ -73,8 +74,10 @@ def parse_request(line: bytes) -> dict:
         raise ProtocolError("bad_request", "livello o riserva fuori scala")
     if not 1 <= out["horizon"] <= HORIZON_STEPS:
         raise ProtocolError("bad_request", f"horizon_steps deve stare fra 1 e {HORIZON_STEPS}")
-    if out["scenario"] != "no_charge":
+    if out["scenario"] not in ("no_charge", "charge"):
         raise ProtocolError("bad_request", f"scenario non supportato: {out['scenario']!r}")
+    if out["scenario"] == "charge" and not 50 <= out["target"] <= 100:
+        raise ProtocolError("bad_request", "target_pct deve stare fra 50 e 100")
     context = req.get("past_covariates", {})
     if not isinstance(context, dict) or len(context) > len(CONTEXT_RANGES):
         raise ProtocolError("bad_request", "past_covariates must contain supported named historical channels")

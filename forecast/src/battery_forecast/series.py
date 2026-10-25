@@ -26,6 +26,7 @@ class Series:
     observed_days: float         # dal primo all'ultimo passo osservato
     coverage: float              # frazione di passi osservati in quell'intervallo
     discharge_sessions: int      # tratti continui a batteria lunghi almeno 30 minuti
+    charge_sessions: int = 0     # tratti continui con alimentatore, almeno 30 minuti e 2 punti di carica guadagnati
 
     @property
     def end(self) -> float:
@@ -77,6 +78,7 @@ def build(samples, now: float, level_now: float, ac_now: int | None,
         observed_days=round(span * step / 86400, 2),
         coverage=round(len(obs) / (span + 1), 3) if len(obs) else 0.0,
         discharge_sessions=_count_sessions(level, acs, min_steps=max(1, 1800 // step)),
+        charge_sessions=_count_charge_sessions(level, acs, min_steps=max(1, 1800 // step)),
     )
 
 
@@ -108,6 +110,17 @@ def _fill_short_gaps_ac(ac: np.ndarray, level: np.ndarray, max_gap: int) -> np.n
         if b - a <= max_gap and ac[a - 1] == ac[b]:
             out[a:b] = ac[b]
     return out
+
+
+def _count_charge_sessions(level: np.ndarray, ac: np.ndarray, min_steps: int) -> int:
+    """Ricariche osservate: tratti con alimentatore lunghi abbastanza e in cui il livello è davvero salito."""
+    plugged = (ac == 1) & np.isfinite(level)
+    edges = np.diff(np.concatenate([[0], plugged.astype(np.int8), [0]]))
+    n = 0
+    for a, b in zip(np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)):
+        if b - a >= min_steps and np.nanmax(level[a:b]) - level[a] >= 2:
+            n += 1
+    return n
 
 
 def _count_sessions(level: np.ndarray, ac: np.ndarray, min_steps: int) -> int:

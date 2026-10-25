@@ -158,7 +158,8 @@ sealed class ForecastChart : FrameworkElement
         fill.Freeze();
         dc.DrawGeometry(fill, null, band);
 
-        var reserve = new Pen(B("Reserve"), 1) { DashStyle = new DashStyle([3, 3], 0) };
+        // in scarica la riserva (rossa), in carica l'obiettivo (colore d'accento)
+        var reserve = new Pen(B(f.IsCharge ? "Accent" : "Reserve"), 1) { DashStyle = new DashStyle([3, 3], 0) };
         dc.DrawLine(reserve, new Point(0, Y(f.ReservePct)), new Point(w, Y(f.ReservePct)));
 
         // stima centrale: continua finché viene dalle abitudini, tratteggiata dove è estrapolata

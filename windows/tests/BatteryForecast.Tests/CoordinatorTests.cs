@@ -25,11 +25,32 @@ sealed class FakeEngine : IForecastEngine
     public Task WarmUpAsync(CancellationToken ct = default) => Task.CompletedTask;
     public Task StopAsync() => Task.CompletedTask;
 
+    public int ChargeCalls;
+    public double RisePerStep = 2;
+
     public Task<ForecastResponse> ForecastAsync(ForecastRequest r, CancellationToken ct = default)
     {
         Calls++;
         if (Fail) throw new ForecastWorkerException("exited", "boom", true);
         var now = r.Now.ToUnixTimeSeconds();
+        if (r.Charge)
+        {
+            ChargeCalls++;
+            var up = Enumerable.Range(1, 288).Select(i =>
+            {
+                var v = Math.Min(100, r.Level + RisePerStep * i);
+                return new CurvePointDto(now + 300 * i, Math.Max(r.Level, v - 3), v, Math.Min(100, v + 3));
+            }).ToList();
+            var reach = up.FirstOrDefault(p => p.P50 >= r.TargetPct);
+            return Task.FromResult(new ForecastResponse
+            {
+                ContextEndUtc = now, GeneratedAtUtc = now, Level = r.Level, ReservePct = r.TargetPct, TargetPct = r.TargetPct,
+                Scenario = "charge", Source = "fake",
+                Quality = new QualityDto { State = "ok", ObservedDays = 5, ChargeSessions = 5 },
+                Crossing = new CrossingDto { Status = reach is null ? "beyond_horizon" : "within_horizon", CentralUtc = reach?.T },
+                Curve = up,
+            });
+        }
         var curve = Enumerable.Range(1, 288).Select(i =>
         {
             var v = Math.Max(0, r.Level - DropPerStep * i);
@@ -103,15 +124,41 @@ public sealed class CoordinatorTests : IDisposable
     }
 
     [Fact]
-    public void On_ac_nothing_is_requested_and_no_forecast_is_shown()
+    public void Charging_requests_a_charge_forecast_and_hides_the_discharge_one()
     {
         battery.OnAc = true;
         var c = Start();
-        var s = Wait(c, _ => true);
+        var s = Wait(c, s => s.ChargeForecast is not null && !s.Updating);
         Assert.Equal(PowerPhase.Charging, s.Phase);
         Assert.Null(s.Forecast);
         Assert.Null(s.Recent);
+        Assert.True(s.ChargeForecast!.IsCharge);
+        Assert.Equal(80, s.ChargeForecast.ReservePct);                    // obiettivo di carica predefinito
+        Assert.Equal(CrossingStatus.WithinHorizon, s.ChargeForecast.Crossing);
+        Assert.Equal(1, engine.ChargeCalls);
+    }
+
+    [Fact]
+    public void At_or_above_the_charge_target_the_model_is_not_started()
+    {
+        battery.OnAc = true;
+        battery.Level = 85;
+        var c = Start();
+        Wait(c, _ => true);
+        Minutes(40);
         Assert.Equal(0, engine.Calls);
+    }
+
+    [Fact]
+    public void Unplugging_invalidates_the_charge_forecast()
+    {
+        battery.OnAc = true;
+        var c = Start();
+        Wait(c, s => s.ChargeForecast is not null && !s.Updating);
+        battery.OnAc = false;
+        Minutes(1);
+        var s = Wait(c, s => s.Phase == PowerPhase.Discharging && s.Forecast is not null && !s.Updating);
+        Assert.Null(s.ChargeForecast);
     }
 
     [Fact]
@@ -181,9 +228,10 @@ public sealed class CoordinatorTests : IDisposable
         battery.OnAc = true;
         Minutes(1);
         Assert.Null(Wait(c, s => s.Phase == PowerPhase.Charging).Forecast);
+        Wait(c, _ => engine.ChargeCalls == 1);                            // collegato: previsione di carica
         battery.OnAc = false;
         Minutes(1);
-        Wait(c, s => engine.Calls == 2 && s.Forecast is not null);
+        Wait(c, s => engine.Calls - engine.ChargeCalls == 2 && s.Forecast is not null);
     }
 
     [Fact]

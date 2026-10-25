@@ -178,9 +178,10 @@ Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/batter
 - **Open on hover (optional):** rest the pointer on the tray icon and the panel opens without a click, without
   stealing focus, and closes when the pointer moves away; a click keeps it open.
 - **Your size:** scale (80–160%) and width of the panel, applied as you move the sliders.
-- **See the charging target:** choose 50–100% (default 80%). During charging a separate experimental
-  estimator uses observed charging speed or comparable past charge intervals. The last charging phase
-  can slow down: higher targets require sufficient observed sessions. This does not control a hardware limit.
+- **Charging forecast, too:** choose a target from 50–100% (default 80%). While charging, Timestral learns from
+  your past charges and forecasts when you will reach it, with the same range, chart and honesty as the discharge
+  forecast, including the slowdown near full. The current charging rate is shown next to it as a comparison and
+  used alone until enough charges are recorded. It does not control a hardware charge limit.
 - **Give the local model more context:** optionally collect aggregate CPU load/frequency, memory, battery
   charge/discharge watts, brightness, power profile and temperatures exposed by the device. Timestral
   receives eligible historical sensor channels; the panel names those actually used. Missing sensors stay

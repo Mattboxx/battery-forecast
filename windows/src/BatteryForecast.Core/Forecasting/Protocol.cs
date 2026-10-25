@@ -31,7 +31,8 @@ public static class Protocol
             ["reserve_pct"] = r.ReservePct,
             ["horizon_steps"] = HorizonSteps,
             ["step_seconds"] = StepSeconds,
-            ["scenario"] = "no_charge",
+            ["scenario"] = r.Charge ? "charge" : "no_charge",
+            ["target_pct"] = r.Charge ? r.TargetPct : null,
         };
         var samples = new JsonArray();
         foreach (var s in r.History)
@@ -73,8 +74,10 @@ public static class Protocol
     }
 }
 
+/// <summary>Charge = scenario "resto collegato" fino a <see cref="TargetPct"/>; altrimenti "senza ricarica" fino alla riserva.</summary>
 public sealed record ForecastRequest(DateTimeOffset Now, double Level, bool? OnAc, double ReservePct,
-    IReadOnlyList<Storage.ModelSample> History, IReadOnlyDictionary<string,IReadOnlyList<Storage.ModelCovariate>>? PastCovariates = null);
+    IReadOnlyList<Storage.ModelSample> History, IReadOnlyDictionary<string,IReadOnlyList<Storage.ModelCovariate>>? PastCovariates = null,
+    bool Charge = false, double TargetPct = 80);
 
 public abstract record WorkerMessage(long? Id);
 public sealed record WorkerReady(string ModelId, string ModelRevision, int StartupMs) : WorkerMessage((long?)null);
@@ -95,6 +98,8 @@ public sealed record ForecastResponse
     public QualityDto Quality { get; init; } = new();
     public CrossingDto Crossing { get; init; } = new();
     public double? HabitualRechargeUtc { get; init; }
+    public double? HabitualUnplugUtc { get; init; }
+    public double? TargetPct { get; init; }
     public double? ExtrapolatedFromUtc { get; init; }
     public double? ExtrapolationRatePctPerHour { get; init; }
     public List<CurvePointDto> Curve { get; init; } = [];
@@ -108,6 +113,7 @@ public sealed record QualityDto
     public double ObservedDays { get; init; }
     public double Coverage { get; init; }
     public int DischargeSessions { get; init; }
+    public int ChargeSessions { get; init; }
 }
 
 public sealed record CrossingDto

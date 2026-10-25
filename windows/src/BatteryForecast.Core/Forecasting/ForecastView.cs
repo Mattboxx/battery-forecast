@@ -2,7 +2,8 @@ namespace BatteryForecast.Core.Forecasting;
 
 public readonly record struct CurvePoint(DateTimeOffset T, double P10, double P50, double P90);
 
-public enum CrossingStatus { AlreadyBelow, WithinHorizon, BeyondHorizon }
+/// <summary>AlreadyBelow = già sotto la riserva (scarica); AlreadyReached = obiettivo già raggiunto (carica).</summary>
+public enum CrossingStatus { AlreadyBelow, WithinHorizon, BeyondHorizon, AlreadyReached }
 public enum HistoryQuality { Insufficient, Learning, Ok }
 
 /// <summary>Previsione Timestral in forma comoda per la UI. Immutabile.</summary>
@@ -13,6 +14,10 @@ public sealed record ForecastView(
     DateTimeOffset? HabitualRecharge = null, DateTimeOffset? ExtrapolatedFrom = null)
 {
     public IReadOnlyList<string> ContextFeatures { get; init; } = [];
+    /// <summary>Previsione di carica ("resto collegato"): ReservePct è allora l'obiettivo di carica.</summary>
+    public bool IsCharge { get; init; }
+    /// <summary>In carica: ora in cui di solito si stacca l'alimentatore, secondo il modello.</summary>
+    public DateTimeOffset? HabitualUnplug { get; init; }
     public DateTimeOffset HorizonEnd => Curve.Count > 0 ? Curve[^1].T : Generated;
 
     public static ForecastView From(ForecastResponse r) => new(
@@ -21,13 +26,19 @@ public sealed record ForecastView(
         {
             "already_below" => CrossingStatus.AlreadyBelow,
             "within_horizon" => CrossingStatus.WithinHorizon,
+            "already_reached" => CrossingStatus.AlreadyReached,
             _ => CrossingStatus.BeyondHorizon,
         },
         Opt(r.Crossing.CentralUtc), Opt(r.Crossing.EarlyUtc), Opt(r.Crossing.LateUtc),
         [.. r.Curve.Select(p => new CurvePoint(FromUnix(p.T), p.P10, p.P50, p.P90))],
         r.Quality.State switch { "ok" => HistoryQuality.Ok, "learning" => HistoryQuality.Learning, _ => HistoryQuality.Insufficient },
-        r.Quality.ObservedDays, r.Quality.DischargeSessions, r.ModelId, r.ModelRevision,
-        Opt(r.HabitualRechargeUtc), Opt(r.ExtrapolatedFromUtc)) { ContextFeatures = r.ContextFeatures };
+        r.Quality.ObservedDays, r.Scenario == "charge" ? r.Quality.ChargeSessions : r.Quality.DischargeSessions, r.ModelId, r.ModelRevision,
+        Opt(r.HabitualRechargeUtc), Opt(r.ExtrapolatedFromUtc))
+    {
+        ContextFeatures = r.ContextFeatures,
+        IsCharge = r.Scenario == "charge",
+        HabitualUnplug = Opt(r.HabitualUnplugUtc),
+    };
 
     /// <summary>Livello interpolato all'istante <paramref name="t"/>; null fuori dalla curva.</summary>
     public CurvePoint? At(DateTimeOffset t)

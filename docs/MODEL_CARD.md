@@ -61,10 +61,29 @@ Status: **experimental**. No accuracy figures are claimed until `docs/VALIDATION
 Timestral code: Apache 2.0. Timestral weights: modified MIT license, distributed with its exact text
 (it includes a condition on monthly consolidated revenue). See `licenses/`.
 
-## Charging target estimate (Windows port)
+## Charging forecast (Windows port)
 
-Charging activates a separate **experimental observed-data estimator**, not Timestral's no-charge
-scenario. The target is user-defined (50–100%, default 80%) and does not control the firmware.
+While charging and below the user's target (50–100%, default 80%; it does not control the firmware),
+Timestral forecasts the level with the **"stay plugged in" scenario**: the same history, grid and
+historical context as the discharge forecast, with the adapter covariate set to connected for the future.
+
+- **Constraints**: 0–100, never below the current level, never decreasing, percentiles ordered.
+- **Target time**: first time each curve reaches the target; the earliest arrival comes from the 90th
+  percentile, the latest from the 10th. The same caveat applies: not a calibrated interval.
+- **Habitual unplug** (heuristic, mirror of the habitual recharge): when the raw median drops by at least
+  2 points for 10 minutes, the model is forecasting that the user usually unplugs there. From that step the
+  curve approaches 100% exponentially, starting at the average charging rate forecast until then (or the
+  rate observed in the last hour), ±25%, so it slows down near full instead of assuming a constant rate.
+  The UI draws that part dashed and says so.
+- **Quality**: insufficient with less than 2 hours of history or no observed charging session (at least
+  30 minutes plugged in with 2 points gained); then the observed-data estimator below is shown instead.
+- First check with synthetic histories (2026-10-26): 50%→80% forecast in about 58 minutes against an ideal
+  45; the cautious end of the range was very wide. Functional check only, not accuracy.
+
+### Recent charging rate (comparison and fallback)
+
+A separate **observed-data estimator** is always shown next to the Timestral charging forecast and is used
+alone when the history is insufficient.
 At least six continuous observations over eight minutes with two percentage points of increase
 are required. A robust recent slope may project at most 20 further points, only up to 80%.
 For higher or more distant targets, at least two observed charging sessions must cover both the

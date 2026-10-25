@@ -27,8 +27,18 @@ def observed_rate(s: series.Series, steps: int = 12) -> float | None:
     return float((lv[ok[0]] - lv[ok[-1]]) / ((ok[-1] - ok[0]) * STEP_SECONDS / 3600))
 
 
-def quality_state(s: series.Series) -> str:
-    if s.observed_days * 24 < MIN_HOURS_USABLE or s.discharge_sessions == 0:
+def observed_charge_rate(s: series.Series, steps: int = 12) -> float | None:
+    """%/h di carica nell'ultima ora osservata con alimentatore, se ci sono abbastanza passi."""
+    lv, ac = s.level[-steps:], s.ac[-steps:]
+    ok = np.flatnonzero(np.isfinite(lv) & (ac == 1))
+    if len(ok) < steps // 2 or ok[-1] == ok[0]:
+        return None
+    return float((lv[ok[-1]] - lv[ok[0]]) / ((ok[-1] - ok[0]) * STEP_SECONDS / 3600))
+
+
+def quality_state(s: series.Series, scenario: str = "no_charge") -> str:
+    sessions = s.charge_sessions if scenario == "charge" else s.discharge_sessions
+    if s.observed_days * 24 < MIN_HOURS_USABLE or sessions == 0:
         return "insufficient"
     return "learning" if s.observed_days < MIN_DAYS_LEARNING else "ok"
 
@@ -76,20 +86,48 @@ class Engine:
         q = physics.extend_after(q, plug, rate * STEP_SECONDS / 3600, base)
         return physics.constrain_no_charge(q, level), plug, rate
 
+    @staticmethod
+    def _charge(raw: np.ndarray, level: float, s: series.Series):
+        """Scenario "resto collegato": vincoli fisici e, oltre lo stacco abituale, avvicinamento al pieno dichiarato."""
+        unplug = physics.habitual_unplug(raw[:, 1], level)
+        q = physics.constrain_charge(raw, level)
+        if unplug is None:
+            return q, None, None
+        rate = None
+        if unplug >= 3:                                 # almeno 15 minuti di carica prevista prima dello stacco
+            rate = (q[unplug - 1, 1] - level) / (unplug * STEP_SECONDS / 3600)
+        if rate is None or rate < physics.MIN_RATE:
+            rate = observed_charge_rate(s)
+        if rate is None or rate < physics.MIN_RATE:
+            return q, unplug, None
+        base = q[unplug - 1] if unplug > 0 else np.full(3, level)
+        q = physics.extend_charge_after(q, unplug, rate * STEP_SECONDS / 3600, base)
+        return physics.constrain_charge(q, level), unplug, rate
+
     def predict(self, req: dict) -> dict:
         t0 = time.perf_counter()
         s = series.build(req["samples"], req["now"], req["level"], req["ac"])
         h = req["horizon"]
-        # Scenario "no_charge": da ora in poi l'alimentatore resta scollegato.
-        known = np.concatenate([s.ac, np.zeros(h, np.float32)])
+        charge = req["scenario"] == "charge"
+        # Covariata nota del futuro: lo scenario. "no_charge" = alimentatore scollegato, "charge" = collegato.
+        known = np.concatenate([s.ac, np.full(h, 1.0 if charge else 0.0, np.float32)])
         past, categories, context_features = series.past_covariates(req.get("past_covariates", {}), s)
         with self._torch.inference_mode():
             q = self.fc.forecast(s.level[None, None], prediction_length=h,
                                  known_covariates=known[None, None], past_covariates=past,
                                  categorical_past_covariates=categories).quantiles[0, 0].numpy()
         times = s.end + STEP_SECONDS * np.arange(1, h + 1, dtype=np.float64)
-        q, plug, rate = self._no_charge(q[:, self.qi], req["level"], s)
-        cross = [physics.crossing(q[:, k], times, req["reserve"], req["level"], req["now"]) for k in range(3)]
+        if charge:
+            q, change, rate = self._charge(q[:, self.qi], req["level"], s)
+            threshold = req["target"]
+            # in carica arriva prima la curva più alta (p90) e per ultima la più bassa (p10)
+            up = [physics.crossing_up(q[:, k], times, threshold, req["level"], req["now"]) for k in range(3)]
+            cross = [up[2], up[1], up[0]]
+        else:
+            q, change, rate = self._no_charge(q[:, self.qi], req["level"], s)
+            threshold = req["reserve"]
+            cross = [physics.crossing(q[:, k], times, threshold, req["level"], req["now"]) for k in range(3)]
+        plug = change
         return {
             "type": "forecast",
             "id": req["id"],
@@ -99,17 +137,20 @@ class Engine:
             "model_id": self.model_id,
             "model_revision": self.model_revision,
             "scenario": req["scenario"],
-            "reserve_pct": req["reserve"],
+            # soglia della curva: riserva in scarica, obiettivo in carica
+            "reserve_pct": threshold,
+            "target_pct": req["target"] if charge else None,
             "level": req["level"],
             "context_features": context_features,
             "quality": {
-                "state": quality_state(s),
+                "state": quality_state(s, req["scenario"]),
                 "observed_days": s.observed_days,
                 "coverage": s.coverage,
                 "discharge_sessions": s.discharge_sessions,
+                "charge_sessions": s.charge_sessions,
             },
-            # p50 = stima centrale; p10 prudente (prima), p90 ottimista (dopo). Non è un
-            # intervallo calibrato del tempo di autonomia: vedi docs/MODEL_CARD.md.
+            # p50 = stima centrale; early/late = primo e ultimo arrivo alla soglia fra p10 e p90 (in scarica
+            # p10 arriva prima, in carica p90). Non è un intervallo calibrato: vedi docs/MODEL_CARD.md.
             "crossing": {
                 "status": cross[1].status,
                 "central_utc": cross[1].at,
@@ -117,7 +158,8 @@ class Engine:
                 "late_utc": cross[2].at,
             },
             # Ora in cui di solito si ricarica (secondo il modello) e, da lì, curva estrapolata al ritmo dato.
-            "habitual_recharge_utc": None if plug is None else float(times[plug]),
+            "habitual_recharge_utc": None if plug is None or charge else float(times[plug]),
+            "habitual_unplug_utc": None if plug is None or not charge else float(times[plug]),
             "extrapolated_from_utc": None if rate is None else float(times[plug]),
             "extrapolation_rate_pct_per_hour": None if rate is None else round(rate, 2),
             "curve": [{"t": float(t), "p10": round(float(a), 2), "p50": round(float(b), 2), "p90": round(float(c), 2)}

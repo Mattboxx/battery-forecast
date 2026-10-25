@@ -23,6 +23,8 @@ public sealed record PanelModel
     public EstimateSource Source { get; init; }
     public string? SourceLine { get; init; }
     public string? RechargeLine { get; init; }
+    /// <summary>Il segno dell'obiettivo serale sul grafico (non in carica).</summary>
+    public bool ShowEveningMarker { get; init; } = true;
     public string? RecentLine { get; init; }
     public string? WindowsLine { get; init; }
     public bool Stale { get; init; }
@@ -71,6 +73,8 @@ public static class PanelPresenter
             case PowerPhase.Charging or PowerPhase.PluggedIn:
                 var full = b.LevelPct >= 100;
                 var head = full ? L.T("FullyCharged") : s.Phase == PowerPhase.Charging ? L.F("ChargingTo", Pct(b.LevelPct)) : L.T("PluggedIn");
+                if (s.Phase == PowerPhase.Charging && s.ChargeForecast is { Quality: not HistoryQuality.Insufficient } cf)
+                    return ChargeFromModel(m, cf, s, level, zone);
                 if (s.Phase == PowerPhase.Charging && s.Charging is { } charge)
                 {
                     var result = m with { SectionTitle = L.T("ChargeSection"), Note = L.T("ChargeUncertain") };
@@ -201,6 +205,58 @@ public static class PanelPresenter
         if(context.ThermalZoneC is double zone)pieces.Add(L.F("SensorZoneTemp",zone));
         if(context.BrightnessPct is double brightness)pieces.Add(L.F("SensorBrightness",brightness));
         return pieces.Count>0?string.Join(" · ",pieces):null;
+    }
+
+    /// <summary>
+    /// In carica con abbastanza storico: la previsione Timestral "resto collegato" come stima principale,
+    /// il ritmo di carica recente come confronto (stessa struttura della scarica).
+    /// </summary>
+    static PanelModel ChargeFromModel(PanelModel m, ForecastView cf, DashboardState s, string level, TimeZoneInfo zone)
+    {
+        var now = s.Now;
+        var target = (int)Math.Round(cf.ReservePct);
+        var unplug = cf.HabitualUnplug is { } hu
+            ? L.F(cf.ExtrapolatedFrom is null ? "HabitualUnplugNoRate" : "HabitualUnplug", Clock(Round5(hu), zone)) : null;
+        var recent = s.Charging is { Kind: ChargeEstimateKind.RecentRate or ChargeEstimateKind.PastSessions, TargetAt: { } ra }
+            ? L.F("ChargeRecentLine", Duration(ra - now), UntilPhrase(ra, now, zone)) : null;
+        m = m with
+        {
+            SectionTitle = L.T("ChargeSection"),
+            UpdatedAt = L.F("UpdatedAt", Clock(cf.Generated, zone)),
+            Busy = s.Updating,
+            Stale = !s.ChargeForecastFresh,
+            Source = EstimateSource.Habits,
+            SourceLine = L.F(cf.Quality == HistoryQuality.Ok ? "ChargeHabitsSource" : "ChargeLearningSource", Days(cf.ObservedDays)),
+            RechargeLine = unplug,
+            RecentLine = recent,
+            Chart = cf,
+            ChartSummary = Summary(cf, now),
+            ShowEveningMarker = false,
+        };
+        switch (cf.Crossing)
+        {
+            case CrossingStatus.AlreadyReached:
+                return m with { Headline = L.F("ChargeReached", target), Tooltip = $"Battery Forecast · {level} · " + L.F("ChargeReached", target) };
+            case CrossingStatus.WithinHorizon when cf.Central is { } c:
+                var (early, late) = (cf.Early, cf.Late) switch
+                {
+                    ({ } e, { } la) => Range(e, la, now, zone),
+                    ({ } e, null) => (When(e, now, zone), L.T("Later")),
+                    (null, { } la) => (L.T("Earlier"), When(la, now, zone)),
+                    _ => (L.T("Earlier"), L.T("Later")),
+                };
+                var head = L.F("ChargeUntil", target, When(Round5(c), now, zone));
+                return m with
+                {
+                    Headline = head,
+                    Detail = L.F("AboutRange", Duration(c - now), early, late),
+                    Note = L.F("ChargeToTarget", target),
+                    Tooltip = Tip($"Battery Forecast · {level}", head),
+                };
+            default:
+                return m with { Headline = L.F("ChargeBeyond", target), Note = L.T("ChargeUncertain"),
+                    Tooltip = Tip($"Battery Forecast · {level}", L.F("ChargeBeyond", target)) };
+        }
     }
 
     static PanelModel HabitHeadline(PanelModel m, ForecastView f, DashboardState s, TimeZoneInfo zone)

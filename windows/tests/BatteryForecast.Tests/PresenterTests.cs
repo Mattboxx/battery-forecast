@@ -98,6 +98,28 @@ public class PresenterTests
     }
 
     [Fact]
+    public void Charging_uses_the_timestral_charge_forecast_with_recent_rate_as_comparison()
+    {
+        var curve = Enumerable.Range(1, 288).Select(i => new CurvePoint(Now.AddMinutes(5 * i),
+            Math.Min(100, 50 + 0.5 * i), Math.Min(100, 50 + 0.6 * i), Math.Min(100, 50 + 0.7 * i))).ToList();
+        var cf = new ForecastView(Now, 50, 80, CrossingStatus.WithinHorizon, Now.AddMinutes(250), Now.AddMinutes(215), Now.AddMinutes(300),
+            curve, HistoryQuality.Ok, 6.2, 9, "m", "r") { IsCharge = true, HabitualUnplug = Now.AddHours(6), ExtrapolatedFrom = null };
+        var st = State(Bat(50, true, ChargeState.Charging)) with
+        {
+            ChargeForecast = cf, ChargeForecastFresh = true,
+            Charging = new ChargeEstimate(ChargeEstimateKind.RecentRate, 80, Now.AddMinutes(200)),
+        };
+        var m = PanelPresenter.Present(st, Rome);
+        Assert.Equal("Obiettivo 80%: 14:10", m.Headline);
+        Assert.Equal("circa 4 h 10 min · fascia indicativa 13:35–15:00", m.Detail);
+        Assert.Equal("Impara dalle tue ricariche · 6,2 giorni di storia", m.SourceLine);
+        Assert.Equal("Al ritmo di carica attuale: circa 3 h 20 min (fino alle 13:20)", m.RecentLine);
+        Assert.Contains("Di solito stacchi l’alimentatore verso le 16:00", m.RechargeLine);
+        Assert.False(m.ShowEveningMarker);
+        Assert.Same(cf, m.Chart);
+    }
+
+    [Fact]
     public void Beyond_horizon_never_claims_exactly_24_hours()
     {
         var m = PanelPresenter.Present(State(Bat(), View(CrossingStatus.BeyondHorizon, early: null)), Rome);

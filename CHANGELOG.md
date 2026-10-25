@@ -6,7 +6,9 @@
 - Global shortcut that toggles the panel (open/close), recorded by pressing the keys in Preferences, with Win key
   support and a clear message when Windows or another app already uses the combination.
 - Optional "open on hover" for the tray icon, and adjustable panel scale and width.
-- Experimental charging target estimates, chart probing by mouse/keyboard, summary copy and local diagnostics.
+- Charging forecast with Timestral ("stay plugged in" scenario) learned from past charges, with habitual-unplug
+  handling and the recent charging rate as comparison/fallback; chart probing by mouse/keyboard, summary copy and
+  local diagnostics.
 - Optional CPU, battery power, memory, brightness, power profile and available temperature history; historical Timestral covariates with no invented future inputs.
 - Original copyright restored and complete offline legal inventory, with fail-closed packaging checks and installer verification in CI.
 - No accuracy improvement claimed; unsupported temperatures remain unavailable.

@@ -154,7 +154,7 @@ public partial class PanelWindow : Window
     {
         KeepOpen.IsChecked = app.Settings.KeepPanelOpen;
         DataContext = app.Settings.ShowChart ? model : model with { Chart = null, ChartSummary = null };
-        Chart.Target = target;
+        Chart.Target = model.ShowEveningMarker ? target : null;
         Chart.InvalidateVisual();
     }
 

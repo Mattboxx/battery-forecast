@@ -17,14 +17,19 @@
   <data name="Battery" xml:space="preserve"><value>Batteria</value></data>
   <data name="Beyond" xml:space="preserve"><value>Oltre le prossime {0} ore</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calcolo della previsione…</value></data>
+  <data name="ChargeBeyond" xml:space="preserve"><value>Obiettivo {0}%: oltre le prossime 24 ore</value></data>
   <data name="ChargeCollecting" xml:space="preserve"><value>Raccolta dati di ricarica</value></data>
   <data name="ChargeCollectingHelp" xml:space="preserve"><value>Dati di ricarica continua ancora insufficienti per l’obiettivo {0}%. La fase finale può rallentare.</value></data>
+  <data name="ChargeHabitsSource" xml:space="preserve"><value>Impara dalle tue ricariche · {0} giorni di storia</value></data>
   <data name="ChargeHistorySource" xml:space="preserve"><value>Da {0} sessioni di ricarica osservate comparabili, incluso il rallentamento finale.</value></data>
+  <data name="ChargeLearningSource" xml:space="preserve"><value>Sto ancora imparando come ricarichi · {0} giorni di storia</value></data>
   <data name="ChargeReached" xml:space="preserve"><value>Obiettivo di carica {0}% raggiunto</value></data>
+  <data name="ChargeRecentLine" xml:space="preserve"><value>Al ritmo di carica attuale: circa {0} ({1})</value></data>
   <data name="ChargeRecentSource" xml:space="preserve"><value>Dal ritmo recente di ricarica; con lo stesso alimentatore e carico.</value></data>
   <data name="ChargeSection" xml:space="preserve"><value>Previsione di ricarica</value></data>
   <data name="ChargeTargetHelp" xml:space="preserve"><value>50–100%. Stima durante la carica; non modifica il limite hardware. Oltre 80% richiede almeno due sessioni di carica osservate comparabili.</value></data>
   <data name="ChargeTargetLabel" xml:space="preserve"><value>Obiettivo di carica (%) · solo stima</value></data>
+  <data name="ChargeToTarget" xml:space="preserve"><value>fino all’obiettivo del {0}%, restando collegato</value></data>
   <data name="ChargeUncertain" xml:space="preserve"><value>Stima di ricarica sperimentale: può cambiare con temperatura, carico e alimentatore.</value></data>
   <data name="ChargeUntil" xml:space="preserve"><value>Obiettivo {0}%: {1}</value></data>
   <data name="Charging" xml:space="preserve"><value>In carica</value></data>
@@ -70,6 +75,8 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="FullyCharged" xml:space="preserve"><value>Carica completa</value></data>
   <data name="HabitualRecharge" xml:space="preserve"><value>Di solito colleghi l'alimentatore verso le {0}: oltre, la curva prosegue al ritmo medio previsto.</value></data>
   <data name="HabitualRechargeNoRate" xml:space="preserve"><value>Di solito colleghi l'alimentatore verso le {0}: oltre, le abitudini non dicono quanto consumeresti a batteria.</value></data>
+  <data name="HabitualUnplug" xml:space="preserve"><value>Di solito stacchi l’alimentatore verso le {0}: oltre, la curva prosegue con il rallentamento tipico vicino al pieno.</value></data>
+  <data name="HabitualUnplugNoRate" xml:space="preserve"><value>Di solito stacchi l’alimentatore verso le {0}: oltre, le abitudini non dicono come proseguirebbe la carica.</value></data>
   <data name="HealthDetail" xml:space="preserve"><value>{0} Wh a piena carica su {1} Wh di progetto · rilevato {2}</value></data>
   <data name="HealthOver" xml:space="preserve"><value>Sopra il valore nominale: succede con batterie nuove o firmware che arrotonda le capacità.</value></data>
   <data name="HealthTitle" xml:space="preserve"><value>Salute della batteria</value></data>
