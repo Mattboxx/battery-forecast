@@ -88,13 +88,23 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 
 [Run]
 Filename: "{app}\BatteryForecast.exe"; Description: "{cm:LaunchProgram,Battery Forecast}"; Flags: nowait postinstall skipifsilent
-; aggiornamento dall'app (installazione /SILENT): l'app si riapre da sola, senza pannello
-Filename: "{app}\BatteryForecast.exe"; Parameters: "--background"; Flags: nowait; Check: WizardSilent
+; aggiornamento dall'app: l'app passa /RELAUNCH e si riapre da sola, senza pannello. Un'installazione
+; silenziosa qualsiasi (test, distribuzione) non deve avviare l'app: lascerebbe un processo in attesa.
+Filename: "{app}\BatteryForecast.exe"; Parameters: "--background"; Flags: nowait; Check: WizardSilent and Relaunch
 
 [UninstallRun]
 Filename: "{app}\BatteryForecast.exe"; Parameters: "--quit"; RunOnceId: "QuitBatteryForecast"; Flags: runhidden waituntilterminated skipifdoesntexist
 
 [Code]
+function Relaunch: Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 1 to ParamCount do
+    if CompareText(ParamStr(I), '/RELAUNCH') = 0 then Result := True;
+end;
+
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   Exe: String;
