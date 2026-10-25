@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BatteryForecast.App/BatteryForecast.App.csproj" />
+    <Project Path="src/BatteryForecast.Cli/BatteryForecast.Cli.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/BatteryForecast.Core/BatteryForecast.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BatteryForecast.Tests/BatteryForecast.Tests.csproj" />
+  </Folder>
+</Solution>

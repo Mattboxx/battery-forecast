@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Battery Forecast · How long will your Windows laptop really last?</title>
+  <meta name="description" content="Battery Forecast predicts how long your Windows laptop battery will last, learning your habits with a local AI model (Timestral). Free, offline, private.">
+  <meta property="og:title" content="Battery Forecast for Windows">
+  <meta property="og:description" content="An AI battery-life forecast that learns your habits and runs entirely on your PC.">
+  <meta property="og:image" content="https://mattboxx.github.io/battery-forecast/assets/panel-dark.png">
+  <meta name="theme-color" content="#15162b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="#top"><img src="assets/icon.svg" alt="">Battery Forecast</a>
+    <div class="links">
+      <a class="hide-xs" href="#download">Download</a>
+      <a class="hide-s" href="#how">How it works</a>
+      <a class="hide-s" href="#privacy">Privacy</a>
+      <a class="support" href="https://ko-fi.com/mattboxx" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        Support me</a>
+      <a class="hide-xs" href="https://github.com/Mattboxx/battery-forecast" rel="noopener">GitHub ↗</a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <header class="hero wrap">
+      <a class="chip" href="https://github.com/Mattboxx/battery-forecast/releases"><i></i>Preview · Windows 10 and 11 · x64 and ARM64 →</a>
+      <h1>Battery Forecast</h1>
+      <p class="lead">How long will your laptop really last today? An AI forecast that learns how <em>you</em> use your PC, and runs entirely on it.</p>
+      <div class="ctas">
+        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases/latest">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg>
+          Download for Windows</a>
+        <a class="btn secondary" href="#how">How it works →</a>
+      </div>
+      <p class="small">Free and open source · No account · Works offline</p>
+      <picture>
+        <source srcset="assets/panel-dark.png" media="(prefers-color-scheme: dark)">
+        <img class="shot" src="assets/panel-light.png" width="384" height="800"
+             alt="Battery Forecast panel: until tomorrow at 04:10, about 8 hours 40 minutes, with a 24-hour chart">
+      </picture>
+      <p class="caption">Demo mode: the discharge in this screenshot is simulated from a real battery level.</p>
+    </header>
+
+    <section class="wrap reveal">
+      <p class="eyebrow">Made for your day</p>
+      <div class="split">
+        <h2>Answers, not percentages.</h2>
+        <p>Windows tells you a percentage. Battery Forecast tells you what it means for the rest of your day.</p>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <h3>Until when</h3>
+          <p>The time your battery reaches the reserve, with an honest range from cautious to optimistic. Never a fake exact number.</p>
+        </article>
+        <article class="card">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></div>
+          <h3>Your evening</h3>
+          <p>How much will be left at 22:00, or any time you choose. And a gentle hint to turn on battery saver if it won't last.</p>
+        </article>
+        <article class="card">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+          <h3>Calm alerts</h3>
+          <p>About 60, 30 and 15 minutes before the reserve, at low battery, when charged, or when something drains unusually fast. Once each.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="how" class="wrap reveal">
+      <p class="eyebrow">How it works</p>
+      <div class="split">
+        <h2>It learns your habits.<br>Then it looks ahead.</h2>
+        <p>Every minute Battery Forecast records your battery level. A time-series AI model, Timestral by Mistral AI, reads weeks of that history and forecasts the next 24 hours.</p>
+      </div>
+      <div class="duo">
+        <ul class="checks">
+          <li><b>Usual use, no charging.</b> The forecast answers one clear question: how long if you keep going as you usually do, without plugging in.</li>
+          <li><b>Habits and the present, side by side.</b> The forecast from your habits always comes with the estimate at your current rate, and with Windows' own.</li>
+          <li><b>Honest about the unknown.</b> When you usually plug in, the model can't know what you'd use on battery; the chart says so and continues at the expected rate, dashed.</li>
+          <li><b>Health and history.</b> Full-charge vs design capacity, and the discharges it has observed, without inventing cycles.</li>
+        </ul>
+        <picture>
+          <source srcset="assets/history-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/history-light.png" alt="History and battery health window: 82% of design capacity and a list of observed discharges" loading="lazy">
+        </picture>
+      </div>
+    </section>
+
+    <section class="wrap reveal">
+      <p class="eyebrow">Light on your battery</p>
+      <div class="split">
+        <h2>The AI sleeps<br>until it's needed.</h2>
+        <p>The model is not a background service. It starts to compute, answers, and closes. With battery saver on it never starts by itself.</p>
+      </div>
+      <div class="facts">
+        <div class="fact"><b>30 min</b><span>at most, between background forecasts on battery (you can choose)</span></div>
+        <div class="fact"><b>~3 s</b><span>of CPU per forecast, measured on the development laptop</span></div>
+        <div class="fact"><b>0</b><span>engine processes left running a minute after a forecast</span></div>
+        <div class="fact"><b>0</b><span>CPU while waiting: idle threads don't spin</span></div>
+      </div>
+    </section>
+
+    <section class="wrap reveal">
+      <p class="eyebrow">Four themes</p>
+      <div class="split">
+        <h2>At home next to the clock.</h2>
+        <p>Dawn and Mist for light days, Dusk and Midnight for the evening, or simply follow Windows. Italian and English.</p>
+      </div>
+      <div class="gallery">
+        <figure><img src="assets/panel-light.png" alt="Dawn theme" loading="lazy"><figcaption>Dawn</figcaption></figure>
+        <figure><img src="assets/panel-mist.png" alt="Mist theme" loading="lazy"><figcaption>Mist</figcaption></figure>
+        <figure><img src="assets/panel-dark.png" alt="Dusk theme" loading="lazy"><figcaption>Dusk</figcaption></figure>
+        <figure><img src="assets/panel-midnight.png" alt="Midnight theme" loading="lazy"><figcaption>Midnight</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="privacy" class="wrap reveal">
+      <p class="eyebrow">Private by design</p>
+      <div class="split">
+        <h2>Your battery data<br>never leaves your PC.</h2>
+        <p>Python, PyTorch and the model ship inside the installer. Forecasts work with the network off.</p>
+      </div>
+      <ul class="checks" style="margin-top:32px">
+        <li><b>No account, no telemetry.</b> History lives in a local database you can export as CSV or delete at any time.</li>
+        <li><b>One optional network call.</b> Once a day the app asks GitHub if there is a new version. You can turn it off.</li>
+        <li><b>Verified updates.</b> Installers are downloaded only from GitHub and checked against the SHA-256 published with each release.</li>
+      </ul>
+    </section>
+
+    <section id="download" class="wrap reveal">
+      <p class="eyebrow">Download</p>
+      <div class="split">
+        <h2>Get Battery Forecast.</h2>
+        <p>One installer per architecture, for your user only: no administrator rights needed.</p>
+      </div>
+      <div class="ctas" style="justify-content:flex-start;margin-top:32px">
+        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases/latest">Download for Windows</a>
+        <a class="btn secondary" href="https://github.com/Mattboxx/battery-forecast#install">Installation guide</a>
+      </div>
+      <p class="small">Windows 10 (2004) or 11 · Intel/AMD x64 or ARM64 · about 280 MB download</p>
+      <div class="notice">
+        <b>Windows security:</b> the preview installers are not digitally signed yet, so SmartScreen may warn you.
+        Choose <i>More info → Run anyway</i>, or first compare the file with its <code>.sha256</code> from the release page:
+        <code>Get-FileHash .\BatteryForecast-Setup-*.exe</code>
+      </div>
+      <details>
+        <summary>Is the forecast exact?</summary>
+        <p>No forecast of the future can be. Battery Forecast shows a central estimate with a range, says which model produced it, and tells you when it is still learning. How accurate it is on real laptops is being measured during the preview.</p>
+      </details>
+      <details>
+        <summary>Why is the download that large?</summary>
+        <p>It includes everything needed to run the AI offline: a private Python runtime, PyTorch for CPU and the Timestral weights. Nothing else is downloaded later.</p>
+      </details>
+      <details>
+        <summary>Does it change my power settings?</summary>
+        <p>No. It only reads the battery. When battery saver would help, it opens the Windows settings page for you.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap row">
+      <div>
+        <div>Battery Forecast is a Windows fork of <a href="https://github.com/mattBonfanti/till-dusk">Till Dusk</a> by Matteo Bonfanti (MIT).</div>
+        <div>Forecasts by <a href="https://github.com/mistralai/timestral">Timestral</a> (Mistral AI): code Apache-2.0, weights under their modified MIT license. Not affiliated with Mistral AI.</div>
+      </div>
+      <a class="kofi" href="https://ko-fi.com/mattboxx" rel="noopener">♥ Support on Ko-fi</a>
+    </div>
+  </footer>
+
+  <script>
+    // comparsa delle sezioni allo scorrimento: solo estetica, mai a costo del contenuto
+    document.documentElement.classList.add('js');
+    const items = [...document.querySelectorAll('.reveal')];
+    const check = () => items.forEach(el => {
+      if (!el.classList.contains('in') && el.getBoundingClientRect().top < innerHeight * 0.9) el.classList.add('in');
+    });
+    addEventListener('scroll', check, { passive: true });
+    addEventListener('resize', check);
+    check();
+    setTimeout(() => items.forEach(el => el.classList.add('in')), 4000);   // rete di sicurezza
+  </script>
+</body>
+</html>

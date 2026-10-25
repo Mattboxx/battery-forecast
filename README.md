@@ -1,38 +1,165 @@
-<p align="center"><img src="app/icon-1024.png" width="160" alt="Till Dusk icon"></p>
+<p align="center">
+  <img src="docs/images/icon-256.png" width="128" alt="Battery Forecast icon">
+</p>
 
-# Till Dusk
+<h1 align="center">Battery Forecast</h1>
 
-A menu-bar battery forecast for macOS. Instead of "how long if I keep going like this", Till Dusk tells you **where your charge will be tonight, based on how you actually use your Mac**, using Mistral's [Timestral](https://github.com/mistralai/timestral) time-series model running locally.
+<p align="center">
+  <b>How long will your Windows laptop really last today?</b><br>
+  An AI battery forecast that learns how you use your PC, and runs entirely on it.<br>
+  <sub>Powered by <a href="https://github.com/mistralai/timestral">Timestral</a> · a Windows fork of <a href="https://github.com/mattBonfanti/till-dusk">Till Dusk</a></sub>
+</p>
 
-*Italiano più sotto.*
+<p align="center">
+  <a href="https://mattboxx.github.io/battery-forecast/"><b>Website</b></a> ·
+  <a href="https://github.com/Mattboxx/battery-forecast/releases/latest"><b>Download</b></a> ·
+  <a href="docs/README.it.md">Italiano</a> ·
+  <a href="https://ko-fi.com/mattboxx">♥ Support on Ko-fi</a>
+</p>
 
-## Download and install (English)
+<p align="center">
+  <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-2457C5">
+  <img alt="x64 and ARM64" src="https://img.shields.io/badge/arch-x64%20%7C%20ARM64-3D2F7A">
+  <a href="https://github.com/Mattboxx/battery-forecast/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Mattboxx/battery-forecast?include_prereleases&color=B45A0A"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-167351"></a>
+  <a href="https://ko-fi.com/mattboxx"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-support-C2416B?logo=kofi&logoColor=white"></a>
+</p>
 
-- **Requirements:** macOS 26 or later on an Apple silicon Mac (M1 or later). The download is a few hundred MB because it bundles Python, PyTorch and the model, so the app works offline.
-- **Install:** download `TillDusk-1.0.zip` from [Releases](https://github.com/mattBonfanti/till-dusk/releases), open it and drag `Till Dusk.app` to Applications.
-- **First launch:** the app is not notarized by Apple, so macOS says it can't verify it. Close the alert, open System Settings → Privacy & Security, scroll to the message about Till Dusk, click **Open Anyway** and confirm. After that it opens normally.
-- **What you get:** a menu-bar item showing time to empty, the expected charge at 22:00, or the percentage; a panel with a 24-hour forecast chart, a cautious/optimistic band and macOS's own estimate for comparison; a Low Power Mode suggestion when the forecast runs out before evening.
-- **Privacy:** battery history is read from copies of macOS's power log and stays on your Mac. The forecast runs locally with the bundled model; the app sends nothing over the network.
-- **Low Power Mode:** if you turn it on from the app, the password is asked by the macOS system dialog; the app never sees it.
-- **Licenses:** Till Dusk's code is MIT. Timestral's code is Apache 2.0; Mistral AI's Timestral-28M weights are under a modified MIT license (free use for companies under $20M monthly revenue). The texts are in `Till Dusk.app/Contents/Resources/licenses`.
+<p align="center">
+  <img src="docs/images/panel-dark.png" width="300" alt="Battery Forecast panel, Dusk theme">
+  &nbsp;&nbsp;
+  <img src="docs/images/panel-light.png" width="300" alt="Battery Forecast panel, Dawn theme">
+</p>
+<p align="center"><sub>Demo mode: the discharge in these screenshots is simulated from a real battery level.</sub></p>
 
-## Scaricare e installare (Italiano)
+> **Preview.** Battery Forecast works and is being tested on real laptops. Its accuracy has not been measured
+> yet, so it does not claim any: it shows a range and tells you where each number comes from.
 
-- **Requisiti:** macOS 26 o successivo, Mac con Apple silicon (M1 o successivi). Il download pesa qualche centinaio di MB perché dentro ci sono Python, PyTorch e il modello: l'app funziona senza internet.
-- **Installazione:** scarica `TillDusk-1.0.zip` da [Releases](https://github.com/mattBonfanti/till-dusk/releases), aprilo e trascina `Till Dusk.app` in Applicazioni.
-- **Prima apertura:** l'app non è notarizzata da Apple, quindi al primo avvio macOS dice che non può verificarla. Chiudi l'avviso, apri Impostazioni di Sistema → Privacy e sicurezza, scorri fino al messaggio su Till Dusk e premi **Apri comunque**, poi conferma. Dalla volta dopo si apre normalmente.
-- **Cosa fa:** nella barra dei menu mostra il tempo alla scarica, la carica prevista alle 22 o la percentuale; il pannello ha il grafico delle prossime 24 ore, una fascia prudente e ottimista e la stima di macOS per confronto; propone il risparmio energetico quando la previsione finisce prima di sera.
-- **Privacy:** la storia della batteria si legge da copie del registro energetico di macOS e resta sul Mac. La previsione si calcola in locale con il modello incluso e l'app non manda dati in rete.
-- **Risparmio energetico:** se lo attivi dall'app, la password la chiede la finestra di sistema di macOS e l'app non la vede.
-- **Licenze:** il codice di Till Dusk è MIT. Il codice di Timestral è Apache 2.0; i pesi del modello Timestral-28M di Mistral AI sono sotto licenza MIT modificata (uso libero per aziende sotto i 20 milioni di dollari di fatturato al mese). I testi sono in `Till Dusk.app/Contents/Resources/licenses`.
+## What it does
+
+Windows shows a percentage. Battery Forecast tells you what that percentage means for the rest of your day.
+
+- **Until when.** The time your battery reaches the reserve (5% by default), with an indicative range from
+  cautious to optimistic. Never a fake exact number: estimated times are rounded to 5 minutes.
+- **Your evening.** The level expected at 22:00 or at any time you choose, and a suggestion to turn on battery
+  saver when it would not last.
+- **24-hour chart.** Central estimate, cautious/optimistic band, reserve line and your evening target.
+- **Habits and the present, side by side.** The forecast from your habits always comes with the estimate at your
+  current rate and with Windows' own.
+- **Calm alerts.** About 60, 30 and 15 minutes before the reserve, at low battery, when charged, and when the PC
+  suddenly uses twice as much power. One alert per threshold per discharge, never on the adapter.
+- **History and health.** Observed discharges and full-charge capacity vs design capacity, with source and date.
+- **At home next to the clock.** Tray icon with the exact level, four themes (Dawn, Mist, Dusk, Midnight) or
+  Windows' own, Italian and English, keyboard and screen-reader friendly.
+- **Updates from the app.** One click checks GitHub, downloads the installer and verifies its SHA-256.
+
+<p align="center">
+  <img src="docs/images/history-dark.png" width="420" alt="History and battery health window">
+  &nbsp;
+  <img src="docs/images/preferences-dark.png" width="300" alt="Preferences">
+</p>
+
+## How it works
+
+```
+Windows battery API ──► local history (SQLite, 1 sample/min) ──► Timestral (local, CPU) ──► 24-hour forecast
+        │                                                                 ▲
+        └──────────────► estimate at the current rate ────────────────────┴──► panel, tray, alerts
+```
+
+1. While it runs, Battery Forecast records your battery level and power source every minute, plus sleep, resume
+   and charger events. Gaps stay gaps: nothing is invented for the time the PC was off.
+2. [Timestral](https://github.com/mistralai/timestral), a time-series model by Mistral AI, reads up to 110 days of
+   that history on a 5-minute grid and forecasts the next 24 hours, with percentiles.
+3. The scenario is always the same, so the answer is clear: *your usual use, without plugging in from now on*.
+   The curve can never rise and never goes above the current level.
+4. When your habits say you usually plug in at a certain time, the model cannot know what you would use on
+   battery. The panel says so and the chart continues at the expected average rate, drawn dashed.
+5. Until there is enough history (a couple of hours of discharges), the estimate at your current rate is shown
+   instead, and the panel says that too.
+
+The details, limits and the meaning of the range are in the [model card](docs/MODEL_CARD.md).
+
+## Light on your battery
+
+The AI is not a background service. It starts, computes, and closes.
+
+| | |
+| --- | --- |
+| Background forecasts on battery | at most every 30 minutes (or only when you open the panel, or every 10 minutes) |
+| With battery saver on | the model never starts by itself |
+| Cost of one forecast | about 3 s of CPU, measured on the development laptop |
+| Between forecasts | no engine process, no CPU: it closes one minute after answering |
+
+## Privacy
+
+- No account, no telemetry. Battery history stays in `%LOCALAPPDATA%\BatteryForecast`; you can export it as CSV
+  or delete it from Preferences.
+- Forecasts work offline: Python, PyTorch and the model weights are inside the installer.
+- The only network request is the optional daily update check to `api.github.com` (you can turn it off).
+  Installers are downloaded only from GitHub and kept only if they match the published SHA-256.
+
+## Install
+
+1. Download `BatteryForecast-Setup-<version>-x64.exe` (Intel/AMD) or `-arm64.exe` (Snapdragon and other ARM PCs)
+   from [Releases](https://github.com/Mattboxx/battery-forecast/releases/latest).
+2. Optional: check the file against the `.sha256` next to it:
+   ```powershell
+   Get-FileHash .\BatteryForecast-Setup-*.exe
+   ```
+3. Run it. It installs for your user only, without administrator rights. The preview is **not digitally signed**,
+   so SmartScreen may warn you: choose *More info → Run anyway*.
+4. The battery icon appears next to the clock. If Windows hides it, drag it out of the `^` overflow area.
+
+Requirements: Windows 10 2004 or Windows 11, x64 or ARM64, about 280 MB download (800 MB installed, mostly PyTorch).
+Uninstall from *Settings → Apps*; you will be asked whether to keep your battery history.
 
 ## Build from source
 
-Needs macOS 26, the Xcode Command Line Tools and [uv](https://docs.astral.sh/uv/).
+You need Windows x64, the .NET 10 SDK, Python 3.12 and [Inno Setup 6](https://jrsoftware.org/isinfo.php).
 
-```bash
-app/build.sh      # Python env in ~/Library/Application Support/Autonomia, compiles and installs ~/Applications/Till Dusk.app
-app/release.sh    # self-contained app (Python 3.12 + deps + Timestral-28M), ad-hoc signed → app/dist/TillDusk-1.0.zip
+```powershell
+# engine environment (CPU wheels) and model weights at the pinned revision
+py -3.12 -m venv forecast\.venv
+forecast\.venv\Scripts\python -m pip install -r forecast\requirements.lock --extra-index-url https://download.pytorch.org/whl/cpu
+forecast\.venv\Scripts\python -m pip install pyinstaller pytest
+forecast\.venv\Scripts\python tools\fetch_model.py --model 28M
+
+# tests
+dotnet test windows\tests\BatteryForecast.Tests
+forecast\.venv\Scripts\python -m pytest -q forecast
+
+# run from source (demo mode: simulated discharge, separate data folder)
+dotnet run --project windows\src\BatteryForecast.App -- --demo
+
+# full offline package and installer in artifacts\
+powershell -NoProfile -File tools\package.ps1 -Version 0.9.0-alpha.2
 ```
 
-`release.sh` copies the model from the Hugging Face cache, so download it once first (e.g. `uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('mistralai/Timestral-28M')"`). Name, bundle id and version live in `app/app.conf`; the icon is `app/AppIcon.icns` (source `app/icon.svg`). The forecast service is `scripts/battery_now.py`. Internally the executable and data folders are still called "Autonomia".
+ARM64 installers are built natively on Windows ARM by the [release workflow](.github/workflows/release.yml),
+because PyInstaller packages the Python it runs on.
+
+| Folder | What is inside |
+| --- | --- |
+| `windows/src/BatteryForecast.Core` | battery readings, history, forecast coordination, alerts, texts, updates |
+| `windows/src/BatteryForecast.App` | WPF tray app, panel, chart, preferences, history window |
+| `forecast/` | local Timestral engine (Python), JSON Lines protocol over stdin/stdout |
+| `tools/` | packaging, icons, themes, texts, licenses |
+| `site/` | the website, published with GitHub Pages |
+
+## Credits and licenses
+
+- **Battery Forecast** is a fork of **[Till Dusk](https://github.com/mattBonfanti/till-dusk) by Matteo Bonfanti**,
+  the original macOS menu-bar app, released under the MIT license. The idea, the forecast approach and the
+  wording of many messages come from it.
+- **[Timestral](https://github.com/mistralai/timestral)** by Mistral AI: code under Apache 2.0, Timestral-28M weights
+  under a modified MIT license (its exact text is in [`licenses/`](licenses) and inside the installer; it includes a
+  condition for companies above a monthly revenue threshold). Battery Forecast is not affiliated with Mistral AI.
+- Python, PyTorch, NumPy, .NET and the other bundled components keep their own licenses; the installer ships every
+  text in its `licenses` folder.
+- Battery Forecast's own code is MIT, see [LICENSE](LICENSE).
+
+## Support
+
+If Battery Forecast is useful to you, you can support its development on **[Ko-fi](https://ko-fi.com/mattboxx)**.
+Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/battery-forecast/issues).

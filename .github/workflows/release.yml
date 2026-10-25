@@ -1,0 +1,73 @@
+name: Release
+
+# Si avvia solo con un tag di versione, per esempio: git tag v0.9.0-beta.1 && git push origin v0.9.0-beta.1
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            runner: windows-latest
+          - arch: arm64
+            runner: windows-11-arm      # il motore PyInstaller va costruito sull'architettura di destinazione
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          architecture: ${{ matrix.arch }}
+      - name: Engine environment
+        shell: pwsh
+        run: |
+          python -m venv forecast/.venv
+          $py = "forecast/.venv/Scripts/python.exe"
+          & $py -m pip install --upgrade pip
+          # hf-xet non ha wheel cp312 per Windows ARM e serve solo a scaricare: si esclude (le dipendenze sono già bloccate)
+          Get-Content forecast/requirements.lock | Where-Object { $_ -notmatch '^hf-xet==' } | Set-Content req.txt
+          & $py -m pip install --no-deps -r req.txt --extra-index-url https://download.pytorch.org/whl/cpu
+          & $py -m pip install pyinstaller
+          & $py tools/fetch_model.py --model 28M
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://jrsoftware.org/download.php/is.exe -OutFile is.exe
+          Start-Process .\is.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/CURRENTUSER', '/NORESTART' -Wait
+      - name: Package
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          ./tools/package.ps1 -Version $version -Arch ${{ matrix.arch }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.arch }}
+          path: |
+            artifacts/BatteryForecast-Setup-*.exe
+            artifacts/BatteryForecast-Setup-*.exe.sha256
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ github.ref_name }}"
+          pre=""; [[ "$tag" == *-* ]] && pre="--prerelease"
+          gh release create "$tag" dist/* --title "Battery Forecast ${tag#v}" --notes-file CHANGELOG.md $pre --verify-tag

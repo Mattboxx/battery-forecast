@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generato da tools/strings.py: modificare lì. -->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="About" xml:space="preserve"><value>circa {0}</value></data>
+  <data name="AboutRange" xml:space="preserve"><value>circa {0} · fascia indicativa {1}–{2}</value></data>
+  <data name="AboutText" xml:space="preserve"><value>Battery Forecast {0}. Le previsioni girano in locale con {1}. Derivato da Till Dusk di Matteo Bonfanti (MIT).</value></data>
+  <data name="AlreadyBelow" xml:space="preserve"><value>Già sotto la riserva del {0}%</value></data>
+  <data name="AtTarget" xml:space="preserve"><value>Alle {0}</value></data>
+  <data name="AtTargetTomorrow" xml:space="preserve"><value>Domani alle {0}</value></data>
+  <data name="AtToday" xml:space="preserve"><value>alle {0}</value></data>
+  <data name="Battery" xml:space="preserve"><value>Batteria</value></data>
+  <data name="Beyond" xml:space="preserve"><value>Oltre le prossime {0} ore</value></data>
+  <data name="Calculating" xml:space="preserve"><value>Calcolo della previsione…</value></data>
+  <data name="Charging" xml:space="preserve"><value>In carica</value></data>
+  <data name="ChargingTo" xml:space="preserve"><value>In carica · {0}%</value></data>
+  <data name="ChartName" xml:space="preserve"><value>Previsione per le prossime 24 ore</value></data>
+  <data name="ChartSummary" xml:space="preserve"><value>Ora {0}%. Stima centrale: {1}% fra 3 ore, {2}% fra 6 ore, {3}% fra 12 ore. Fascia: dalla stima prudente a quella ottimista.</value></data>
+  <data name="Close" xml:space="preserve"><value>Chiudi</value></data>
+  <data name="Collecting" xml:space="preserve"><value>Raccolta dati in corso</value></data>
+  <data name="CollectingDetail" xml:space="preserve"><value>Usa il PC a batteria per qualche minuto: la prima stima arriva dal consumo recente.</value></data>
+  <data name="Coverage" xml:space="preserve"><value>{0} giorni di storico · {1} campioni</value></data>
+  <data name="DayAt" xml:space="preserve"><value>{0} alle {1}</value></data>
+  <data name="Days" xml:space="preserve"><value>{0} giorni</value></data>
+  <data name="DeleteConfirm" xml:space="preserve"><value>Eliminare tutto lo storico registrato? Le previsioni ricominceranno a imparare da zero.</value></data>
+  <data name="DeleteHistory" xml:space="preserve"><value>Elimina tutto lo storico…</value></data>
+  <data name="Deleted" xml:space="preserve"><value>Storico eliminato.</value></data>
+  <data name="Demo" xml:space="preserve"><value>Demo · scarica simulata dal livello attuale, non una misura</value></data>
+  <data name="Earlier" xml:space="preserve"><value>prima</value></data>
+  <data name="EngineLoading" xml:space="preserve"><value>Avvio del motore di previsione…</value></data>
+  <data name="EngineMissing" xml:space="preserve"><value>Il motore di previsione non è installato. La stima dal consumo recente funziona comunque.</value></data>
+  <data name="EnginePaused" xml:space="preserve"><value>Il motore di previsione riproverà tra poco.</value></data>
+  <data name="EngineSlow" xml:space="preserve"><value>Il motore di previsione non ha risposto in tempo.</value></data>
+  <data name="EngineStopped" xml:space="preserve"><value>Il motore di previsione si è fermato. La stima dal consumo recente funziona comunque.</value></data>
+  <data name="ExpectedRuntime" xml:space="preserve"><value>Autonomia prevista</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>Esporta storico in CSV…</value></data>
+  <data name="Exported" xml:space="preserve"><value>Esportati {0} campioni.</value></data>
+  <data name="FullyCharged" xml:space="preserve"><value>Carica completa</value></data>
+  <data name="HabitualRecharge" xml:space="preserve"><value>Di solito colleghi l'alimentatore verso le {0}: oltre, la curva prosegue al ritmo medio previsto.</value></data>
+  <data name="HabitualRechargeNoRate" xml:space="preserve"><value>Di solito colleghi l'alimentatore verso le {0}: oltre, le abitudini non dicono quanto consumeresti a batteria.</value></data>
+  <data name="HealthDetail" xml:space="preserve"><value>{0} Wh a piena carica su {1} Wh di progetto · rilevato {2}</value></data>
+  <data name="HealthOver" xml:space="preserve"><value>Sopra il valore nominale: succede con batterie nuove o firmware che arrotonda le capacità.</value></data>
+  <data name="HealthTitle" xml:space="preserve"><value>Salute della batteria</value></data>
+  <data name="HealthUnknown" xml:space="preserve"><value>Questa batteria non comunica le sue capacità a Windows.</value></data>
+  <data name="HealthValue" xml:space="preserve"><value>{0}% della capacità di progetto</value></data>
+  <data name="History" xml:space="preserve"><value>Storico e salute della batteria…</value></data>
+  <data name="HistoryTitle" xml:space="preserve"><value>Storico e salute della batteria</value></data>
+  <data name="Hours" xml:space="preserve"><value>{0} h</value></data>
+  <data name="HoursMinutes" xml:space="preserve"><value>{0} h {1} min</value></data>
+  <data name="KeepOpen" xml:space="preserve"><value>Mantieni aperto</value></data>
+  <data name="LangSystem" xml:space="preserve"><value>Come Windows</value></data>
+  <data name="Later" xml:space="preserve"><value>oltre</value></data>
+  <data name="Licenses" xml:space="preserve"><value>Licenze…</value></data>
+  <data name="MinimizeToTray" xml:space="preserve"><value>Riduci</value></data>
+  <data name="Minutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="NoBattery" xml:space="preserve"><value>Nessuna batteria trovata</value></data>
+  <data name="NoBatteryDetail" xml:space="preserve"><value>Questo PC funziona solo a corrente: non c'è nulla da prevedere.</value></data>
+  <data name="NoSegments" xml:space="preserve"><value>Nessuna scarica registrata finora.</value></data>
+  <data name="NoticeCharged" xml:space="preserve"><value>Puoi scollegare l'alimentatore.</value></data>
+  <data name="NoticeChargedTitle" xml:space="preserve"><value>Carica al {0}%</value></data>
+  <data name="NoticeDrain" xml:space="preserve"><value>Negli ultimi 10 minuti il PC consuma più del doppio di prima. Gestione attività mostra quali app consumano di più.</value></data>
+  <data name="NoticeDrainTitle" xml:space="preserve"><value>Consumo insolito</value></data>
+  <data name="NoticeLow" xml:space="preserve"><value>Collega l'alimentatore se ti serve ancora a lungo.</value></data>
+  <data name="NoticeLowTitle" xml:space="preserve"><value>Batteria al {0}%</value></data>
+  <data name="NoticeMinutesHabits" xml:space="preserve"><value>Stima sull'uso abituale. Collega l'alimentatore o attiva il risparmio energetico.</value></data>
+  <data name="NoticeMinutesRecent" xml:space="preserve"><value>Stima sul consumo recente. Collega l'alimentatore o attiva il risparmio energetico.</value></data>
+  <data name="NoticeMinutesTitle" xml:space="preserve"><value>Circa {0} alla riserva del {1}%</value></data>
+  <data name="NoticeTest" xml:space="preserve"><value>Così appariranno gli avvisi sulla batteria.</value></data>
+  <data name="NoticeTestTitle" xml:space="preserve"><value>Le notifiche di Battery Forecast funzionano</value></data>
+  <data name="Off" xml:space="preserve"><value>Disattivato</value></data>
+  <data name="Open" xml:space="preserve"><value>Apri Battery Forecast</value></data>
+  <data name="OpenPowerSettings" xml:space="preserve"><value>Impostazioni alimentazione e batteria…</value></data>
+  <data name="OpenSaverSettings" xml:space="preserve"><value>Impostazioni risparmio energetico…</value></data>
+  <data name="PluggedIn" xml:space="preserve"><value>Alimentatore collegato</value></data>
+  <data name="PowerSource" xml:space="preserve"><value>Fonte di alimentazione: {0}</value></data>
+  <data name="PrefAbout" xml:space="preserve"><value>Informazioni</value></data>
+  <data name="PrefData" xml:space="preserve"><value>Dati</value></data>
+  <data name="PrefLanguage" xml:space="preserve"><value>Lingua</value></data>
+  <data name="PrefLogin" xml:space="preserve"><value>Avvia all'accesso a Windows</value></data>
+  <data name="PrefLoginHelp" xml:space="preserve"><value>Lo storico si registra solo mentre Battery Forecast è in esecuzione.</value></data>
+  <data name="PrefNotifications" xml:space="preserve"><value>Notifiche</value></data>
+  <data name="PrefNotifyCharged" xml:space="preserve"><value>Avviso di carica al</value></data>
+  <data name="PrefNotifyDrain" xml:space="preserve"><value>Consumo insolito</value></data>
+  <data name="PrefNotifyEnabled" xml:space="preserve"><value>Avvisi sulla batteria</value></data>
+  <data name="PrefNotifyHelp" xml:space="preserve"><value>Al massimo un avviso per soglia in ogni scarica; nessuno con l'alimentatore o con stime vecchie. Non disturbare può nasconderli.</value></data>
+  <data name="PrefNotifyLow" xml:space="preserve"><value>Avviso al</value></data>
+  <data name="PrefNotifyTime" xml:space="preserve"><value>Quando mancano circa 60, 30 e 15 minuti alla riserva</value></data>
+  <data name="PrefRefresh" xml:space="preserve"><value>Aggiornamento della previsione</value></data>
+  <data name="PrefRefreshHelp" xml:space="preserve"><value>Il modello si avvia solo per calcolare (circa 3 s di CPU) e poi si chiude. Con il risparmio energetico attivo non parte mai da solo; la stima dal consumo recente continua a funzionare.</value></data>
+  <data name="PrefReserve" xml:space="preserve"><value>Soglia di riserva</value></data>
+  <data name="PrefReserveHelp" xml:space="preserve"><value>Le stime indicano quando la batteria arriva a questo livello, non quando il PC si spegne.</value></data>
+  <data name="PrefRetention" xml:space="preserve"><value>Conserva lo storico per</value></data>
+  <data name="PrefTarget" xml:space="preserve"><value>Obiettivo serale</value></data>
+  <data name="PrefTargetHelp" xml:space="preserve"><value>Passata quest'ora, l'obiettivo si sposta alla stessa ora di domani.</value></data>
+  <data name="PrefTheme" xml:space="preserve"><value>Tema</value></data>
+  <data name="PrefTray" xml:space="preserve"><value>Mostra la percentuale nell'icona</value></data>
+  <data name="PrefTrayHelp" xml:space="preserve"><value>Windows può nascondere l'icona nell'area di overflow: trascinala vicino all'orologio per tenerla visibile.</value></data>
+  <data name="Preferences" xml:space="preserve"><value>Preferenze…</value></data>
+  <data name="PrefsTitle" xml:space="preserve"><value>Preferenze di Battery Forecast</value></data>
+  <data name="PrudentAbove" xml:space="preserve"><value>Anche nella stima più prudente resta sopra il {0}%</value></data>
+  <data name="PrudentCrosses" xml:space="preserve"><value>Nella stima più prudente arriva alla riserva {0}</value></data>
+  <data name="Quit" xml:space="preserve"><value>Esci da Battery Forecast</value></data>
+  <data name="RangeOnDay" xml:space="preserve"><value>{0} {1}–{2}</value></data>
+  <data name="RecentLine" xml:space="preserve"><value>Al ritmo attuale: circa {0} ({1})</value></data>
+  <data name="RefreshBalanced" xml:space="preserve"><value>Ogni 30 minuti (consigliato)</value></data>
+  <data name="RefreshFrequent" xml:space="preserve"><value>Ogni 10 minuti</value></data>
+  <data name="RefreshOnOpen" xml:space="preserve"><value>Solo quando apro il pannello</value></data>
+  <data name="ResumesOnUnplug" xml:space="preserve"><value>La previsione riparte quando stacchi l'alimentatore.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Riprova</value></data>
+  <data name="SaverOn" xml:space="preserve"><value>Risparmio energetico attivo</value></data>
+  <data name="SavingLikely" xml:space="preserve"><value>Con il tuo uso abituale la batteria arriva {0}.</value></data>
+  <data name="SavingLikelyTitle" xml:space="preserve"><value>Potrebbe non bastare fino alle {0}</value></data>
+  <data name="SavingPossible" xml:space="preserve"><value>Se lo usi più del solito, potresti restare senza batteria {0}.</value></data>
+  <data name="SavingPossibleTitle" xml:space="preserve"><value>Margine ridotto per oggi</value></data>
+  <data name="SegmentEnergy" xml:space="preserve"><value>{0} Wh</value></data>
+  <data name="SegmentRate" xml:space="preserve"><value>{0}%/h</value></data>
+  <data name="SegmentRow" xml:space="preserve"><value>{0}% → {1}% in {2}</value></data>
+  <data name="SegmentsNote" xml:space="preserve"><value>Solo tratti continui registrati mentre Battery Forecast era in esecuzione: sospensioni, lacune e alimentatore interrompono un tratto. Non sono cicli completi.</value></data>
+  <data name="SegmentsTitle" xml:space="preserve"><value>Scariche osservate</value></data>
+  <data name="SensorUnavailable" xml:space="preserve"><value>Lettura della batteria non disponibile</value></data>
+  <data name="SensorUnavailableDetail" xml:space="preserve"><value>Windows non comunica il livello della batteria in questo momento. Riprovo ogni minuto.</value></data>
+  <data name="SourceAc" xml:space="preserve"><value>Alimentatore</value></data>
+  <data name="SourceBattery" xml:space="preserve"><value>Batteria</value></data>
+  <data name="SourceHabits" xml:space="preserve"><value>Impara dal tuo utilizzo · {0} giorni di storia</value></data>
+  <data name="SourceLearning" xml:space="preserve"><value>Sto ancora imparando le tue abitudini · {0} giorni di storia</value></data>
+  <data name="SourceRecentOnly" xml:space="preserve"><value>Stima dal consumo recente: lo storico non basta ancora per la previsione sulle abitudini</value></data>
+  <data name="Support" xml:space="preserve"><value>Supporta il progetto su Ko-fi</value></data>
+  <data name="TargetBelowReserve" xml:space="preserve"><value>sotto la riserva del {0}%</value></data>
+  <data name="TargetBeyond" xml:space="preserve"><value>oltre l'orizzonte della previsione</value></data>
+  <data name="TargetRange" xml:space="preserve"><value>tra {0}% e {1}%</value></data>
+  <data name="TestNotification" xml:space="preserve"><value>Prova notifica</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Crepuscolo (scuro)</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Alba (chiaro, caldo)</value></data>
+  <data name="ThemeMidnight" xml:space="preserve"><value>Notte (molto scuro)</value></data>
+  <data name="ThemeMist" xml:space="preserve"><value>Nebbia (chiaro, freddo)</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>Come Windows</value></data>
+  <data name="TipAtTarget" xml:space="preserve"><value>{0}: ~{1}%</value></data>
+  <data name="TipCharging" xml:space="preserve"><value>In carica</value></data>
+  <data name="TipPlugged" xml:space="preserve"><value>Con alimentatore</value></data>
+  <data name="TipUntil" xml:space="preserve"><value>circa {0} rimanenti</value></data>
+  <data name="ToReserve" xml:space="preserve"><value>fino alla riserva del {0}%, con l'uso abituale e senza ricaricare</value></data>
+  <data name="ToReserveShort" xml:space="preserve"><value>fino alla riserva del {0}%, al ritmo attuale</value></data>
+  <data name="Tomorrow" xml:space="preserve"><value>domani alle {0}</value></data>
+  <data name="TomorrowWord" xml:space="preserve"><value>domani</value></data>
+  <data name="TrayHint" xml:space="preserve"><value>Resta attivo nell’area di notifica. Clicca sull’icona della batteria per riaprire.</value></data>
+  <data name="Unavailable" xml:space="preserve"><value>Previsione non disponibile</value></data>
+  <data name="Until" xml:space="preserve"><value>Fino alle {0}</value></data>
+  <data name="UntilDay" xml:space="preserve"><value>Fino a {0}</value></data>
+  <data name="UntilOther" xml:space="preserve"><value>fino a {0}</value></data>
+  <data name="UntilToday" xml:space="preserve"><value>fino alle {0}</value></data>
+  <data name="UpdateAuto" xml:space="preserve"><value>Controlla automaticamente una volta al giorno</value></data>
+  <data name="UpdateAutoHelp" xml:space="preserve"><value>Contatta solo GitHub (api.github.com), senza dati personali. L'installer scaricato si verifica con lo SHA-256 della release.</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>È disponibile la versione {0}.</value></data>
+  <data name="UpdateCheck" xml:space="preserve"><value>Controlla aggiornamenti</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>Controllo in corso…</value></data>
+  <data name="UpdateDownloading" xml:space="preserve"><value>Download in corso… {0}%</value></data>
+  <data name="UpdateFailed" xml:space="preserve"><value>Aggiornamento non riuscito: {0}</value></data>
+  <data name="UpdateInstall" xml:space="preserve"><value>Scarica e installa</value></data>
+  <data name="UpdateNone" xml:space="preserve"><value>Hai l'ultima versione ({0}).</value></data>
+  <data name="UpdateNotes" xml:space="preserve"><value>Note di versione…</value></data>
+  <data name="UpdateNotice" xml:space="preserve"><value>Battery Forecast {0} è pronto. Clicca per aprire le Preferenze.</value></data>
+  <data name="UpdateNoticeTitle" xml:space="preserve"><value>Aggiornamento disponibile</value></data>
+  <data name="UpdateStarting" xml:space="preserve"><value>Avvio dell'installazione…</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>alle {0}</value></data>
+  <data name="VersionLine" xml:space="preserve"><value>Versione {0}</value></data>
+  <data name="WindowsLine" xml:space="preserve"><value>Windows: {0} di uso continuo al ritmo attuale</value></data>
+</root>

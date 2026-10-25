@@ -1,0 +1,28 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Alba: avorio caldo, accento ambra. Generato da uno script: tenere le stesse chiavi in tutti i temi. -->
+    <SolidColorBrush x:Key="WindowBg" Color="#FBF7F1"/>
+    <SolidColorBrush x:Key="WindowBorder" Color="#E6DDD0"/>
+    <SolidColorBrush x:Key="CardBg" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="RowHover" Color="#F2EBE1"/>
+    <SolidColorBrush x:Key="Text" Color="#1E1A16"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#5C554C"/>
+    <SolidColorBrush x:Key="TextTertiary" Color="#7A7166"/>
+    <SolidColorBrush x:Key="Accent" Color="#B45A0A"/>
+    <SolidColorBrush x:Key="AccentText" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Curve" Color="#6A3FA0"/>
+    <SolidColorBrush x:Key="Grid" Color="#EDE5DA"/>
+    <SolidColorBrush x:Key="Reserve" Color="#C23B2A"/>
+    <SolidColorBrush x:Key="Saving" Color="#1E7A46"/>
+    <SolidColorBrush x:Key="Demo" Color="#FFF1D6"/>
+    <SolidColorBrush x:Key="DemoText" Color="#6B4300"/>
+    <SolidColorBrush x:Key="Focus" Color="#1E1A16"/>
+    <SolidColorBrush x:Key="Icon" Color="#5C554C"/>
+    <SolidColorBrush x:Key="Band" Color="#6A3FA0" Opacity="0.22"/>
+    <Color x:Key="BandColor">#6A3FA0</Color>
+    <SolidColorBrush x:Key="HeroBorder" Color="#F0E2CC"/>
+    <LinearGradientBrush x:Key="Hero" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFF4E4" Offset="0"/>
+        <GradientStop Color="#FFFFFF" Offset="1"/>
+    </LinearGradientBrush>
+</ResourceDictionary>

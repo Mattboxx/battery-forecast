@@ -1,0 +1,58 @@
+<!-- Battery Forecast: stessa geometria di icon.svg (tela 1024). Usato da tools/make_icon.ps1 per l'ICO. -->
+<DrawingImage xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+  <DrawingImage.Drawing>
+    <DrawingGroup>
+      <GeometryDrawing Geometry="M0,0 H1024 V1024 H0 Z" Brush="Transparent"/>
+      <GeometryDrawing>
+        <GeometryDrawing.Geometry>
+          <RectangleGeometry Rect="64,64,896,896" RadiusX="208" RadiusY="208"/>
+        </GeometryDrawing.Geometry>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#1A1C48" Offset="0"/>
+            <GradientStop Color="#3D2F7A" Offset="0.55"/>
+            <GradientStop Color="#C2664A" Offset="1"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Pen>
+          <Pen Brush="#1AFFFFFF" Thickness="8"/>
+        </GeometryDrawing.Pen>
+      </GeometryDrawing>
+      <GeometryDrawing Brush="#0FFFFFFF">
+        <GeometryDrawing.Geometry>
+          <RectangleGeometry Rect="196,332,584,360" RadiusX="84" RadiusY="84"/>
+        </GeometryDrawing.Geometry>
+        <GeometryDrawing.Pen>
+          <Pen Brush="White" Thickness="44"/>
+        </GeometryDrawing.Pen>
+      </GeometryDrawing>
+      <GeometryDrawing Brush="White">
+        <GeometryDrawing.Geometry>
+          <RectangleGeometry Rect="804,448,52,128" RadiusX="24" RadiusY="24"/>
+        </GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing Geometry="M262,626 L262,412 C340,414 400,436 452,478 C488,507 512,530 540,546 L540,626 Z">
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#FFE08A" Offset="0"/>
+            <GradientStop Color="#F59A3C" Offset="1"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+      </GeometryDrawing>
+      <GeometryDrawing Geometry="M540,546 C590,575 650,596 714,612">
+        <GeometryDrawing.Pen>
+          <Pen Brush="#FFE08A" Thickness="26" StartLineCap="Round" EndLineCap="Round" DashCap="Round">
+            <Pen.DashStyle>
+              <DashStyle Dashes="0.077,1.77"/>
+            </Pen.DashStyle>
+          </Pen>
+        </GeometryDrawing.Pen>
+      </GeometryDrawing>
+      <GeometryDrawing Brush="White">
+        <GeometryDrawing.Geometry>
+          <EllipseGeometry Center="540,546" RadiusX="22" RadiusY="22"/>
+        </GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage.Drawing>
+</DrawingImage>

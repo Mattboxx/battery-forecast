@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generato da tools/strings.py: modificare lì. -->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="About" xml:space="preserve"><value>about {0}</value></data>
+  <data name="AboutRange" xml:space="preserve"><value>about {0} · indicative range {1}–{2}</value></data>
+  <data name="AboutText" xml:space="preserve"><value>Battery Forecast {0}. Forecasts run locally with {1}. Derived from Till Dusk by Matteo Bonfanti (MIT).</value></data>
+  <data name="AlreadyBelow" xml:space="preserve"><value>Already below the {0}% reserve</value></data>
+  <data name="AtTarget" xml:space="preserve"><value>At {0}</value></data>
+  <data name="AtTargetTomorrow" xml:space="preserve"><value>Tomorrow at {0}</value></data>
+  <data name="AtToday" xml:space="preserve"><value>at {0}</value></data>
+  <data name="Battery" xml:space="preserve"><value>Battery</value></data>
+  <data name="Beyond" xml:space="preserve"><value>Beyond the next {0} hours</value></data>
+  <data name="Calculating" xml:space="preserve"><value>Calculating the forecast…</value></data>
+  <data name="Charging" xml:space="preserve"><value>Charging</value></data>
+  <data name="ChargingTo" xml:space="preserve"><value>Charging · {0}%</value></data>
+  <data name="ChartName" xml:space="preserve"><value>Forecast for the next 24 hours</value></data>
+  <data name="ChartSummary" xml:space="preserve"><value>Now {0}%. Central estimate: {1}% in 3 hours, {2}% in 6 hours, {3}% in 12 hours. Shaded band: cautious to optimistic estimate.</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Collecting" xml:space="preserve"><value>Collecting data</value></data>
+  <data name="CollectingDetail" xml:space="preserve"><value>Keep using the PC on battery for a few minutes: the first estimate comes from recent use.</value></data>
+  <data name="Coverage" xml:space="preserve"><value>{0} days of history · {1} samples</value></data>
+  <data name="DayAt" xml:space="preserve"><value>{0} at {1}</value></data>
+  <data name="Days" xml:space="preserve"><value>{0} days</value></data>
+  <data name="DeleteConfirm" xml:space="preserve"><value>Delete all recorded battery history? Forecasts will start learning again from scratch.</value></data>
+  <data name="DeleteHistory" xml:space="preserve"><value>Delete all history…</value></data>
+  <data name="Deleted" xml:space="preserve"><value>History deleted.</value></data>
+  <data name="Demo" xml:space="preserve"><value>Demo · simulated discharge from your current level, not a measurement</value></data>
+  <data name="Earlier" xml:space="preserve"><value>earlier</value></data>
+  <data name="EngineLoading" xml:space="preserve"><value>Starting the forecast engine…</value></data>
+  <data name="EngineMissing" xml:space="preserve"><value>The forecast engine is not installed. Recent-use estimates still work.</value></data>
+  <data name="EnginePaused" xml:space="preserve"><value>The forecast engine will retry shortly.</value></data>
+  <data name="EngineSlow" xml:space="preserve"><value>The forecast engine did not answer in time.</value></data>
+  <data name="EngineStopped" xml:space="preserve"><value>The forecast engine stopped. Recent-use estimates still work.</value></data>
+  <data name="ExpectedRuntime" xml:space="preserve"><value>Expected battery life</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>Export history as CSV…</value></data>
+  <data name="Exported" xml:space="preserve"><value>Exported {0} samples.</value></data>
+  <data name="FullyCharged" xml:space="preserve"><value>Fully charged</value></data>
+  <data name="HabitualRecharge" xml:space="preserve"><value>You usually plug in around {0}: past that point the curve continues at the expected average rate.</value></data>
+  <data name="HabitualRechargeNoRate" xml:space="preserve"><value>You usually plug in around {0}: past that point your habits say nothing about use on battery.</value></data>
+  <data name="HealthDetail" xml:space="preserve"><value>{0} Wh at full charge out of {1} Wh by design · read {2}</value></data>
+  <data name="HealthOver" xml:space="preserve"><value>Above the nominal value: it happens with new batteries or firmware that rounds capacities.</value></data>
+  <data name="HealthTitle" xml:space="preserve"><value>Battery health</value></data>
+  <data name="HealthUnknown" xml:space="preserve"><value>This battery does not report its capacities to Windows.</value></data>
+  <data name="HealthValue" xml:space="preserve"><value>{0}% of design capacity</value></data>
+  <data name="History" xml:space="preserve"><value>History and battery health…</value></data>
+  <data name="HistoryTitle" xml:space="preserve"><value>Battery history and health</value></data>
+  <data name="Hours" xml:space="preserve"><value>{0} h</value></data>
+  <data name="HoursMinutes" xml:space="preserve"><value>{0} h {1} min</value></data>
+  <data name="KeepOpen" xml:space="preserve"><value>Keep open</value></data>
+  <data name="LangSystem" xml:space="preserve"><value>Use Windows setting</value></data>
+  <data name="Later" xml:space="preserve"><value>later</value></data>
+  <data name="Licenses" xml:space="preserve"><value>Licenses…</value></data>
+  <data name="MinimizeToTray" xml:space="preserve"><value>Minimize</value></data>
+  <data name="Minutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="NoBattery" xml:space="preserve"><value>No battery found</value></data>
+  <data name="NoBatteryDetail" xml:space="preserve"><value>This PC runs on mains power only: there is nothing to forecast.</value></data>
+  <data name="NoSegments" xml:space="preserve"><value>No discharge recorded yet.</value></data>
+  <data name="NoticeCharged" xml:space="preserve"><value>You can unplug the adapter.</value></data>
+  <data name="NoticeChargedTitle" xml:space="preserve"><value>Charged to {0}%</value></data>
+  <data name="NoticeDrain" xml:space="preserve"><value>In the last 10 minutes the PC has used more than twice as much power as before. Task Manager shows which apps use the most.</value></data>
+  <data name="NoticeDrainTitle" xml:space="preserve"><value>Unusual power use</value></data>
+  <data name="NoticeLow" xml:space="preserve"><value>Plug in the adapter if you still need the PC for long.</value></data>
+  <data name="NoticeLowTitle" xml:space="preserve"><value>Battery at {0}%</value></data>
+  <data name="NoticeMinutesHabits" xml:space="preserve"><value>Estimate from your usual use. Plug in or turn on battery saver.</value></data>
+  <data name="NoticeMinutesRecent" xml:space="preserve"><value>Estimate from recent use. Plug in or turn on battery saver.</value></data>
+  <data name="NoticeMinutesTitle" xml:space="preserve"><value>About {0} to the {1}% reserve</value></data>
+  <data name="NoticeTest" xml:space="preserve"><value>This is how battery alerts will appear.</value></data>
+  <data name="NoticeTestTitle" xml:space="preserve"><value>Battery Forecast notifications work</value></data>
+  <data name="Off" xml:space="preserve"><value>Off</value></data>
+  <data name="Open" xml:space="preserve"><value>Open Battery Forecast</value></data>
+  <data name="OpenPowerSettings" xml:space="preserve"><value>Power &amp; battery settings…</value></data>
+  <data name="OpenSaverSettings" xml:space="preserve"><value>Battery saver settings…</value></data>
+  <data name="PluggedIn" xml:space="preserve"><value>Power adapter connected</value></data>
+  <data name="PowerSource" xml:space="preserve"><value>Power source: {0}</value></data>
+  <data name="PrefAbout" xml:space="preserve"><value>About</value></data>
+  <data name="PrefData" xml:space="preserve"><value>Data</value></data>
+  <data name="PrefLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="PrefLogin" xml:space="preserve"><value>Start when I sign in to Windows</value></data>
+  <data name="PrefLoginHelp" xml:space="preserve"><value>History is only recorded while Battery Forecast is running.</value></data>
+  <data name="PrefNotifications" xml:space="preserve"><value>Notifications</value></data>
+  <data name="PrefNotifyCharged" xml:space="preserve"><value>Charged alert at</value></data>
+  <data name="PrefNotifyDrain" xml:space="preserve"><value>Unusual power use</value></data>
+  <data name="PrefNotifyEnabled" xml:space="preserve"><value>Battery alerts</value></data>
+  <data name="PrefNotifyHelp" xml:space="preserve"><value>At most one alert per threshold per discharge; none on the adapter or with an old estimate. Do not disturb can hide them.</value></data>
+  <data name="PrefNotifyLow" xml:space="preserve"><value>Alert at</value></data>
+  <data name="PrefNotifyTime" xml:space="preserve"><value>When about 60, 30 and 15 minutes are left to the reserve</value></data>
+  <data name="PrefRefresh" xml:space="preserve"><value>Forecast updates</value></data>
+  <data name="PrefRefreshHelp" xml:space="preserve"><value>The model starts only to compute (about 3 s of CPU) and then closes. With battery saver on it never starts by itself; recent-use estimates keep working.</value></data>
+  <data name="PrefReserve" xml:space="preserve"><value>Reserve threshold</value></data>
+  <data name="PrefReserveHelp" xml:space="preserve"><value>Estimates tell you when the battery reaches this level, not when the PC turns off.</value></data>
+  <data name="PrefRetention" xml:space="preserve"><value>Keep history for</value></data>
+  <data name="PrefTarget" xml:space="preserve"><value>Evening target</value></data>
+  <data name="PrefTargetHelp" xml:space="preserve"><value>Once this time has passed, the target moves to the same time tomorrow.</value></data>
+  <data name="PrefTheme" xml:space="preserve"><value>Theme</value></data>
+  <data name="PrefTray" xml:space="preserve"><value>Show percentage in the tray icon</value></data>
+  <data name="PrefTrayHelp" xml:space="preserve"><value>Windows may hide the icon in the overflow area: drag it next to the clock to keep it visible.</value></data>
+  <data name="Preferences" xml:space="preserve"><value>Preferences…</value></data>
+  <data name="PrefsTitle" xml:space="preserve"><value>Battery Forecast preferences</value></data>
+  <data name="PrudentAbove" xml:space="preserve"><value>Even the cautious estimate stays above {0}%</value></data>
+  <data name="PrudentCrosses" xml:space="preserve"><value>In the cautious estimate it reaches the reserve {0}</value></data>
+  <data name="Quit" xml:space="preserve"><value>Quit Battery Forecast</value></data>
+  <data name="RangeOnDay" xml:space="preserve"><value>{0} {1}–{2}</value></data>
+  <data name="RecentLine" xml:space="preserve"><value>At the current rate: about {0} ({1})</value></data>
+  <data name="RefreshBalanced" xml:space="preserve"><value>Every 30 minutes (recommended)</value></data>
+  <data name="RefreshFrequent" xml:space="preserve"><value>Every 10 minutes</value></data>
+  <data name="RefreshOnOpen" xml:space="preserve"><value>Only when I open the panel</value></data>
+  <data name="ResumesOnUnplug" xml:space="preserve"><value>The forecast restarts when you unplug the adapter.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="SaverOn" xml:space="preserve"><value>Battery saver on</value></data>
+  <data name="SavingLikely" xml:space="preserve"><value>With your usual use the battery lasts {0}.</value></data>
+  <data name="SavingLikelyTitle" xml:space="preserve"><value>It may not last until {0}</value></data>
+  <data name="SavingPossible" xml:space="preserve"><value>If you use it more than usual, it could run low {0}.</value></data>
+  <data name="SavingPossibleTitle" xml:space="preserve"><value>Little margin today</value></data>
+  <data name="SegmentEnergy" xml:space="preserve"><value>{0} Wh</value></data>
+  <data name="SegmentRate" xml:space="preserve"><value>{0}%/h</value></data>
+  <data name="SegmentRow" xml:space="preserve"><value>{0}% → {1}% in {2}</value></data>
+  <data name="SegmentsNote" xml:space="preserve"><value>Only continuous stretches recorded while Battery Forecast was running: sleep, gaps and the adapter end a stretch. They are not full cycles.</value></data>
+  <data name="SegmentsTitle" xml:space="preserve"><value>Observed discharges</value></data>
+  <data name="SensorUnavailable" xml:space="preserve"><value>Battery reading unavailable</value></data>
+  <data name="SensorUnavailableDetail" xml:space="preserve"><value>Windows is not reporting the battery level right now. Trying again every minute.</value></data>
+  <data name="SourceAc" xml:space="preserve"><value>Power adapter</value></data>
+  <data name="SourceBattery" xml:space="preserve"><value>Battery</value></data>
+  <data name="SourceHabits" xml:space="preserve"><value>Learns from your use · {0} days of history</value></data>
+  <data name="SourceLearning" xml:space="preserve"><value>Still learning your habits · {0} days of history</value></data>
+  <data name="SourceRecentOnly" xml:space="preserve"><value>Estimate from recent use: not enough history for the habit forecast yet</value></data>
+  <data name="Support" xml:space="preserve"><value>Support the project on Ko-fi</value></data>
+  <data name="TargetBelowReserve" xml:space="preserve"><value>below the {0}% reserve</value></data>
+  <data name="TargetBeyond" xml:space="preserve"><value>beyond the forecast horizon</value></data>
+  <data name="TargetRange" xml:space="preserve"><value>between {0}% and {1}%</value></data>
+  <data name="TestNotification" xml:space="preserve"><value>Test notification</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Dusk (dark)</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Dawn (light, warm)</value></data>
+  <data name="ThemeMidnight" xml:space="preserve"><value>Midnight (very dark)</value></data>
+  <data name="ThemeMist" xml:space="preserve"><value>Mist (light, cool)</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>Use Windows setting</value></data>
+  <data name="TipAtTarget" xml:space="preserve"><value>{0}: ~{1}%</value></data>
+  <data name="TipCharging" xml:space="preserve"><value>Charging</value></data>
+  <data name="TipPlugged" xml:space="preserve"><value>On power adapter</value></data>
+  <data name="TipUntil" xml:space="preserve"><value>about {0} left</value></data>
+  <data name="ToReserve" xml:space="preserve"><value>to the {0}% reserve, with your usual use and no charging</value></data>
+  <data name="ToReserveShort" xml:space="preserve"><value>to the {0}% reserve, at the current rate</value></data>
+  <data name="Tomorrow" xml:space="preserve"><value>tomorrow at {0}</value></data>
+  <data name="TomorrowWord" xml:space="preserve"><value>tomorrow</value></data>
+  <data name="TrayHint" xml:space="preserve"><value>Still running in the notification area. Click the battery icon to reopen.</value></data>
+  <data name="Unavailable" xml:space="preserve"><value>Forecast unavailable</value></data>
+  <data name="Until" xml:space="preserve"><value>Until {0}</value></data>
+  <data name="UntilDay" xml:space="preserve"><value>Until {0}</value></data>
+  <data name="UntilOther" xml:space="preserve"><value>until {0}</value></data>
+  <data name="UntilToday" xml:space="preserve"><value>until {0}</value></data>
+  <data name="UpdateAuto" xml:space="preserve"><value>Check automatically once a day</value></data>
+  <data name="UpdateAutoHelp" xml:space="preserve"><value>Only GitHub is contacted (api.github.com), with no personal data. The downloaded installer is checked against the release's SHA-256.</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>Version {0} is available.</value></data>
+  <data name="UpdateCheck" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>Checking…</value></data>
+  <data name="UpdateDownloading" xml:space="preserve"><value>Downloading… {0}%</value></data>
+  <data name="UpdateFailed" xml:space="preserve"><value>Update failed: {0}</value></data>
+  <data name="UpdateInstall" xml:space="preserve"><value>Download and install</value></data>
+  <data name="UpdateNone" xml:space="preserve"><value>You have the latest version ({0}).</value></data>
+  <data name="UpdateNotes" xml:space="preserve"><value>Release notes…</value></data>
+  <data name="UpdateNotice" xml:space="preserve"><value>Battery Forecast {0} is ready. Click to open Preferences.</value></data>
+  <data name="UpdateNoticeTitle" xml:space="preserve"><value>Update available</value></data>
+  <data name="UpdateStarting" xml:space="preserve"><value>Starting the installer…</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>at {0}</value></data>
+  <data name="VersionLine" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="WindowsLine" xml:space="preserve"><value>Windows: {0} of continuous use at the current rate</value></data>
+</root>

@@ -1,0 +1,125 @@
+<Window x:Class="BatteryForecast.App.PreferencesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="clr-namespace:BatteryForecast.App"
+        Title="{app:T PrefsTitle}" Width="520" SizeToContent="Height" ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindow}">
+    <Window.Resources>
+        <Style x:Key="Help" TargetType="TextBlock" BasedOn="{StaticResource Footnote}">
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+        <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+        </Style>
+    </Window.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24,20,24,20">
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{app:T PrefReserve}" Style="{StaticResource Label}"/>
+                        <ComboBox x:Name="Reserve" Grid.Column="1" AutomationProperties.Name="{app:T PrefReserve}"/>
+                    </Grid>
+                    <TextBlock Text="{app:T PrefReserveHelp}" Style="{StaticResource Help}"/>
+                    <Grid Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{app:T PrefTarget}" Style="{StaticResource Label}"/>
+                        <ComboBox x:Name="Target" Grid.Column="1" AutomationProperties.Name="{app:T PrefTarget}"/>
+                    </Grid>
+                    <TextBlock Text="{app:T PrefTargetHelp}" Style="{StaticResource Help}"/>
+                    <Grid Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{app:T PrefRefresh}" Style="{StaticResource Label}"/>
+                        <ComboBox x:Name="RefreshBox" Grid.Column="1" AutomationProperties.Name="{app:T PrefRefresh}"/>
+                    </Grid>
+                    <TextBlock Text="{app:T PrefRefreshHelp}" Style="{StaticResource Help}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,10,0,0">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{app:T PrefTheme}" Style="{StaticResource Label}"/>
+                        <ComboBox x:Name="ThemeBox" Grid.Column="1" AutomationProperties.Name="{app:T PrefTheme}"/>
+                    </Grid>
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{app:T PrefLanguage}" Style="{StaticResource Label}"/>
+                        <ComboBox x:Name="LanguageBox" Grid.Column="1" AutomationProperties.Name="{app:T PrefLanguage}"/>
+                    </Grid>
+                    <CheckBox x:Name="TrayPercent" Margin="0,14,0,0" Content="{app:T PrefTray}"/>
+                    <TextBlock Text="{app:T PrefTrayHelp}" Style="{StaticResource Help}"/>
+                    <CheckBox x:Name="Login" Margin="0,12,0,0" Content="{app:T PrefLogin}"/>
+                    <TextBlock Text="{app:T PrefLoginHelp}" Style="{StaticResource Help}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,10,0,0">
+                <StackPanel>
+                    <TextBlock Text="{app:T PrefNotifications}" Style="{StaticResource SectionTitle}"/>
+                    <CheckBox x:Name="NotifyEnabled" Margin="0,8,0,0" Content="{app:T PrefNotifyEnabled}"/>
+                    <StackPanel x:Name="NotifyOptions" Margin="28,4,0,0">
+                        <CheckBox x:Name="NotifyTime" Content="{app:T PrefNotifyTime}"/>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="{app:T PrefNotifyLow}" Style="{StaticResource Label}"/>
+                            <ComboBox x:Name="NotifyLow" Grid.Column="1" AutomationProperties.Name="{app:T PrefNotifyLow}"/>
+                        </Grid>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="{app:T PrefNotifyCharged}" Style="{StaticResource Label}"/>
+                            <ComboBox x:Name="NotifyCharged" Grid.Column="1" AutomationProperties.Name="{app:T PrefNotifyCharged}"/>
+                        </Grid>
+                        <CheckBox x:Name="NotifyDrain" Margin="0,8,0,0" Content="{app:T PrefNotifyDrain}"/>
+                    </StackPanel>
+                    <TextBlock Text="{app:T PrefNotifyHelp}" Style="{StaticResource Help}"/>
+                    <Button Content="{app:T TestNotification}" Click="TestNotify_Click" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="12,5"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,10,0,0">
+                <StackPanel>
+                    <TextBlock Text="{app:T PrefData}" Style="{StaticResource SectionTitle}"/>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{app:T PrefRetention}" Style="{StaticResource Label}"/>
+                        <ComboBox x:Name="Retention" Grid.Column="1" AutomationProperties.Name="{app:T PrefRetention}"/>
+                    </Grid>
+                    <WrapPanel Margin="0,12,0,0">
+                        <Button Content="{app:T ExportCsv}" Click="Export_Click" Margin="0,0,8,0" Padding="12,5"/>
+                        <Button Content="{app:T DeleteHistory}" Click="Delete_Click" Padding="12,5"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="DataNote" Style="{StaticResource Help}" Visibility="Collapsed"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,10,0,0">
+                <StackPanel>
+                    <TextBlock Text="{app:T PrefAbout}" Style="{StaticResource SectionTitle}"/>
+                    <TextBlock x:Name="About" Style="{StaticResource Secondary}" Margin="0,6,0,0"/>
+                    <WrapPanel Margin="0,12,0,0">
+                        <Button x:Name="CheckButton" Content="{app:T UpdateCheck}" Click="CheckUpdates_Click" Padding="12,5" Margin="0,0,8,0"/>
+                        <Button x:Name="InstallButton" Content="{app:T UpdateInstall}" Click="InstallUpdate_Click" Padding="12,5" Margin="0,0,8,0"
+                                Style="{StaticResource PillButton}" Visibility="Collapsed"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="UpdateStatus" Style="{StaticResource Help}" Visibility="Collapsed"/>
+                    <Button x:Name="NotesButton" Content="{app:T UpdateNotes}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left"
+                            Margin="0,4,0,0" Click="Notes_Click" Visibility="Collapsed"/>
+                    <CheckBox x:Name="AutoUpdate" Margin="0,10,0,0" Content="{app:T UpdateAuto}"/>
+                    <TextBlock Text="{app:T UpdateAutoHelp}" Style="{StaticResource Help}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Content="{app:T Licenses}" Style="{StaticResource LinkButton}" Click="Licenses_Click" Margin="0,0,18,0"/>
+                        <!-- sostegno: un link discreto, mai un invito ripetuto -->
+                        <TextBlock Text="&#xEB51;" Style="{StaticResource Glyph}" FontSize="12" Foreground="{DynamicResource Accent}" Margin="0,0,6,0"/>
+                        <Button Content="{app:T Support}" Style="{StaticResource LinkButton}" Click="Support_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Button Content="{app:T Close}" HorizontalAlignment="Right" Margin="0,16,0,0" Padding="18,5" IsCancel="True" IsDefault="True" Click="Close_Click"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

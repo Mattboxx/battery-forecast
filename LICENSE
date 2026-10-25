@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2026 Matteo Bonfanti
+Copyright (c) 2026 Matteo Bonfanti (Till Dusk)
+Copyright (c) 2026 Mattboxx (Battery Forecast, Windows fork)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
-This license covers the Till Dusk source code only. Third-party components keep
-their own licenses: Timestral code (Apache 2.0) and the Timestral-28M model
-weights (modified MIT) by Mistral AI — see app/licenses/.
+This license covers the Till Dusk and Battery Forecast source code only.
+Third-party components keep their own licenses: Timestral code (Apache 2.0) and
+the Timestral-28M model weights (modified MIT) by Mistral AI — see licenses/.

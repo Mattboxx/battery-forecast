@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <!-- solo per NotifyIcon: l'icona nell'area di notifica senza librerie esterne -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>BatteryForecast</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\app.ico</ApplicationIcon>
+    <!-- WFO0003 vale per le app WinForms; qui WinForms serve solo a NotifyIcon e il DPI per monitor è di WPF -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="..\..\assets\app.ico" Link="app.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BatteryForecast.Core\BatteryForecast.Core.csproj" />
+  </ItemGroup>
+</Project>

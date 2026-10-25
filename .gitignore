@@ -1,5 +1,13 @@
-.venv/
-app/.build/
-app/dist/
-.DS_Store
+# Battery Forecast
+forecast/.venv/
+forecast/models/
+forecast/build/
+forecast/dist/
+.pytest_cache/
 __pycache__/
+windows/**/bin/
+windows/**/obj/
+windows/.vs/
+artifacts/
+*.user
+.DS_Store

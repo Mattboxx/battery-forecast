@@ -1,0 +1,18 @@
+[project]
+name = "battery-forecast-engine"
+version = "0.1.0"
+description = "Local Timestral battery forecast engine for Battery Forecast"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+dependencies = [
+    "numpy",
+    "torch",          # wheel CPU: --index-url https://download.pytorch.org/whl/cpu (vedi requirements.lock)
+    "timestral",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pyinstaller", "huggingface_hub"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

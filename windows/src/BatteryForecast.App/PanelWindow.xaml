@@ -1,0 +1,142 @@
+<Window x:Class="BatteryForecast.App.PanelWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="clr-namespace:BatteryForecast.App"
+        Title="Battery Forecast" Width="384" SizeToContent="Height"
+        WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
+        Style="{StaticResource AppWindow}" BorderBrush="{DynamicResource WindowBorder}" BorderThickness="1" ShowActivated="True"
+        AutomationProperties.Name="Battery Forecast">
+    <WindowChrome.WindowChrome>
+        <!-- cornice DWM sottile: ombra e angoli arrotondati di Windows 11 senza barra del titolo -->
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" GlassFrameThickness="0,0,0,1" CornerRadius="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+    <Window.Resources>
+        <app:NullToCollapsed x:Key="Visible"/>
+        <app:BoolToVisible x:Key="IfTrue"/>
+    </Window.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="16,16,16,10">
+        <!-- intestazione: nome discreto a sinistra, livello in evidenza a destra -->
+        <Grid Margin="2,0,2,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="pack://application:,,,/BatteryForecast;component/app.ico" Width="18" Height="18" Margin="0,0,8,0"
+                           RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name=""/>
+                    <TextBlock Text="Battery Forecast" Style="{StaticResource Strong}" FontSize="14" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="{Binding PowerLine}" Style="{StaticResource Secondary}" FontSize="12" Margin="0,4,0,0"/>
+                <TextBlock Text="{Binding SaverLine}" Style="{StaticResource Secondary}" FontSize="12" Foreground="{DynamicResource Saving}"
+                           Visibility="{Binding SaverLine, Converter={StaticResource Visible}}" Margin="0,2,0,0"/>
+            </StackPanel>
+            <TextBlock Grid.Column="1" Text="{Binding Level}" FontSize="34" FontWeight="SemiBold" VerticalAlignment="Center"
+                       FontFamily="{StaticResource DisplayFont}" Typography.NumeralAlignment="Tabular"
+                       AutomationProperties.Name="{Binding Level}"/>
+        </Grid>
+
+        <Border Background="{DynamicResource Demo}" CornerRadius="8" Padding="12,6" Margin="0,0,0,10"
+                Visibility="{Binding DemoLine, Converter={StaticResource Visible}}">
+            <TextBlock Text="{Binding DemoLine}" Foreground="{DynamicResource DemoText}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"/>
+        </Border>
+
+        <!-- previsione: la card principale, con una leggera sfumatura -->
+        <Border Background="{DynamicResource Hero}" BorderBrush="{DynamicResource HeroBorder}" BorderThickness="1"
+                CornerRadius="14" Padding="16,14,16,12">
+            <StackPanel>
+                <Grid>
+                    <TextBlock Text="{Binding SectionTitle}" Style="{StaticResource Eyebrow}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <app:Spinner Width="12" Height="12" Margin="0,0,6,0" Visibility="{Binding Busy, Converter={StaticResource IfTrue}}"/>
+                        <TextBlock Text="{Binding UpdatedAt}" Style="{StaticResource Footnote}" Foreground="{DynamicResource TextTertiary}"/>
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel x:Name="ForecastBody" Margin="0,8,0,0">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Style.Triggers>
+                                <!-- dati vecchi: si vedono, ma attenuati -->
+                                <DataTrigger Binding="{Binding Stale}" Value="True">
+                                    <Setter Property="Opacity" Value="0.55"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Text="{Binding Headline}" Style="{StaticResource Headline}" AutomationProperties.HeadingLevel="Level1"/>
+                    <TextBlock Text="{Binding Detail}" Style="{StaticResource Secondary}" Margin="0,4,0,0"
+                               Visibility="{Binding Detail, Converter={StaticResource Visible}}"/>
+                    <TextBlock Text="{Binding Note}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
+                               Visibility="{Binding Note, Converter={StaticResource Visible}}"/>
+
+                    <app:ForecastChart x:Name="Chart" Height="120" Margin="0,14,0,2" Forecast="{Binding Chart}"
+                                       AutomationProperties.HelpText="{Binding ChartSummary}"
+                                       Visibility="{Binding Chart, Converter={StaticResource Visible}}"/>
+
+                    <!-- obiettivo serale come una "pillola" -->
+                    <Border Background="{DynamicResource RowHover}" CornerRadius="10" Padding="12,8" Margin="0,10,0,0"
+                            Visibility="{Binding TargetLabel, Converter={StaticResource Visible}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding TargetLabel}" Style="{StaticResource Body}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding TargetRange}" Style="{StaticResource Secondary}" FontSize="12"
+                                       VerticalAlignment="Center" Margin="8,0"/>
+                            <TextBlock Grid.Column="2" Text="{Binding TargetValue}" Style="{StaticResource Strong}" FontSize="15"
+                                       Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Margin="0,10,0,0">
+                        <TextBlock Text="{Binding SourceLine}" Style="{StaticResource Footnote}"
+                                   Visibility="{Binding SourceLine, Converter={StaticResource Visible}}"/>
+                        <TextBlock Text="{Binding RechargeLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
+                                   Visibility="{Binding RechargeLine, Converter={StaticResource Visible}}"/>
+                        <TextBlock Text="{Binding RecentLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
+                                   Visibility="{Binding RecentLine, Converter={StaticResource Visible}}"/>
+                        <TextBlock Text="{Binding WindowsLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
+                                   Visibility="{Binding WindowsLine, Converter={StaticResource Visible}}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <Button Content="{app:T Retry}" Style="{StaticResource PillButton}" HorizontalAlignment="Left" Margin="0,10,0,0"
+                        Click="Retry_Click" Visibility="{Binding CanRetry, Converter={StaticResource IfTrue}}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- proposta del risparmio energetico -->
+        <Border Style="{StaticResource Card}" Margin="0,10,0,0" Visibility="{Binding SavingTitle, Converter={StaticResource Visible}}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE8BE;" Style="{StaticResource Glyph}" Foreground="{DynamicResource Saving}" Margin="0,0,8,0"/>
+                    <TextBlock Text="{Binding SavingTitle}" FontWeight="SemiBold" Foreground="{DynamicResource Saving}" TextWrapping="Wrap"/>
+                </StackPanel>
+                <TextBlock Text="{Binding SavingDetail}" Style="{StaticResource Secondary}" Margin="0,4,0,10"/>
+                <Button Content="{app:T OpenSaverSettings}" Style="{StaticResource PillButton}" HorizontalAlignment="Left" Click="Saver_Click"/>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Margin="0,10,0,0">
+            <Button Style="{StaticResource IconRow}" Tag="&#xE945;" Click="Power_Click" Content="{app:T OpenPowerSettings}"/>
+            <Button Style="{StaticResource IconRow}" Tag="&#xE81C;" Click="History_Click" Content="{app:T History}"/>
+            <Button Style="{StaticResource IconRow}" Tag="&#xE713;" Click="Prefs_Click" Content="{app:T Preferences}"/>
+            <Button Style="{StaticResource IconRow}" Tag="&#xE7E8;" Click="Quit_Click" Content="{app:T Quit}"/>
+        </StackPanel>
+
+        <!-- piè di pagina discreto: il contenuto resta la cosa più visibile -->
+        <Border Height="1" Background="{DynamicResource WindowBorder}" Margin="14,8,14,0"/>
+        <DockPanel Margin="14,8,14,0">
+            <Button DockPanel.Dock="Right" Content="{app:T MinimizeToTray}" Click="Minimize_Click"
+                    Style="{StaticResource LinkButton}" ToolTip="{app:T TrayHint}" VerticalAlignment="Center"/>
+            <CheckBox x:Name="KeepOpen" Content="{app:T KeepOpen}" VerticalAlignment="Center" FontSize="12"/>
+        </DockPanel>
+        <TextBlock Text="{app:T TrayHint}" Style="{StaticResource Footnote}" Foreground="{DynamicResource TextTertiary}" Margin="14,6,14,2"/>
+    </StackPanel>
+    </ScrollViewer>
+</Window>

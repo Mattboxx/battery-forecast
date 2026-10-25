@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <!-- Windows 10 2004+ per le API WinRT della batteria; l'app è provata su Windows 11 x64. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <!-- x64 per lo sviluppo; la release arm64 passa -r win-arm64 (tools\package.ps1 -Arch arm64) -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <Platforms>x64;ARM64</Platforms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Version>0.1.0</Version>
+    <Authors>Battery Forecast contributors; original Till Dusk by Matteo Bonfanti</Authors>
+    <Product>Battery Forecast</Product>
+  </PropertyGroup>
+</Project>

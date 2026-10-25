@@ -1,0 +1,28 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Crepuscolo: cielo notturno indaco e oro. Generato da uno script: tenere le stesse chiavi in tutti i temi. -->
+    <SolidColorBrush x:Key="WindowBg" Color="#15162B"/>
+    <SolidColorBrush x:Key="WindowBorder" Color="#30315A"/>
+    <SolidColorBrush x:Key="CardBg" Color="#1F2040"/>
+    <SolidColorBrush x:Key="RowHover" Color="#2A2B52"/>
+    <SolidColorBrush x:Key="Text" Color="#F3F1F8"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#BBB8CF"/>
+    <SolidColorBrush x:Key="TextTertiary" Color="#8F8CA8"/>
+    <SolidColorBrush x:Key="Accent" Color="#FFC35A"/>
+    <SolidColorBrush x:Key="AccentText" Color="#1A1426"/>
+    <SolidColorBrush x:Key="Curve" Color="#C7A6F2"/>
+    <SolidColorBrush x:Key="Grid" Color="#34355C"/>
+    <SolidColorBrush x:Key="Reserve" Color="#FF8A7A"/>
+    <SolidColorBrush x:Key="Saving" Color="#7FD6A0"/>
+    <SolidColorBrush x:Key="Demo" Color="#3B2E14"/>
+    <SolidColorBrush x:Key="DemoText" Color="#FFD58A"/>
+    <SolidColorBrush x:Key="Focus" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Icon" Color="#BBB8CF"/>
+    <SolidColorBrush x:Key="Band" Color="#C7A6F2" Opacity="0.22"/>
+    <Color x:Key="BandColor">#C7A6F2</Color>
+    <SolidColorBrush x:Key="HeroBorder" Color="#3A3A6A"/>
+    <LinearGradientBrush x:Key="Hero" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#2A2A57" Offset="0"/>
+        <GradientStop Color="#1F2040" Offset="1"/>
+    </LinearGradientBrush>
+</ResourceDictionary>

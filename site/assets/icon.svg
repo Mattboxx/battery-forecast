@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Battery Forecast: una batteria con dentro la curva prevista (piena, poi tratteggiata) su un cielo
+       al crepuscolo. Stessa geometria di icon.xaml, da cui si genera TillDusk.ico (tools/make_icon.ps1). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1A1C48"/>
+      <stop offset="0.55" stop-color="#3D2F7A"/>
+      <stop offset="1" stop-color="#C2664A"/>
+    </linearGradient>
+    <linearGradient id="charge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE08A"/>
+      <stop offset="1" stop-color="#F59A3C"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#bg)"/>
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="none" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="8"/>
+  <!-- corpo e polo della batteria -->
+  <rect x="196" y="332" width="584" height="360" rx="84" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-width="44"/>
+  <rect x="804" y="448" width="52" height="128" rx="24" fill="#FFFFFF"/>
+  <!-- carica prevista: area piena fino a ora, poi la previsione tratteggiata -->
+  <path d="M262 626 L262 412 C 340 414 400 436 452 478 C 488 507 512 530 540 546 L540 626 Z" fill="url(#charge)"/>
+  <path d="M540 546 C 590 575 650 596 714 612" fill="none" stroke="#FFE08A" stroke-width="26" stroke-linecap="round" stroke-dasharray="2 46"/>
+  <circle cx="540" cy="546" r="22" fill="#FFFFFF"/>
+</svg>
