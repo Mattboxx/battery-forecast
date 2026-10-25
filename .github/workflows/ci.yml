@@ -23,6 +23,8 @@ jobs:
       - name: Python tests
         run: |
           python -m pip install numpy pytest
-          python -m pytest -q forecast
+          python -m pytest -q forecast tools/tests
+      - name: Audited original licenses
+        run: python tools/licenses.py --check-sources
       - name: .NET tests
         run: dotnet test windows/tests/BatteryForecast.Tests -c Release

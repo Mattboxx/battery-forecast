@@ -8,7 +8,7 @@
 # 4. licenze di tutto ciò che si distribuisce                   -> artifacts\BatteryForecast\licenses
 # 5. installer Inno Setup + SHA-256                              -> artifacts\BatteryForecast-Setup-<v>-<arch>.exe
 param(
-    [string]$Version = "0.9.0-alpha.2",
+    [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.]+)?$')][string]$Version = "0.9.0-alpha.2",
     [ValidateSet('x64', 'arm64')][string]$Arch = $(if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }),
     [switch]$SkipEngine,
     [switch]$SkipInstaller
@@ -25,7 +25,10 @@ $iscc = @("$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe", "${env:ProgramFile
 
 function Step($text) { Write-Host "`n== $text" -ForegroundColor Cyan }
 
-if (Test-Path $dist) { Remove-Item -Recurse -Force $dist }
+# Verify the absolute deletion target stays inside this checkout's artifacts directory.
+$expectedDist = [IO.Path]::GetFullPath((Join-Path $root 'artifacts\BatteryForecast'))
+if ([IO.Path]::GetFullPath($dist) -ne $expectedDist) { throw 'Unexpected package directory' }
+if (Test-Path -LiteralPath $dist) { Remove-Item -LiteralPath $dist -Recurse -Force }
 New-Item -ItemType Directory -Force $dist | Out-Null
 
 Step "app .NET (Release, self-contained win-$Arch)"
@@ -57,8 +60,17 @@ foreach ($f in 'config.json', 'model.safetensors', 'LICENSE', 'MODEL_INFO.json')
 }
 Write-Host "$($info.model_id) @ $($info.revision) verificato"
 
+$docOut = Join-Path $dist 'docs'
+New-Item -ItemType Directory -Force $docOut | Out-Null
+foreach ($doc in 'MODEL_CARD.md', 'LICENSE_AUDIT.md', 'UPSTREAM.md') {
+    Copy-Item -LiteralPath (Join-Path $root "docs\$doc") -Destination $docOut
+}
+
 Step "licenze"
-& $python (Join-Path $root 'tools\licenses.py') (Join-Path $dist 'licenses') (Join-Path $dist 'engine\_internal')
+$legalArgs = @((Join-Path $root 'tools\licenses.py'), (Join-Path $dist 'licenses'), (Join-Path $dist 'engine\_internal'),
+    '--publish', $dist, '--toc', (Join-Path $root 'forecast\build\forecast\Analysis-00.toc'))
+if ($iscc) { $legalArgs += @('--inno-license', (Join-Path (Split-Path $iscc) 'license.txt')) }
+& $python @legalArgs
 if ($LASTEXITCODE) { throw "raccolta licenze non riuscita" }
 
 # Limite di 260 caratteri: la cartella d'installazione predefinita è circa

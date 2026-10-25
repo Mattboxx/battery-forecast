@@ -2,6 +2,12 @@ name: Release
 
 # Si avvia solo con un tag di versione, per esempio: git tag v0.9.0-beta.1 && git push origin v0.9.0-beta.1
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Build and verify installers without publishing'
+        required: true
+        default: '0.9.0-alpha.2'
   push:
     tags: ["v*"]
 
@@ -11,6 +17,7 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - arch: x64
@@ -22,10 +29,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "10.0.x"
+          dotnet-version: "10.0.402"
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.10"
           architecture: ${{ matrix.arch }}
       - name: Engine environment
         shell: pwsh
@@ -36,26 +43,48 @@ jobs:
           # hf-xet non ha wheel cp312 per Windows ARM e serve solo a scaricare: si esclude (le dipendenze sono già bloccate)
           Get-Content forecast/requirements.lock | Where-Object { $_ -notmatch '^hf-xet==' } | Set-Content req.txt
           & $py -m pip install --no-deps -r req.txt --extra-index-url https://download.pytorch.org/whl/cpu
-          & $py -m pip install pyinstaller
+          if ($LASTEXITCODE) { throw "Engine dependency installation failed" }
+          & $py -m pip install pyinstaller==6.22.3 pytest
+          if ($LASTEXITCODE) { throw "Build dependency installation failed" }
           & $py tools/fetch_model.py --model 28M
+          if ($LASTEXITCODE) { throw "Model download failed" }
+          & $py -m pytest -q forecast tools/tests
+          if ($LASTEXITCODE) { throw "Python tests failed" }
+      - name: .NET tests
+        run: dotnet test windows/tests/BatteryForecast.Tests -c Release -r win-${{ matrix.arch }}
       - name: Inno Setup
         shell: pwsh
         run: |
           Invoke-WebRequest https://jrsoftware.org/download.php/is.exe -OutFile is.exe
           Start-Process .\is.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/CURRENTUSER', '/NORESTART' -Wait
       - name: Package
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
         shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}".TrimStart('v')
+          $version = if ($env:REQUESTED_VERSION) { $env:REQUESTED_VERSION } else { $env:GITHUB_REF_NAME.TrimStart('v') }
           ./tools/package.ps1 -Version $version -Arch ${{ matrix.arch }}
+      - name: Verify frozen package
+        shell: pwsh
+        run: |
+          forecast/.venv/Scripts/python.exe tools/smoke_package.py artifacts/BatteryForecast --arch ${{ matrix.arch }} --report artifacts/package-smoke-${{ matrix.arch }}.json
+          if ($LASTEXITCODE) { throw "Frozen package smoke test failed" }
+      - name: Install, verify, update and uninstall on disposable runner
+        shell: pwsh
+        run: |
+          $setup = (Get-ChildItem artifacts/BatteryForecast-Setup-*-${{ matrix.arch }}.exe | Select-Object -First 1).FullName
+          ./tools/test_installer.ps1 -Installer $setup -Arch ${{ matrix.arch }}
       - uses: actions/upload-artifact@v4
         with:
           name: installer-${{ matrix.arch }}
           path: |
             artifacts/BatteryForecast-Setup-*.exe
             artifacts/BatteryForecast-Setup-*.exe.sha256
+            artifacts/*smoke-*.json
+            artifacts/BatteryForecast/licenses/inventory.json
 
   release:
+    if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -70,4 +99,4 @@ jobs:
         run: |
           tag="${{ github.ref_name }}"
           pre=""; [[ "$tag" == *-* ]] && pre="--prerelease"
-          gh release create "$tag" dist/* --title "Battery Forecast ${tag#v}" --notes-file CHANGELOG.md $pre --verify-tag
+          gh release create "$tag" dist/*.exe dist/*.exe.sha256 dist/*smoke-*.json --title "Battery Forecast ${tag#v}" --notes-file CHANGELOG.md $pre --verify-tag

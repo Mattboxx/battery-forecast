@@ -4,3 +4,6 @@
 *.ico binary
 *.icns binary
 *.cmd text eol=crlf
+
+# Preserve audited upstream legal documents byte-for-byte.
+licenses/vendor/** -text

@@ -1,0 +1,70 @@
+[
+  {
+    "file": "vendor/efcore-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/dotnet/dotnet/b0f34d51fccc69fd334253924abd8d6853fad7aa/src/efcore/LICENSE.txt",
+    "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b"
+  },
+  {
+    "file": "vendor/wpf-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/dotnet/dotnet/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/src/wpf/LICENSE.TXT",
+    "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b"
+  },
+  {
+    "file": "vendor/wpf-NOTICES.txt",
+    "url": "https://raw.githubusercontent.com/dotnet/dotnet/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/src/wpf/THIRD-PARTY-NOTICES.TXT",
+    "sha256": "d23dba2fee20c6b59d8f7088ee9ed372459c952a319b7ca90f3eec370cc76eb9"
+  },
+  {
+    "file": "vendor/winforms-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/dotnet/dotnet/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/src/winforms/LICENSE.TXT",
+    "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b"
+  },
+  {
+    "file": "vendor/winforms-NOTICES.txt",
+    "url": "https://raw.githubusercontent.com/dotnet/dotnet/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/src/winforms/THIRD-PARTY-NOTICES.TXT",
+    "sha256": "5a412b38efae0b162dc0893b319023f4cd14a8985a0f9f9ae01ac052b37a36eb"
+  },
+  {
+    "file": "vendor/Till-Dusk-original-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/mattBonfanti/till-dusk/0e78703264c4d5f8b71ab6cf3425bdf3bb3c973b/LICENSE",
+    "sha256": "135b2ca293c5f1bb43b34a12bf2930cdd214a48fcfe1e74ad9c726aaa623f619"
+  },
+  {
+    "file": "vendor/Timestral-code-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/mistralai/timestral/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/LICENSE",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "file": "vendor/Timestral-28M-LICENSE.txt",
+    "url": "https://huggingface.co/mistralai/Timestral-28M/resolve/49b26409ac87b5935539a5d8ffe7f397b720db47/LICENSE",
+    "sha256": "648194727930df730890e9f9affdbcc5c930d406d6829559b25ca3d5a973fc8c"
+  },
+  {
+    "file": "vendor/Timestral-5M-LICENSE.txt",
+    "url": "https://huggingface.co/mistralai/Timestral-5M/resolve/bdd20cfc15a3fea0e4cb5ccef37f8d3ca7aa335f/LICENSE",
+    "sha256": "648194727930df730890e9f9affdbcc5c930d406d6829559b25ca3d5a973fc8c"
+  },
+  {
+    "file": "vendor/SQLitePCLRaw-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/ca835d21508bff43121c65081035840ac5006c4c/LICENSE.TXT",
+    "resolved_url": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/ca835d21508bff43121c65081035840ac5006c4c/LICENSE.TXT",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "file": "vendor/SQLite-public-domain.html",
+    "url": "https://www.sqlite.org/copyright.html",
+    "resolved_url": "https://www.sqlite.org/copyright.html",
+    "sha256": "44ca9f793055c8e32fc65f65a4f5bcf813a33f5bdaaa084067dd617a4ed3cc70"
+  },
+  {
+    "file": "vendor/Windows-SDK-license.rtf",
+    "url": "https://aka.ms/WinSDKLicenseURL",
+    "resolved_url": "https://download.microsoft.com/download/0/F/F/0FF2B061-47DD-4F55-89B6-FD1D8C44F14D/sdk_license.rtf",
+    "sha256": "dd07eb178e00c6bba4148457fc00ff77cd4887eb521d504186fe59c9ec8bbe62"
+  },
+  {
+    "file": "vendor/CsWinRT-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/microsoft/CsWinRT/8649ee3eeb2445ca2a36d80d878ef60b96a6c65d/LICENSE",
+    "sha256": "9906940f61b1f0b533fa7d99baf55178b2808fbe113ea51dfbfad8572ccd5f2b"
+  }
+]
