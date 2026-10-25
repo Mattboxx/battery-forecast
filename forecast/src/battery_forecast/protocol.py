@@ -8,6 +8,8 @@ from __future__ import annotations
 import json
 import math
 
+from .series import CONTEXT_RANGES
+
 from . import DEFAULT_RESERVE, HORIZON_STEPS, PROTOCOL_VERSION, STEP_SECONDS
 
 
@@ -73,4 +75,26 @@ def parse_request(line: bytes) -> dict:
         raise ProtocolError("bad_request", f"horizon_steps deve stare fra 1 e {HORIZON_STEPS}")
     if out["scenario"] != "no_charge":
         raise ProtocolError("bad_request", f"scenario non supportato: {out['scenario']!r}")
+    context = req.get("past_covariates", {})
+    if not isinstance(context, dict) or len(context) > len(CONTEXT_RANGES):
+        raise ProtocolError("bad_request", "past_covariates must contain supported named historical channels")
+    parsed = {}
+    try:
+        for name, pairs in context.items():
+            if name not in CONTEXT_RANGES or not isinstance(pairs, list) or len(pairs) > 40000:
+                raise ValueError("unknown or oversized historical channel")
+            clean = []
+            for pair in pairs:
+                if not isinstance(pair, (list, tuple)) or len(pair) != 2:
+                    raise ValueError("expected [utc_seconds, value_or_null]")
+                timestamp = float(pair[0])
+                value = None if pair[1] is None else float(pair[1])
+                if not math.isfinite(timestamp) or (value is not None and not math.isfinite(value)):
+                    raise ValueError("nonfinite historical observation")
+                if timestamp <= out["now"]:
+                    clean.append((timestamp, value))
+            parsed[name] = clean
+    except (ValueError, TypeError) as e:
+        raise ProtocolError("bad_request", f"invalid past_covariates: {e}") from None
+    out["past_covariates"] = parsed
     return out

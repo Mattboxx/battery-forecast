@@ -115,3 +115,54 @@ def _count_sessions(level: np.ndarray, ac: np.ndarray, min_steps: int) -> int:
     edges = np.diff(np.concatenate([[0], on_battery.astype(np.int8), [0]]))
     lengths = np.flatnonzero(edges == -1) - np.flatnonzero(edges == 1)
     return int((lengths >= min_steps).sum())
+
+
+CONTEXT_RANGES = {
+    "discharge_w": (0, 1000), "charge_w": (0, 1000), "cpu_pct": (0, 100),
+    "cpu_mhz": (0, 20000), "memory_pct": (0, 100), "brightness_pct": (0, 100),
+    "cpu_temp_c": (-30, 130), "battery_temp_c": (-30, 130), "thermal_zone_c": (-30, 130),
+    "power_profile": (0, 3),
+}
+
+
+def past_covariates(data: dict, context: Series):
+    """Historical observations only, aligned with the battery grid. No invented future sensor values.
+
+    Six observed bins and nonconstant data are required per channel. Numeric gaps of at most
+    ten minutes interpolate only within the same observed power state. Profiles are categorical
+    and never interpolated. Long gaps and unavailable sensors remain NaN.
+    """
+    numeric, categorical, names = [], [], []
+    n = len(context.level)
+    for name in CONTEXT_RANGES:
+        pairs = data.get(name, [])
+        if not pairs:
+            continue
+        arr = np.asarray([(t, np.nan if v is None else v) for t, v in pairs], dtype=np.float64)
+        lower, upper = CONTEXT_RANGES[name]
+        valid = np.isfinite(arr[:, 0]) & np.isfinite(arr[:, 1]) & (arr[:, 1] >= lower) & (arr[:, 1] <= upper)
+        arr = arr[valid]
+        if not len(arr):
+            continue
+        bins = np.floor((arr[:, 0] - context.start) / STEP_SECONDS).astype(np.int64)
+        keep = (bins >= 0) & (bins < n) & (arr[:, 0] <= context.end)
+        bins, values = bins[keep], arr[:, 1][keep]
+        if name == "power_profile":
+            keep = values == np.floor(values)
+            bins, values = bins[keep], values[keep]
+        counts = np.bincount(bins, minlength=n)
+        sums = np.bincount(bins, weights=values, minlength=n)
+        channel = np.full(n, np.nan, dtype=np.float32)
+        np.divide(sums, counts, out=channel, where=counts > 0)
+        observed = np.isfinite(channel)
+        if observed.sum() < 6 or np.nanstd(channel) < 1e-5:
+            continue
+        if name == "power_profile":
+            # The C# bin is missing when multiple profiles were observed in that bin.
+            categorical.append(channel)
+        else:
+            channel = _fill_short_gaps(channel, context.ac, MAX_GAP_STEPS)
+            numeric.append(channel)
+        names.append(name)
+    return (np.asarray(numeric, dtype=np.float32)[None] if numeric else None,
+            np.asarray(categorical, dtype=np.float64)[None] if categorical else None, names)

@@ -60,3 +60,44 @@ Status: **experimental**. No accuracy figures are claimed until `docs/VALIDATION
 
 Timestral code: Apache 2.0. Timestral weights: modified MIT license, distributed with its exact text
 (it includes a condition on monthly consolidated revenue). See `licenses/`.
+
+## Charging target estimate (Windows port)
+
+Charging activates a separate **experimental observed-data estimator**, not Timestral's no-charge
+scenario. The target is user-defined (50–100%, default 80%) and does not control the firmware.
+At least six continuous observations over eight minutes with two percentage points of increase
+are required. A robust recent slope may project at most 20 further points, only up to 80%.
+For higher or more distant targets, at least two observed charging sessions must cover both the
+current level and target with matching design capacity and similar full capacity. Their median
+observed interval is used; this captures an observed final slowdown rather than assuming a
+constant charging rate through 100%. Gaps over three minutes, AC changes, decreases and large
+sensor jumps split charging intervals. Missing data produces a collecting-data message.
+
+These intervals do not establish that the adapter, thermal state or workload match. No calibrated
+uncertainty or accuracy claim is made. Real-session validation for charging remains pending.
+
+## Historical system context (experimental)
+
+Windows optionally records aggregate CPU utilization and reported frequency, memory load, battery
+charge/discharge watts, display brightness, power profile and available temperatures. Battery temperature
+uses the read-only battery-class driver query. CPU temperature is read only from an already installed
+OpenHardwareMonitor/LibreHardwareMonitor WMI provider. ACPI thermal zones are a distinct signal and
+are never labelled CPU or battery temperature. Missing, unsupported or access-denied data stays null.
+No kernel driver, elevated helper, process names, window titles or online telemetry are introduced.
+
+Sensor context is stored separately in SQLite schema 3, under the same retention/deletion settings.
+Five-minute means align to the battery grid; mixed power-profile bins are missing. Six observed bins
+and nonconstant values are required per channel. Numeric gaps up to ten minutes can interpolate when
+AC state is unchanged. Longer gaps stay missing. Profiles are categorical, with no interpolation.
+The fixed Timestral API receives numeric `past_covariates` and categorical
+`categorical_past_covariates`; their lengths cover **history only**. CPU load, power, brightness and
+temperatures are not assumed known in the future. Only the no-charge adapter scenario remains a known
+future covariate. `context_features` in each response/cache identifies channels actually passed to the
+model. Collection and model use can be switched off separately in Preferences.
+
+A real-model functional test checks that sensor arrays reach the forecaster with historical dimensions.
+This establishes integration, **not an accuracy improvement**. Rolling-origin comparisons with and
+without context, grouped by laptop/workload and using only observations available at each origin,
+are still required. More channels may help, do nothing or worsen forecasts; no claim is made before
+those measurements exist. Sensor collection overhead and additional inference cost also need field
+measurements. GetSystemTimes reports the active processor group on systems with more than 64 CPUs.

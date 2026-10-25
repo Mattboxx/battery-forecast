@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using BatteryForecast.Core;
+using BatteryForecast.Core.Battery;
 using BatteryForecast.Core.Forecasting;
 using BatteryForecast.Core.Presentation;
 
@@ -25,6 +26,12 @@ static class Snapshots
             var panel = new PanelWindow(app) { Left = -20000, Top = -20000, ShowActivated = false };
             panel.Update(model, state.Target.When);
             Render(panel, Path.Combine(dir, $"panel-{name}.png"));
+            var chargingState = state with { Battery = state.Battery with { State = ChargeState.Charging, OnAc = true, LevelPct = 63 },
+                Phase = PowerPhase.Charging, Forecast = null, Recent = null,
+                Charging = new(ChargeEstimateKind.RecentRate, 75, state.Now.AddMinutes(30)), Demo = true };
+            var charging = new PanelWindow(app) { Left = -20000, Top = -20000, ShowActivated = false };
+            charging.Update(PanelPresenter.Present(chargingState), state.Target.When);
+            Render(charging, Path.Combine(dir, $"charging-{name}.png"));
             var prefs = new PreferencesWindow(app) { Left = -20000, Top = -20000, ShowActivated = false, WindowStartupLocation = WindowStartupLocation.Manual };
             Render(prefs, Path.Combine(dir, $"preferences-{name}.png"));
             var history = new HistoryWindow(app) { Left = -20000, Top = -20000, ShowActivated = false, WindowStartupLocation = WindowStartupLocation.Manual };

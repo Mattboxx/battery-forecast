@@ -9,6 +9,7 @@ using BatteryForecast.Core;
 using BatteryForecast.Core.Battery;
 using BatteryForecast.Core.Forecasting;
 using BatteryForecast.Core.Storage;
+using BatteryForecast.Core.Telemetry;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 var json = new JsonSerializerOptions { WriteIndented = true, Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() } };
@@ -21,6 +22,15 @@ switch (cmd)
     case "battery":
         Console.WriteLine(JsonSerializer.Serialize(battery.Read(), json));
         return 0;
+
+    case "sensors":
+    {
+        var context=new WindowsSystemContext();
+        SystemSample reading=context.Read(battery.Read());
+        for(int i=0;i<3;i++) { await Task.Delay(1000); reading=context.Read(battery.Read()); }
+        Console.WriteLine(JsonSerializer.Serialize(reading,json));
+        return 0;
+    }
 
     case "record":
     {
@@ -76,6 +86,6 @@ switch (cmd)
     }
 
     default:
-        Console.Error.WriteLine("comandi: battery | forecast [--db FILE] | record --db FILE [--minutes N]");
+        Console.Error.WriteLine("comandi: battery | sensors | forecast [--db FILE] | record --db FILE [--minutes N]");
         return 1;
 }

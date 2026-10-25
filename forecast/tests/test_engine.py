@@ -89,3 +89,23 @@ def test_worker_process_round_trip_and_exit_on_eof():
     finally:
         if p.poll() is None:
             p.kill()
+
+
+def test_real_model_receives_historical_context_separately(engine, monkeypatch):
+    from battery_forecast import protocol
+    seen = {}
+    original = engine.fc.forecast
+    def record(*args, **kwargs):
+        seen.update(kwargs)
+        return original(*args, **kwargs)
+    monkeypatch.setattr(engine.fc, "forecast", record)
+    req = request(samples=[[NOW-i*300,60+i*0.2,0] for i in range(30,-1,-1)])
+    req["past_covariates"] = {
+        "cpu_pct": [[NOW-i*300,20+(i%5)*10] for i in range(30,-1,-1)],
+        "discharge_w": [[NOW-i*300,8+(i%5)*2] for i in range(30,-1,-1)],
+    }
+    result=engine.predict(protocol.parse_request(json.dumps(req).encode()))
+    assert set(result["context_features"])=={"cpu_pct","discharge_w"}
+    assert seen["past_covariates"].shape[1]==2
+    assert seen["known_covariates"].shape[-1]==seen["past_covariates"].shape[-1]+288
+    assert len(result["curve"])==288

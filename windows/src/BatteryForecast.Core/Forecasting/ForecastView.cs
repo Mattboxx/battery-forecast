@@ -12,6 +12,7 @@ public sealed record ForecastView(
     HistoryQuality Quality, double ObservedDays, int Sessions, string? ModelId, string? ModelRevision,
     DateTimeOffset? HabitualRecharge = null, DateTimeOffset? ExtrapolatedFrom = null)
 {
+    public IReadOnlyList<string> ContextFeatures { get; init; } = [];
     public DateTimeOffset HorizonEnd => Curve.Count > 0 ? Curve[^1].T : Generated;
 
     public static ForecastView From(ForecastResponse r) => new(
@@ -26,7 +27,7 @@ public sealed record ForecastView(
         [.. r.Curve.Select(p => new CurvePoint(FromUnix(p.T), p.P10, p.P50, p.P90))],
         r.Quality.State switch { "ok" => HistoryQuality.Ok, "learning" => HistoryQuality.Learning, _ => HistoryQuality.Insufficient },
         r.Quality.ObservedDays, r.Quality.DischargeSessions, r.ModelId, r.ModelRevision,
-        Opt(r.HabitualRechargeUtc), Opt(r.ExtrapolatedFromUtc));
+        Opt(r.HabitualRechargeUtc), Opt(r.ExtrapolatedFromUtc)) { ContextFeatures = r.ContextFeatures };
 
     /// <summary>Livello interpolato all'istante <paramref name="t"/>; null fuori dalla curva.</summary>
     public CurvePoint? At(DateTimeOffset t)

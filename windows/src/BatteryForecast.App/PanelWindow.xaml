@@ -43,6 +43,8 @@
             <TextBlock Text="{Binding DemoLine}" Foreground="{DynamicResource DemoText}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"/>
         </Border>
 
+        <TextBlock Text="{Binding SensorLine}" Style="{StaticResource Footnote}" Margin="4,0,4,10"
+            Visibility="{Binding SensorLine, Converter={StaticResource Visible}}"/>
         <!-- previsione: la card principale, con una leggera sfumatura -->
         <Border Background="{DynamicResource Hero}" BorderBrush="{DynamicResource HeroBorder}" BorderThickness="1"
                 CornerRadius="14" Padding="16,14,16,12">
@@ -72,8 +74,10 @@
                     <TextBlock Text="{Binding Note}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
                                Visibility="{Binding Note, Converter={StaticResource Visible}}"/>
 
+                    <TextBlock Text="{Binding ExtraTargets}" Style="{StaticResource Secondary}" Margin="0,8,0,0"
+                        Visibility="{Binding ExtraTargets, Converter={StaticResource Visible}}"/>
                     <app:ForecastChart x:Name="Chart" Height="120" Margin="0,14,0,2" Forecast="{Binding Chart}"
-                                       AutomationProperties.HelpText="{Binding ChartSummary}"
+                                       AutomationProperties.HelpText="{Binding ChartSummary}" AutomationProperties.Name="{app:T ChartExplore}"
                                        Visibility="{Binding Chart, Converter={StaticResource Visible}}"/>
 
                     <!-- obiettivo serale come una "pillola" -->
@@ -94,6 +98,8 @@
                     </Border>
 
                     <StackPanel Margin="0,10,0,0">
+                        <TextBlock Text="{Binding ContextLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
+                                   Visibility="{Binding ContextLine, Converter={StaticResource Visible}}"/>
                         <TextBlock Text="{Binding SourceLine}" Style="{StaticResource Footnote}"
                                    Visibility="{Binding SourceLine, Converter={StaticResource Visible}}"/>
                         <TextBlock Text="{Binding RechargeLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
@@ -125,6 +131,7 @@
         <StackPanel Margin="0,10,0,0">
             <Button Style="{StaticResource IconRow}" Tag="&#xE945;" Click="Power_Click" Content="{app:T OpenPowerSettings}"/>
             <Button Style="{StaticResource IconRow}" Tag="&#xE81C;" Click="History_Click" Content="{app:T History}"/>
+            <Button Style="{StaticResource IconRow}" Tag="&#xE8C8;" Click="Copy_Click" Content="{app:T CopySummary}"/>
             <Button Style="{StaticResource IconRow}" Tag="&#xE713;" Click="Prefs_Click" Content="{app:T Preferences}"/>
             <Button Style="{StaticResource IconRow}" Tag="&#xE7E8;" Click="Quit_Click" Content="{app:T Quit}"/>
         </StackPanel>

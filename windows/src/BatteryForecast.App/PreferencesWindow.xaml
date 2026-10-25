@@ -20,15 +20,25 @@
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
                         <TextBlock Text="{app:T PrefReserve}" Style="{StaticResource Label}"/>
-                        <ComboBox x:Name="Reserve" Grid.Column="1" AutomationProperties.Name="{app:T PrefReserve}"/>
+                        <TextBox x:Name="Reserve" Grid.Column="1" AutomationProperties.Name="{app:T PrefReserve}"/>
                     </Grid>
                     <TextBlock Text="{app:T PrefReserveHelp}" Style="{StaticResource Help}"/>
                     <Grid Margin="0,14,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
                         <TextBlock Text="{app:T PrefTarget}" Style="{StaticResource Label}"/>
-                        <ComboBox x:Name="Target" Grid.Column="1" AutomationProperties.Name="{app:T PrefTarget}"/>
+                        <TextBox x:Name="Target" Grid.Column="1" AutomationProperties.Name="{app:T PrefTarget}"/>
                     </Grid>
-                    <TextBlock Text="{app:T PrefTargetHelp}" Style="{StaticResource Help}"/>
+                    <TextBlock Text="{app:T ManualTimeHelp}" Style="{StaticResource Help}"/>
+                    <TextBlock Text="{app:T ExtraTimes}" Style="{StaticResource Label}" Margin="0,12,0,4"/>
+                    <TextBox x:Name="ExtraTimes" AutomationProperties.Name="{app:T ExtraTimes}"/>
+                    <TextBlock Text="{app:T ChargeTargetLabel}" Style="{StaticResource Label}" Margin="0,12,0,4"/>
+                    <TextBox x:Name="ChargeTarget" AutomationProperties.Name="{app:T ChargeTargetLabel}"/>
+                    <TextBlock Text="{app:T ChargeTargetHelp}" Style="{StaticResource Help}"/>
+                    <TextBlock Text="{app:T HotkeyLabel}" Style="{StaticResource Label}" Margin="0,12,0,4"/>
+                    <TextBox x:Name="Hotkey" AutomationProperties.Name="{app:T HotkeyLabel}"/>
+                    <TextBlock Text="{app:T HotkeyHelp}" Style="{StaticResource Help}"/>
+                    <Button Content="{app:T ApplyCustom}" Click="Custom_Click" HorizontalAlignment="Left" Margin="0,12,0,0" Padding="12,5"/>
+                    <TextBlock x:Name="CustomStatus" Style="{StaticResource Help}"/>
                     <Grid Margin="0,14,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions>
                         <TextBlock Text="{app:T PrefRefresh}" Style="{StaticResource Label}"/>
@@ -50,6 +60,8 @@
                         <TextBlock Text="{app:T PrefLanguage}" Style="{StaticResource Label}"/>
                         <ComboBox x:Name="LanguageBox" Grid.Column="1" AutomationProperties.Name="{app:T PrefLanguage}"/>
                     </Grid>
+                    <CheckBox x:Name="ShowChart" Content="{app:T ShowChart}" Margin="0,12,0,0"/>
+                    <CheckBox x:Name="KeepOpenDefault" Content="{app:T KeepOpenDefault}" Margin="0,10,0,0"/>
                     <CheckBox x:Name="TrayPercent" Margin="0,14,0,0" Content="{app:T PrefTray}"/>
                     <TextBlock Text="{app:T PrefTrayHelp}" Style="{StaticResource Help}"/>
                     <CheckBox x:Name="Login" Margin="0,12,0,0" Content="{app:T PrefLogin}"/>
@@ -62,19 +74,28 @@
                     <TextBlock Text="{app:T PrefNotifications}" Style="{StaticResource SectionTitle}"/>
                     <CheckBox x:Name="NotifyEnabled" Margin="0,8,0,0" Content="{app:T PrefNotifyEnabled}"/>
                     <StackPanel x:Name="NotifyOptions" Margin="28,4,0,0">
-                        <CheckBox x:Name="NotifyTime" Content="{app:T PrefNotifyTime}"/>
+                        <TextBlock Text="{app:T AlertMinutesCustom}" Style="{StaticResource Label}"/>
+                        <TextBox x:Name="AlertMinutes" AutomationProperties.Name="{app:T AlertMinutesCustom}" Margin="0,4,0,0"/>
                         <Grid Margin="0,8,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
                             <TextBlock Text="{app:T PrefNotifyLow}" Style="{StaticResource Label}"/>
-                            <ComboBox x:Name="NotifyLow" Grid.Column="1" AutomationProperties.Name="{app:T PrefNotifyLow}"/>
+                            <TextBox x:Name="NotifyLow" Grid.Column="1" AutomationProperties.Name="{app:T PrefNotifyLow}"/>
                         </Grid>
                         <Grid Margin="0,8,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
                             <TextBlock Text="{app:T PrefNotifyCharged}" Style="{StaticResource Label}"/>
-                            <ComboBox x:Name="NotifyCharged" Grid.Column="1" AutomationProperties.Name="{app:T PrefNotifyCharged}"/>
+                            <TextBox x:Name="NotifyCharged" Grid.Column="1" AutomationProperties.Name="{app:T PrefNotifyCharged}"/>
                         </Grid>
                         <CheckBox x:Name="NotifyDrain" Margin="0,8,0,0" Content="{app:T PrefNotifyDrain}"/>
                     </StackPanel>
+                    <CheckBox x:Name="QuietEnabled" Content="{app:T QuietEnabled}" Margin="0,12,0,0"/>
+                    <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <StackPanel><TextBlock Text="{app:T QuietStart}" Style="{StaticResource Label}"/><TextBox x:Name="QuietStart" AutomationProperties.Name="{app:T QuietStart}" Margin="0,4,8,0"/></StackPanel>
+                        <StackPanel Grid.Column="1"><TextBlock Text="{app:T QuietEnd}" Style="{StaticResource Label}"/><TextBox x:Name="QuietEnd" AutomationProperties.Name="{app:T QuietEnd}" Margin="0,4,0,0"/></StackPanel>
+                    </Grid>
+                    <TextBlock Text="{app:T QuietHelp}" Style="{StaticResource Help}"/>
+                    <Button Content="{app:T ApplyCustom}" Click="Custom_Click" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="12,5"/>
+                    <TextBlock x:Name="NotifyCustomStatus" Style="{StaticResource Help}"/>
                     <TextBlock Text="{app:T PrefNotifyHelp}" Style="{StaticResource Help}"/>
                     <Button Content="{app:T TestNotification}" Click="TestNotify_Click" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="12,5"/>
                 </StackPanel>
@@ -83,15 +104,21 @@
             <Border Style="{StaticResource Card}" Margin="0,10,0,0">
                 <StackPanel>
                     <TextBlock Text="{app:T PrefData}" Style="{StaticResource SectionTitle}"/>
+                    <CheckBox x:Name="CollectContext" Content="{app:T CollectContext}" Margin="0,10,0,0"/>
+                    <CheckBox x:Name="UseContext" Content="{app:T UseContext}" Margin="0,8,0,0"/>
+                    <TextBlock Text="{app:T ContextHelp}" Style="{StaticResource Help}"/>
                     <Grid Margin="0,8,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
                         <TextBlock Text="{app:T PrefRetention}" Style="{StaticResource Label}"/>
                         <ComboBox x:Name="Retention" Grid.Column="1" AutomationProperties.Name="{app:T PrefRetention}"/>
                     </Grid>
                     <WrapPanel Margin="0,12,0,0">
+                        <Button Content="{app:T ExportContext}" Click="ExportContext_Click" Padding="12,5" Margin="0,0,8,8"/>
                         <Button Content="{app:T ExportCsv}" Click="Export_Click" Margin="0,0,8,0" Padding="12,5"/>
                         <Button Content="{app:T DeleteHistory}" Click="Delete_Click" Padding="12,5"/>
+                        <Button Content="{app:T Diagnostics}" Click="Diagnostics_Click" Padding="12,5" Margin="0,8,0,0"/>
                     </WrapPanel>
+                    <TextBlock Text="{app:T DiagnosticsHelp}" Style="{StaticResource Help}"/>
                     <TextBlock x:Name="DataNote" Style="{StaticResource Help}" Visibility="Collapsed"/>
                 </StackPanel>
             </Border>

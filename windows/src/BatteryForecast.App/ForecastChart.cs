@@ -1,6 +1,10 @@
 using System.Globalization;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Automation.Peers;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using BatteryForecast.Core.Forecasting;
 using BatteryForecast.Core.Presentation;
@@ -15,12 +19,82 @@ namespace BatteryForecast.App;
 sealed class ForecastChart : FrameworkElement
 {
     public static readonly DependencyProperty ForecastProperty = DependencyProperty.Register(nameof(Forecast),
-        typeof(ForecastView), typeof(ForecastChart), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+        typeof(ForecastView), typeof(ForecastChart), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender,
+            (owner, _) => ((ForecastChart)owner).RefreshProbe()));
     public static readonly DependencyProperty TargetProperty = DependencyProperty.Register(nameof(Target),
         typeof(DateTimeOffset?), typeof(ForecastChart), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public ForecastView? Forecast { get => (ForecastView?)GetValue(ForecastProperty); set => SetValue(ForecastProperty, value); }
     public DateTimeOffset? Target { get => (DateTimeOffset?)GetValue(TargetProperty); set => SetValue(TargetProperty, value); }
+
+    double? selection;
+    string selectionText = "";
+    readonly ToolTip probeTip;
+
+    public ForecastChart()
+    {
+        Focusable = true;
+        Cursor = Cursors.Cross;
+        probeTip = new ToolTip { PlacementTarget = this, Placement = PlacementMode.Relative, StaysOpen = true };
+        MouseMove += (_, e) =>
+        {
+            var p = e.GetPosition(this);
+            var width = ActualWidth - AxisRight;
+            if (width > 0 && p.X >= 0 && p.X <= width && p.Y >= Top && p.Y <= ActualHeight - AxisBottom)
+                Select(p.X / width);
+            else ClearSelection();
+        };
+        MouseLeftButtonDown += (_, _) => Focus();
+        MouseLeave += (_, _) => { if (!IsKeyboardFocusWithin) ClearSelection(); else probeTip.IsOpen = false; };
+        LostKeyboardFocus += (_, _) => ClearSelection();
+        Unloaded += (_, _) => ClearSelection();
+        IsVisibleChanged += (_, _) => { if (!IsVisible) ClearSelection(); };
+        KeyDown += (_, e) =>
+        {
+            if (Forecast is not { } f || f.HorizonEnd <= f.Generated) return;
+            double step = 300 / (f.HorizonEnd - f.Generated).TotalSeconds;
+            switch (e.Key)
+            {
+                case Key.Left: Select((selection ?? 0) - step); break;
+                case Key.Right: Select((selection ?? 0) + step); break;
+                case Key.Home: Select(0); break;
+                case Key.End: Select(1); break;
+                default: return;
+            }
+            e.Handled = true;
+        };
+    }
+
+    void RefreshProbe()
+    {
+        if (selection is double fraction && IsVisible) Select(fraction);
+        else ClearSelection();
+    }
+
+    void Select(double fraction)
+    {
+        selection = Math.Clamp(fraction, 0, 1);
+        if (ChartSelection.AtFraction(Forecast, selection.Value) is not { } point) { ClearSelection(); return; }
+        var previous = selectionText;
+        var time = point.T.ToLocalTime();
+        selectionText = L.F("ChartProbe", time.ToString("ddd dd MMM HH:mm zzz", L.Culture), Math.Round(point.P50), Math.Round(point.P10), Math.Round(point.P90));
+        if (Forecast?.ExtrapolatedFrom is { } start && point.T >= start) selectionText += Environment.NewLine + L.T("ChartExtrapolated");
+        probeTip.Content = selectionText;
+        probeTip.HorizontalOffset = Math.Clamp(selection.Value * (ActualWidth - AxisRight) - 100, 0, Math.Max(0, ActualWidth - 240));
+        probeTip.VerticalOffset = ActualHeight + 4;
+        probeTip.IsOpen = true;
+        if (previous != selectionText && UIElementAutomationPeer.FromElement(this) is { } peer)
+            peer.RaisePropertyChangedEvent(AutomationElementIdentifiers.ItemStatusProperty, previous, selectionText);
+        InvalidateVisual();
+    }
+
+    void ClearSelection()
+    {
+        selection = null;
+        selectionText = "";
+        probeTip.IsOpen = false;
+        InvalidateVisual();
+    }
 
     const double AxisRight = 34, AxisBottom = 16, Top = 4;
 
@@ -28,12 +102,14 @@ sealed class ForecastChart : FrameworkElement
 
     protected override void OnRender(DrawingContext dc)
     {
+        dc.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
         var f = Forecast;
-        if (f is null || f.Curve.Count == 0 || ActualWidth < 80) return;
+        if (f is null || f.Curve.Count == 0 || ActualWidth < 80 || ActualHeight <= Top + AxisBottom) return;
         var w = ActualWidth - AxisRight;
         var h = ActualHeight - AxisBottom - Top;
         var t0 = f.Generated;
         var span = (f.HorizonEnd - t0).TotalSeconds;
+        if (span <= 0) return;
         double X(DateTimeOffset t) => (t - t0).TotalSeconds / span * w;
         double Y(double v) => Top + (1 - Math.Clamp(v, 0, 100) / 100) * h;
         var dpi = VisualTreeHelper.GetDpi(this).PixelsPerDip;
@@ -104,8 +180,26 @@ sealed class ForecastChart : FrameworkElement
         {
             var x = X(target);
             dc.DrawLine(new Pen(B("TextTertiary"), 1) { DashStyle = new DashStyle([2, 3], 0) }, new Point(x, Top), new Point(x, Top + h));
-            dc.DrawEllipse(B("Accent"), new Pen(B("CardBg"), 2), new Point(x, Y(at.P50)), 4.5, 4.5);
+            if (selection is null) dc.DrawEllipse(B("Accent"), new Pen(B("CardBg"), 2), new Point(x, Y(at.P50)), 4.5, 4.5);
         }
+
+        if (selection is double fraction && ChartSelection.AtFraction(f, fraction) is { } probe)
+        {
+            var point = new Point(X(probe.T), Y(probe.P50));
+            var guide = new Pen(B("TextTertiary"), 1) { DashStyle = new DashStyle([2, 2], 0) };
+            dc.DrawLine(guide, new Point(point.X, Top), new Point(point.X, Top + h));
+            dc.DrawLine(guide, new Point(0, point.Y), new Point(w, point.Y));
+            dc.DrawEllipse(B("Accent"), new Pen(B("CardBg"), 2), point, 5, 5);
+            var percent = Label($"{probe.P50:0}%", B("Accent"));
+            var labelY = Math.Clamp(point.Y - percent.Height / 2, 0, Math.Max(0, ActualHeight - percent.Height));
+            dc.DrawRectangle(B("CardBg"), null, new Rect(w + 2, labelY, AxisRight - 2, percent.Height));
+            dc.DrawText(percent, new Point(w + 6, labelY));
+            var clock = Label(probe.T.ToLocalTime().ToString("HH:mm", L.Culture), B("Accent"));
+            var labelX = Math.Clamp(point.X - clock.Width / 2, 0, Math.Max(0, w-clock.Width));
+            dc.DrawRectangle(B("CardBg"), null, new Rect(labelX, Top+h+3, clock.Width, clock.Height));
+            dc.DrawText(clock, new Point(labelX, Top+h+3));
+        }
+        if (IsKeyboardFocused) dc.DrawRectangle(null, new Pen(B("Accent"), 1), new Rect(0,0,ActualWidth,ActualHeight));
     }
 
     static StreamGeometry Polyline(List<CurvePoint> pts, Func<DateTimeOffset, double> x, Func<double, double> y)
@@ -126,6 +220,7 @@ sealed class ForecastChart : FrameworkElement
     {
         protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Image;
         protected override string GetNameCore() => L.T("ChartName");
+        protected override string GetItemStatusCore() => owner.selectionText;
         protected override bool IsContentElementCore() => true;
     }
 }

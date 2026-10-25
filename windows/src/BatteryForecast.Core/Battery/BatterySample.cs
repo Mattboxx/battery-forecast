@@ -19,6 +19,8 @@ public sealed record BatterySample(
     bool? BatterySaver = null,
     string Source = "windows")
 {
+    public int? ChargingPowerMW { get; init; }
+
     public bool HasBattery => State != ChargeState.NotPresent;
 
     /// <summary>A batteria con una percentuale valida: l'unico caso in cui ha senso una previsione.</summary>

@@ -8,27 +8,54 @@
   <data name="About" xml:space="preserve"><value>about {0}</value></data>
   <data name="AboutRange" xml:space="preserve"><value>about {0} · indicative range {1}–{2}</value></data>
   <data name="AboutText" xml:space="preserve"><value>Battery Forecast {0}. Forecasts run locally with {1}. Derived from Till Dusk by Matteo Bonfanti (MIT).</value></data>
+  <data name="AlertMinutesCustom" xml:space="preserve"><value>Alert minutes (comma separated; empty = off)</value></data>
   <data name="AlreadyBelow" xml:space="preserve"><value>Already below the {0}% reserve</value></data>
+  <data name="ApplyCustom" xml:space="preserve"><value>Save custom settings</value></data>
   <data name="AtTarget" xml:space="preserve"><value>At {0}</value></data>
   <data name="AtTargetTomorrow" xml:space="preserve"><value>Tomorrow at {0}</value></data>
   <data name="AtToday" xml:space="preserve"><value>at {0}</value></data>
   <data name="Battery" xml:space="preserve"><value>Battery</value></data>
   <data name="Beyond" xml:space="preserve"><value>Beyond the next {0} hours</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calculating the forecast…</value></data>
+  <data name="ChargeCollecting" xml:space="preserve"><value>Learning charging speed</value></data>
+  <data name="ChargeCollectingHelp" xml:space="preserve"><value>Not enough continuous charging data for the {0}% target yet. The final charging phase may slow down.</value></data>
+  <data name="ChargeHistorySource" xml:space="preserve"><value>Based on {0} comparable observed charging sessions, including the final slowdown.</value></data>
+  <data name="ChargeReached" xml:space="preserve"><value>Charging target {0}% reached</value></data>
+  <data name="ChargeRecentSource" xml:space="preserve"><value>Based on recent charging speed; keep the same adapter and load.</value></data>
+  <data name="ChargeSection" xml:space="preserve"><value>Charging forecast</value></data>
+  <data name="ChargeTargetHelp" xml:space="preserve"><value>50–100%. Estimates when charging; does not change the hardware charge limit. Above 80% requires at least two matching observed charge sessions.</value></data>
+  <data name="ChargeTargetLabel" xml:space="preserve"><value>Charging target (%) · estimate only</value></data>
+  <data name="ChargeUncertain" xml:space="preserve"><value>Charging estimate is experimental and can change with temperature, workload and the adapter.</value></data>
+  <data name="ChargeUntil" xml:space="preserve"><value>Target {0}%: {1}</value></data>
   <data name="Charging" xml:space="preserve"><value>Charging</value></data>
   <data name="ChargingTo" xml:space="preserve"><value>Charging · {0}%</value></data>
+  <data name="ChartExplore" xml:space="preserve"><value>Hover or focus the chart and use Left/Right arrows to explore time and battery level.</value></data>
+  <data name="ChartExtrapolated" xml:space="preserve"><value>Extrapolated after the habitual plug-in time</value></data>
   <data name="ChartName" xml:space="preserve"><value>Forecast for the next 24 hours</value></data>
+  <data name="ChartProbe" xml:space="preserve"><value>{0} · about {1}%
+Indicative range {2}–{3}%</value></data>
   <data name="ChartSummary" xml:space="preserve"><value>Now {0}%. Central estimate: {1}% in 3 hours, {2}% in 6 hours, {3}% in 12 hours. Shaded band: cautious to optimistic estimate.</value></data>
+  <data name="ClipboardCopied" xml:space="preserve"><value>Battery summary copied.</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="CollectContext" xml:space="preserve"><value>Collect local system context</value></data>
   <data name="Collecting" xml:space="preserve"><value>Collecting data</value></data>
   <data name="CollectingDetail" xml:space="preserve"><value>Keep using the PC on battery for a few minutes: the first estimate comes from recent use.</value></data>
+  <data name="ContextHelp" xml:space="preserve"><value>Aggregate CPU load/frequency, memory, battery watts, brightness, power profile and available temperatures. No process names or online telemetry. Missing sensors stay unavailable; ACPI zones are not CPU temperature. More data does not guarantee better accuracy.</value></data>
+  <data name="ContextUsed" xml:space="preserve"><value>Historical sensors used: {0}</value></data>
+  <data name="CopySummary" xml:space="preserve"><value>Copy battery summary</value></data>
   <data name="Coverage" xml:space="preserve"><value>{0} days of history · {1} samples</value></data>
+  <data name="CustomInvalid" xml:space="preserve"><value>Check HH:mm times, percentages and shortcut. No invalid changes were saved.</value></data>
+  <data name="CustomSaved" xml:space="preserve"><value>Settings saved.</value></data>
   <data name="DayAt" xml:space="preserve"><value>{0} at {1}</value></data>
   <data name="Days" xml:space="preserve"><value>{0} days</value></data>
   <data name="DeleteConfirm" xml:space="preserve"><value>Delete all recorded battery history? Forecasts will start learning again from scratch.</value></data>
   <data name="DeleteHistory" xml:space="preserve"><value>Delete all history…</value></data>
   <data name="Deleted" xml:space="preserve"><value>History deleted.</value></data>
   <data name="Demo" xml:space="preserve"><value>Demo · simulated discharge from your current level, not a measurement</value></data>
+  <data name="DemoCharging" xml:space="preserve"><value>Demo · synthetic charging example, not a measurement</value></data>
+  <data name="Diagnostics" xml:space="preserve"><value>Export local diagnostics</value></data>
+  <data name="DiagnosticsHelp" xml:space="preserve"><value>Creates a local ZIP with versions, preferences and the model card. It excludes battery history and logs and is never uploaded automatically.</value></data>
+  <data name="DiagnosticsSaved" xml:space="preserve"><value>Local diagnostics exported.</value></data>
   <data name="Earlier" xml:space="preserve"><value>earlier</value></data>
   <data name="EngineLoading" xml:space="preserve"><value>Starting the forecast engine…</value></data>
   <data name="EngineMissing" xml:space="preserve"><value>The forecast engine is not installed. Recent-use estimates still work.</value></data>
@@ -36,8 +63,10 @@
   <data name="EngineSlow" xml:space="preserve"><value>The forecast engine did not answer in time.</value></data>
   <data name="EngineStopped" xml:space="preserve"><value>The forecast engine stopped. Recent-use estimates still work.</value></data>
   <data name="ExpectedRuntime" xml:space="preserve"><value>Expected battery life</value></data>
+  <data name="ExportContext" xml:space="preserve"><value>Export system context CSV</value></data>
   <data name="ExportCsv" xml:space="preserve"><value>Export history as CSV…</value></data>
   <data name="Exported" xml:space="preserve"><value>Exported {0} samples.</value></data>
+  <data name="ExtraTimes" xml:space="preserve"><value>Other target times (up to 4, comma separated)</value></data>
   <data name="FullyCharged" xml:space="preserve"><value>Fully charged</value></data>
   <data name="HabitualRecharge" xml:space="preserve"><value>You usually plug in around {0}: past that point the curve continues at the expected average rate.</value></data>
   <data name="HabitualRechargeNoRate" xml:space="preserve"><value>You usually plug in around {0}: past that point your habits say nothing about use on battery.</value></data>
@@ -48,12 +77,17 @@
   <data name="HealthValue" xml:space="preserve"><value>{0}% of design capacity</value></data>
   <data name="History" xml:space="preserve"><value>History and battery health…</value></data>
   <data name="HistoryTitle" xml:space="preserve"><value>Battery history and health</value></data>
+  <data name="HotkeyConflict" xml:space="preserve"><value>Shortcut unavailable: it may be used by another app. The previous shortcut is kept.</value></data>
+  <data name="HotkeyHelp" xml:space="preserve"><value>Example: Ctrl+Alt+B. Use Ctrl or Alt plus a letter, digit or F key (except F12). Empty disables it.</value></data>
+  <data name="HotkeyLabel" xml:space="preserve"><value>Open forecast shortcut</value></data>
   <data name="Hours" xml:space="preserve"><value>{0} h</value></data>
   <data name="HoursMinutes" xml:space="preserve"><value>{0} h {1} min</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Keep open</value></data>
+  <data name="KeepOpenDefault" xml:space="preserve"><value>Keep panel open when clicking elsewhere</value></data>
   <data name="LangSystem" xml:space="preserve"><value>Use Windows setting</value></data>
   <data name="Later" xml:space="preserve"><value>later</value></data>
   <data name="Licenses" xml:space="preserve"><value>Licenses…</value></data>
+  <data name="ManualTimeHelp" xml:space="preserve"><value>Enter any time as HH:mm (24-hour clock). A past target refers to tomorrow.</value></data>
   <data name="MinimizeToTray" xml:space="preserve"><value>Minimize</value></data>
   <data name="Minutes" xml:space="preserve"><value>{0} min</value></data>
   <data name="NoBattery" xml:space="preserve"><value>No battery found</value></data>
@@ -102,6 +136,10 @@
   <data name="PrefsTitle" xml:space="preserve"><value>Battery Forecast preferences</value></data>
   <data name="PrudentAbove" xml:space="preserve"><value>Even the cautious estimate stays above {0}%</value></data>
   <data name="PrudentCrosses" xml:space="preserve"><value>In the cautious estimate it reaches the reserve {0}</value></data>
+  <data name="QuietEnabled" xml:space="preserve"><value>Quiet notification hours</value></data>
+  <data name="QuietEnd" xml:space="preserve"><value>Until (HH:mm)</value></data>
+  <data name="QuietHelp" xml:space="preserve"><value>All automatic battery alerts are paused in this local time interval. Equal times disable the interval.</value></data>
+  <data name="QuietStart" xml:space="preserve"><value>Quiet from (HH:mm)</value></data>
   <data name="Quit" xml:space="preserve"><value>Quit Battery Forecast</value></data>
   <data name="RangeOnDay" xml:space="preserve"><value>{0} {1}–{2}</value></data>
   <data name="RecentLine" xml:space="preserve"><value>At the current rate: about {0} ({1})</value></data>
@@ -120,8 +158,27 @@
   <data name="SegmentRow" xml:space="preserve"><value>{0}% → {1}% in {2}</value></data>
   <data name="SegmentsNote" xml:space="preserve"><value>Only continuous stretches recorded while Battery Forecast was running: sleep, gaps and the adapter end a stretch. They are not full cycles.</value></data>
   <data name="SegmentsTitle" xml:space="preserve"><value>Observed discharges</value></data>
+  <data name="SensorBatteryTemp" xml:space="preserve"><value>Battery {0:0.0} °C</value></data>
+  <data name="SensorBrightness" xml:space="preserve"><value>Brightness {0:0}%</value></data>
+  <data name="SensorCharge" xml:space="preserve"><value>Charging {0:0.0} W</value></data>
+  <data name="SensorCpu" xml:space="preserve"><value>CPU {0:0}%</value></data>
+  <data name="SensorCpuTemp" xml:space="preserve"><value>CPU {0:0.0} °C</value></data>
+  <data name="SensorDischarge" xml:space="preserve"><value>Discharge {0:0.0} W</value></data>
+  <data name="SensorMemory" xml:space="preserve"><value>Memory {0:0}%</value></data>
   <data name="SensorUnavailable" xml:space="preserve"><value>Battery reading unavailable</value></data>
   <data name="SensorUnavailableDetail" xml:space="preserve"><value>Windows is not reporting the battery level right now. Trying again every minute.</value></data>
+  <data name="SensorZoneTemp" xml:space="preserve"><value>ACPI zone {0:0.0} °C</value></data>
+  <data name="Sensor_battery_temp_c" xml:space="preserve"><value>battery temperature</value></data>
+  <data name="Sensor_brightness_pct" xml:space="preserve"><value>brightness</value></data>
+  <data name="Sensor_charge_w" xml:space="preserve"><value>charging watts</value></data>
+  <data name="Sensor_cpu_mhz" xml:space="preserve"><value>CPU MHz</value></data>
+  <data name="Sensor_cpu_pct" xml:space="preserve"><value>CPU load</value></data>
+  <data name="Sensor_cpu_temp_c" xml:space="preserve"><value>CPU temperature</value></data>
+  <data name="Sensor_discharge_w" xml:space="preserve"><value>discharge watts</value></data>
+  <data name="Sensor_memory_pct" xml:space="preserve"><value>memory</value></data>
+  <data name="Sensor_power_profile" xml:space="preserve"><value>power profile</value></data>
+  <data name="Sensor_thermal_zone_c" xml:space="preserve"><value>ACPI temperature</value></data>
+  <data name="ShowChart" xml:space="preserve"><value>Show forecast chart</value></data>
   <data name="SourceAc" xml:space="preserve"><value>Power adapter</value></data>
   <data name="SourceBattery" xml:space="preserve"><value>Battery</value></data>
   <data name="SourceHabits" xml:space="preserve"><value>Learns from your use · {0} days of history</value></data>
@@ -165,6 +222,7 @@
   <data name="UpdateNoticeTitle" xml:space="preserve"><value>Update available</value></data>
   <data name="UpdateStarting" xml:space="preserve"><value>Starting the installer…</value></data>
   <data name="UpdatedAt" xml:space="preserve"><value>at {0}</value></data>
+  <data name="UseContext" xml:space="preserve"><value>Use historical sensors in Timestral (experimental)</value></data>
   <data name="VersionLine" xml:space="preserve"><value>Version {0}</value></data>
   <data name="WindowsLine" xml:space="preserve"><value>Windows: {0} of continuous use at the current rate</value></data>
 </root>

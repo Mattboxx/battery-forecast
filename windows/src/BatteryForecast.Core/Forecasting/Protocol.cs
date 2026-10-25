@@ -37,6 +37,17 @@ public static class Protocol
         foreach (var s in r.History)
             samples.Add(new JsonArray(s.Ts, s.Level is double l ? Math.Round(l, 2) : null, s.Ac));
         o["samples"] = samples;
+        if(r.PastCovariates is { Count: >0 })
+        {
+            var context=new JsonObject();
+            foreach(var (key,rows) in r.PastCovariates)
+            {
+                var values=new JsonArray();
+                foreach(var row in rows)values.Add(new JsonArray(row.Ts,row.Value is double value && double.IsFinite(value)?Math.Round(value,3):null));
+                context[key]=values;
+            }
+            o["past_covariates"]=context;
+        }
         return o.ToJsonString();
     }
 
@@ -63,7 +74,7 @@ public static class Protocol
 }
 
 public sealed record ForecastRequest(DateTimeOffset Now, double Level, bool? OnAc, double ReservePct,
-    IReadOnlyList<Storage.ModelSample> History);
+    IReadOnlyList<Storage.ModelSample> History, IReadOnlyDictionary<string,IReadOnlyList<Storage.ModelCovariate>>? PastCovariates = null);
 
 public abstract record WorkerMessage(long? Id);
 public sealed record WorkerReady(string ModelId, string ModelRevision, int StartupMs) : WorkerMessage((long?)null);
@@ -87,6 +98,7 @@ public sealed record ForecastResponse
     public double? ExtrapolatedFromUtc { get; init; }
     public double? ExtrapolationRatePctPerHour { get; init; }
     public List<CurvePointDto> Curve { get; init; } = [];
+    public List<string> ContextFeatures { get; init; } = [];
     public int ElapsedMs { get; init; }
 }
 

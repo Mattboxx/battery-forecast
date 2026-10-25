@@ -1,4 +1,5 @@
 using BatteryForecast.Core.Battery;
+using BatteryForecast.Core.Telemetry;
 
 namespace BatteryForecast.Core.Storage;
 
@@ -13,12 +14,17 @@ public sealed class Collector : IDisposable
     readonly HistoryStore store;
     readonly TimeProvider clock;
     readonly TimeSpan interval;
+    readonly ISystemContextProvider? context;
+    readonly Func<bool> collectContext;
+    public SystemSample? CurrentContext { get; private set; }
     readonly Lock gate = new();
     ITimer? timer;
     bool? lastOnAc;
 
-    public Collector(IBatteryProvider provider, HistoryStore store, TimeProvider? clock = null, TimeSpan? interval = null)
+    public Collector(IBatteryProvider provider, HistoryStore store, TimeProvider? clock = null, TimeSpan? interval = null, ISystemContextProvider? context = null, Func<bool>? collectContext = null)
     {
+        this.context = context;
+        this.collectContext = collectContext ?? (() => true);
         this.provider = provider;
         this.store = store;
         this.clock = clock ?? TimeProvider.System;
@@ -57,6 +63,8 @@ public sealed class Collector : IDisposable
             try
             {
                 store.Append(s);
+                CurrentContext = context is not null && collectContext() ? context.Read(s) : null;
+                if(CurrentContext is not null) store.AppendContext(CurrentContext);
                 if (change != PowerChange.None)
                     store.AppendEvent(s.TimestampUtc, change == PowerChange.Connected ? "ac_connected" : "ac_disconnected");
             }

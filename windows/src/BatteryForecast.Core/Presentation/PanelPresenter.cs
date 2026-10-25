@@ -34,6 +34,9 @@ public sealed record PanelModel
     public string? ChartSummary { get; init; }
     public string? SavingTitle { get; init; }
     public string? SavingDetail { get; init; }
+    public string? SensorLine { get; init; }
+    public string? ContextLine { get; init; }
+    public string? ExtraTargets { get; init; }
     public string Tooltip { get; init; } = "Battery Forecast";
 }
 
@@ -51,8 +54,10 @@ public static class PanelPresenter
             Level = level,
             PowerLine = L.F("PowerSource", L.T(b.OnAc == true ? "SourceAc" : "SourceBattery")),
             SaverLine = b.BatterySaver == true ? L.T("SaverOn") : null,
-            DemoLine = s.Demo ? L.T("Demo") : null,
+            DemoLine = s.Demo ? L.T(s.Battery.OnAc == true ? "DemoCharging" : "Demo") : null,
             SectionTitle = L.T("ExpectedRuntime"),
+            SensorLine = SensorLine(s),
+            ContextLine = s.Forecast?.ContextFeatures.Count > 0 ? L.F("ContextUsed", string.Join(", ",s.Forecast.ContextFeatures.Select(k=>L.T("Sensor_"+k)))) : null,
         };
 
         switch (s.Phase)
@@ -66,6 +71,22 @@ public static class PanelPresenter
             case PowerPhase.Charging or PowerPhase.PluggedIn:
                 var full = b.LevelPct >= 100;
                 var head = full ? L.T("FullyCharged") : s.Phase == PowerPhase.Charging ? L.F("ChargingTo", Pct(b.LevelPct)) : L.T("PluggedIn");
+                if (s.Phase == PowerPhase.Charging && s.Charging is { } charge)
+                {
+                    var result = m with { SectionTitle = L.T("ChargeSection"), Note = L.T("ChargeUncertain") };
+                    return charge.Kind switch
+                    {
+                        ChargeEstimateKind.AlreadyReached => result with { Headline = L.F("ChargeReached", charge.TargetPct), Tooltip = $"Battery Forecast · {level} · " + L.F("ChargeReached", charge.TargetPct) },
+                        ChargeEstimateKind.RecentRate or ChargeEstimateKind.PastSessions when charge.TargetAt is { } chargeAt => result with
+                        {
+                            Headline = L.F("ChargeUntil", charge.TargetPct, When(Round5(chargeAt), s.Now, zone)),
+                            Detail = L.F("About", Duration(chargeAt - s.Now)),
+                            SourceLine = charge.Kind == ChargeEstimateKind.RecentRate ? L.T("ChargeRecentSource") : L.F("ChargeHistorySource", charge.Sessions),
+                            Tooltip = $"Battery Forecast · {level} · " + L.F("ChargeUntil", charge.TargetPct, When(Round5(chargeAt), s.Now, zone)),
+                        },
+                        _ => result with { Headline = L.T("ChargeCollecting"), Detail = L.F("ChargeCollectingHelp", charge.TargetPct), Tooltip = $"Battery Forecast · {level} · " + L.T("ChargeCollecting") },
+                    };
+                }
                 return m with
                 {
                     Headline = head,
@@ -154,7 +175,32 @@ public static class PanelPresenter
                 SavingDetail = s.Saving == SavingSuggestion.Likely ? L.F("SavingLikely", UntilPhrase(at, now, zone)) : L.F("SavingPossible", At(at, now, zone)),
             };
 
+        if (f is not null && habitsUsable && s.AdditionalTargets.Count > 0)
+        {
+            m = m with { ExtraTargets = string.Join(Environment.NewLine, s.AdditionalTargets.Select(t =>
+            {
+                var label = L.F(t.Tomorrow ? "AtTargetTomorrow" : "AtTarget", Clock(t.When, zone));
+                var point = f.At(t.When);
+                return label + ": " + (point is { } p ? p.P50 <= f.ReservePct ? L.F("TargetBelowReserve", Pct(f.ReservePct)) : $"{p.P50:0}%" : L.T("TargetBeyond"));
+            })) };
+        }
         return m with { Tooltip = Tooltip(m, level, s, zone) };
+    }
+
+    static string? SensorLine(DashboardState state)
+    {
+        if(state.SystemContext is not { } context) return null;
+        var pieces=new List<string>();
+        if(context.DischargeW is double discharge)pieces.Add(L.F("SensorDischarge",discharge));
+        if(context.ChargeW is double charge)pieces.Add(L.F("SensorCharge",charge));
+        if(context.CpuPct is double cpu)pieces.Add(L.F("SensorCpu",cpu));
+        if(context.CpuMHz is double mhz)pieces.Add($"{mhz:0} MHz");
+        if(context.MemoryPct is double memory)pieces.Add(L.F("SensorMemory",memory));
+        if(context.CpuTemperatureC is double temp)pieces.Add(L.F("SensorCpuTemp",temp));
+        if(context.BatteryTemperatureC is double battery)pieces.Add(L.F("SensorBatteryTemp",battery));
+        if(context.ThermalZoneC is double zone)pieces.Add(L.F("SensorZoneTemp",zone));
+        if(context.BrightnessPct is double brightness)pieces.Add(L.F("SensorBrightness",brightness));
+        return pieces.Count>0?string.Join(" · ",pieces):null;
     }
 
     static PanelModel HabitHeadline(PanelModel m, ForecastView f, DashboardState s, TimeZoneInfo zone)

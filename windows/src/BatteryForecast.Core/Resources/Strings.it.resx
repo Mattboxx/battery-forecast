@@ -8,27 +8,54 @@
   <data name="About" xml:space="preserve"><value>circa {0}</value></data>
   <data name="AboutRange" xml:space="preserve"><value>circa {0} · fascia indicativa {1}–{2}</value></data>
   <data name="AboutText" xml:space="preserve"><value>Battery Forecast {0}. Le previsioni girano in locale con {1}. Derivato da Till Dusk di Matteo Bonfanti (MIT).</value></data>
+  <data name="AlertMinutesCustom" xml:space="preserve"><value>Minuti degli avvisi (separati da virgola; vuoto = disattivato)</value></data>
   <data name="AlreadyBelow" xml:space="preserve"><value>Già sotto la riserva del {0}%</value></data>
+  <data name="ApplyCustom" xml:space="preserve"><value>Salva impostazioni personalizzate</value></data>
   <data name="AtTarget" xml:space="preserve"><value>Alle {0}</value></data>
   <data name="AtTargetTomorrow" xml:space="preserve"><value>Domani alle {0}</value></data>
   <data name="AtToday" xml:space="preserve"><value>alle {0}</value></data>
   <data name="Battery" xml:space="preserve"><value>Batteria</value></data>
   <data name="Beyond" xml:space="preserve"><value>Oltre le prossime {0} ore</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calcolo della previsione…</value></data>
+  <data name="ChargeCollecting" xml:space="preserve"><value>Raccolta dati di ricarica</value></data>
+  <data name="ChargeCollectingHelp" xml:space="preserve"><value>Dati di ricarica continua ancora insufficienti per l’obiettivo {0}%. La fase finale può rallentare.</value></data>
+  <data name="ChargeHistorySource" xml:space="preserve"><value>Da {0} sessioni di ricarica osservate comparabili, incluso il rallentamento finale.</value></data>
+  <data name="ChargeReached" xml:space="preserve"><value>Obiettivo di carica {0}% raggiunto</value></data>
+  <data name="ChargeRecentSource" xml:space="preserve"><value>Dal ritmo recente di ricarica; con lo stesso alimentatore e carico.</value></data>
+  <data name="ChargeSection" xml:space="preserve"><value>Previsione di ricarica</value></data>
+  <data name="ChargeTargetHelp" xml:space="preserve"><value>50–100%. Stima durante la carica; non modifica il limite hardware. Oltre 80% richiede almeno due sessioni di carica osservate comparabili.</value></data>
+  <data name="ChargeTargetLabel" xml:space="preserve"><value>Obiettivo di carica (%) · solo stima</value></data>
+  <data name="ChargeUncertain" xml:space="preserve"><value>Stima di ricarica sperimentale: può cambiare con temperatura, carico e alimentatore.</value></data>
+  <data name="ChargeUntil" xml:space="preserve"><value>Obiettivo {0}%: {1}</value></data>
   <data name="Charging" xml:space="preserve"><value>In carica</value></data>
   <data name="ChargingTo" xml:space="preserve"><value>In carica · {0}%</value></data>
+  <data name="ChartExplore" xml:space="preserve"><value>Passa il mouse sul grafico o usa le frecce sinistra/destra con il grafico a fuoco per esplorare ora e livello.</value></data>
+  <data name="ChartExtrapolated" xml:space="preserve"><value>Estrapolazione dopo l’orario abituale di ricarica</value></data>
   <data name="ChartName" xml:space="preserve"><value>Previsione per le prossime 24 ore</value></data>
+  <data name="ChartProbe" xml:space="preserve"><value>{0} · circa {1}%
+Fascia indicativa {2}–{3}%</value></data>
   <data name="ChartSummary" xml:space="preserve"><value>Ora {0}%. Stima centrale: {1}% fra 3 ore, {2}% fra 6 ore, {3}% fra 12 ore. Fascia: dalla stima prudente a quella ottimista.</value></data>
+  <data name="ClipboardCopied" xml:space="preserve"><value>Riepilogo batteria copiato.</value></data>
   <data name="Close" xml:space="preserve"><value>Chiudi</value></data>
+  <data name="CollectContext" xml:space="preserve"><value>Raccogli contesto locale del sistema</value></data>
   <data name="Collecting" xml:space="preserve"><value>Raccolta dati in corso</value></data>
   <data name="CollectingDetail" xml:space="preserve"><value>Usa il PC a batteria per qualche minuto: la prima stima arriva dal consumo recente.</value></data>
+  <data name="ContextHelp" xml:space="preserve"><value>CPU aggregata, frequenza, memoria, watt batteria, luminosità, profilo e temperature disponibili. Nessun nome di processo o telemetria online. I sensori mancanti restano non disponibili; le zone ACPI non sono la temperatura CPU. Più dati non garantiscono maggiore accuratezza.</value></data>
+  <data name="ContextUsed" xml:space="preserve"><value>Sensori storici usati: {0}</value></data>
+  <data name="CopySummary" xml:space="preserve"><value>Copia riepilogo batteria</value></data>
   <data name="Coverage" xml:space="preserve"><value>{0} giorni di storico · {1} campioni</value></data>
+  <data name="CustomInvalid" xml:space="preserve"><value>Controlla orari HH:mm, percentuali e scorciatoia. I valori non validi non sono stati salvati.</value></data>
+  <data name="CustomSaved" xml:space="preserve"><value>Impostazioni salvate.</value></data>
   <data name="DayAt" xml:space="preserve"><value>{0} alle {1}</value></data>
   <data name="Days" xml:space="preserve"><value>{0} giorni</value></data>
   <data name="DeleteConfirm" xml:space="preserve"><value>Eliminare tutto lo storico registrato? Le previsioni ricominceranno a imparare da zero.</value></data>
   <data name="DeleteHistory" xml:space="preserve"><value>Elimina tutto lo storico…</value></data>
   <data name="Deleted" xml:space="preserve"><value>Storico eliminato.</value></data>
   <data name="Demo" xml:space="preserve"><value>Demo · scarica simulata dal livello attuale, non una misura</value></data>
+  <data name="DemoCharging" xml:space="preserve"><value>Demo · esempio di ricarica sintetico, non una misura</value></data>
+  <data name="Diagnostics" xml:space="preserve"><value>Esporta diagnostica locale</value></data>
+  <data name="DiagnosticsHelp" xml:space="preserve"><value>Crea uno ZIP locale con versioni, preferenze e scheda modello. Esclude storico e log e non viene caricato automaticamente.</value></data>
+  <data name="DiagnosticsSaved" xml:space="preserve"><value>Diagnostica locale esportata.</value></data>
   <data name="Earlier" xml:space="preserve"><value>prima</value></data>
   <data name="EngineLoading" xml:space="preserve"><value>Avvio del motore di previsione…</value></data>
   <data name="EngineMissing" xml:space="preserve"><value>Il motore di previsione non è installato. La stima dal consumo recente funziona comunque.</value></data>
@@ -36,8 +63,10 @@
   <data name="EngineSlow" xml:space="preserve"><value>Il motore di previsione non ha risposto in tempo.</value></data>
   <data name="EngineStopped" xml:space="preserve"><value>Il motore di previsione si è fermato. La stima dal consumo recente funziona comunque.</value></data>
   <data name="ExpectedRuntime" xml:space="preserve"><value>Autonomia prevista</value></data>
+  <data name="ExportContext" xml:space="preserve"><value>Esporta contesto sistema CSV</value></data>
   <data name="ExportCsv" xml:space="preserve"><value>Esporta storico in CSV…</value></data>
   <data name="Exported" xml:space="preserve"><value>Esportati {0} campioni.</value></data>
+  <data name="ExtraTimes" xml:space="preserve"><value>Altri orari obiettivo (fino a 4, separati da virgola)</value></data>
   <data name="FullyCharged" xml:space="preserve"><value>Carica completa</value></data>
   <data name="HabitualRecharge" xml:space="preserve"><value>Di solito colleghi l'alimentatore verso le {0}: oltre, la curva prosegue al ritmo medio previsto.</value></data>
   <data name="HabitualRechargeNoRate" xml:space="preserve"><value>Di solito colleghi l'alimentatore verso le {0}: oltre, le abitudini non dicono quanto consumeresti a batteria.</value></data>
@@ -48,12 +77,17 @@
   <data name="HealthValue" xml:space="preserve"><value>{0}% della capacità di progetto</value></data>
   <data name="History" xml:space="preserve"><value>Storico e salute della batteria…</value></data>
   <data name="HistoryTitle" xml:space="preserve"><value>Storico e salute della batteria</value></data>
+  <data name="HotkeyConflict" xml:space="preserve"><value>Scorciatoia non disponibile: potrebbe essere usata da un’altra app. Resta quella precedente.</value></data>
+  <data name="HotkeyHelp" xml:space="preserve"><value>Esempio: Ctrl+Alt+B. Usa Ctrl o Alt con una lettera, cifra o tasto F (tranne F12). Vuoto per disattivare.</value></data>
+  <data name="HotkeyLabel" xml:space="preserve"><value>Scorciatoia per aprire la previsione</value></data>
   <data name="Hours" xml:space="preserve"><value>{0} h</value></data>
   <data name="HoursMinutes" xml:space="preserve"><value>{0} h {1} min</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Mantieni aperto</value></data>
+  <data name="KeepOpenDefault" xml:space="preserve"><value>Mantieni il pannello aperto al clic esterno</value></data>
   <data name="LangSystem" xml:space="preserve"><value>Come Windows</value></data>
   <data name="Later" xml:space="preserve"><value>oltre</value></data>
   <data name="Licenses" xml:space="preserve"><value>Licenze…</value></data>
+  <data name="ManualTimeHelp" xml:space="preserve"><value>Scrivi qualsiasi orario HH:mm (24 ore). Un obiettivo passato si riferisce a domani.</value></data>
   <data name="MinimizeToTray" xml:space="preserve"><value>Riduci</value></data>
   <data name="Minutes" xml:space="preserve"><value>{0} min</value></data>
   <data name="NoBattery" xml:space="preserve"><value>Nessuna batteria trovata</value></data>
@@ -102,6 +136,10 @@
   <data name="PrefsTitle" xml:space="preserve"><value>Preferenze di Battery Forecast</value></data>
   <data name="PrudentAbove" xml:space="preserve"><value>Anche nella stima più prudente resta sopra il {0}%</value></data>
   <data name="PrudentCrosses" xml:space="preserve"><value>Nella stima più prudente arriva alla riserva {0}</value></data>
+  <data name="QuietEnabled" xml:space="preserve"><value>Orario silenzioso per le notifiche</value></data>
+  <data name="QuietEnd" xml:space="preserve"><value>Fino alle (HH:mm)</value></data>
+  <data name="QuietHelp" xml:space="preserve"><value>Tutti gli avvisi automatici della batteria sono sospesi in questo intervallo locale. Orari uguali disattivano l’intervallo.</value></data>
+  <data name="QuietStart" xml:space="preserve"><value>Silenzioso dalle (HH:mm)</value></data>
   <data name="Quit" xml:space="preserve"><value>Esci da Battery Forecast</value></data>
   <data name="RangeOnDay" xml:space="preserve"><value>{0} {1}–{2}</value></data>
   <data name="RecentLine" xml:space="preserve"><value>Al ritmo attuale: circa {0} ({1})</value></data>
@@ -120,8 +158,27 @@
   <data name="SegmentRow" xml:space="preserve"><value>{0}% → {1}% in {2}</value></data>
   <data name="SegmentsNote" xml:space="preserve"><value>Solo tratti continui registrati mentre Battery Forecast era in esecuzione: sospensioni, lacune e alimentatore interrompono un tratto. Non sono cicli completi.</value></data>
   <data name="SegmentsTitle" xml:space="preserve"><value>Scariche osservate</value></data>
+  <data name="SensorBatteryTemp" xml:space="preserve"><value>Batteria {0:0.0} °C</value></data>
+  <data name="SensorBrightness" xml:space="preserve"><value>Luminosità {0:0}%</value></data>
+  <data name="SensorCharge" xml:space="preserve"><value>Carica {0:0.0} W</value></data>
+  <data name="SensorCpu" xml:space="preserve"><value>CPU {0:0}%</value></data>
+  <data name="SensorCpuTemp" xml:space="preserve"><value>CPU {0:0.0} °C</value></data>
+  <data name="SensorDischarge" xml:space="preserve"><value>Scarica {0:0.0} W</value></data>
+  <data name="SensorMemory" xml:space="preserve"><value>Memoria {0:0}%</value></data>
   <data name="SensorUnavailable" xml:space="preserve"><value>Lettura della batteria non disponibile</value></data>
   <data name="SensorUnavailableDetail" xml:space="preserve"><value>Windows non comunica il livello della batteria in questo momento. Riprovo ogni minuto.</value></data>
+  <data name="SensorZoneTemp" xml:space="preserve"><value>Zona ACPI {0:0.0} °C</value></data>
+  <data name="Sensor_battery_temp_c" xml:space="preserve"><value>temperatura batteria</value></data>
+  <data name="Sensor_brightness_pct" xml:space="preserve"><value>luminosità</value></data>
+  <data name="Sensor_charge_w" xml:space="preserve"><value>watt carica</value></data>
+  <data name="Sensor_cpu_mhz" xml:space="preserve"><value>MHz CPU</value></data>
+  <data name="Sensor_cpu_pct" xml:space="preserve"><value>carico CPU</value></data>
+  <data name="Sensor_cpu_temp_c" xml:space="preserve"><value>temperatura CPU</value></data>
+  <data name="Sensor_discharge_w" xml:space="preserve"><value>watt scarica</value></data>
+  <data name="Sensor_memory_pct" xml:space="preserve"><value>memoria</value></data>
+  <data name="Sensor_power_profile" xml:space="preserve"><value>profilo energetico</value></data>
+  <data name="Sensor_thermal_zone_c" xml:space="preserve"><value>temperatura ACPI</value></data>
+  <data name="ShowChart" xml:space="preserve"><value>Mostra grafico previsione</value></data>
   <data name="SourceAc" xml:space="preserve"><value>Alimentatore</value></data>
   <data name="SourceBattery" xml:space="preserve"><value>Batteria</value></data>
   <data name="SourceHabits" xml:space="preserve"><value>Impara dal tuo utilizzo · {0} giorni di storia</value></data>
@@ -165,6 +222,7 @@
   <data name="UpdateNoticeTitle" xml:space="preserve"><value>Aggiornamento disponibile</value></data>
   <data name="UpdateStarting" xml:space="preserve"><value>Avvio dell'installazione…</value></data>
   <data name="UpdatedAt" xml:space="preserve"><value>alle {0}</value></data>
+  <data name="UseContext" xml:space="preserve"><value>Usa sensori storici in Timestral (sperimentale)</value></data>
   <data name="VersionLine" xml:space="preserve"><value>Versione {0}</value></data>
   <data name="WindowsLine" xml:space="preserve"><value>Windows: {0} di uso continuo al ritmo attuale</value></data>
 </root>

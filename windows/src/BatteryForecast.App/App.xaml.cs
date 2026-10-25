@@ -12,6 +12,7 @@ using BatteryForecast.Core.Notifications;
 using BatteryForecast.Core.Presentation;
 using BatteryForecast.Core.Storage;
 using BatteryForecast.Core.Updates;
+using BatteryForecast.Core.Telemetry;
 
 namespace BatteryForecast.App;
 
@@ -39,6 +40,8 @@ public partial class App : Application
     readonly SemaphoreSlim noticeGate = new(1, 1);
     bool demo, quitting;
     Log? log;
+    GlobalHotkey? hotkey;
+    public string? ShortcutError { get; private set; }
 
     public const string SupportUrl = "https://ko-fi.com/mattboxx";
 
@@ -87,6 +90,11 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += (_, a) => log?.Write($"fatal: {a.ExceptionObject}");
 
         Settings = Settings.Load(paths.Settings);
+        if (!demo && messages is not null)
+        {
+            hotkey = new GlobalHotkey(messages.Handle);
+            if (!hotkey.TrySet(Settings.PanelHotkey)) ShortcutError = "HotkeyConflict";
+        }
         // --lang it|en: solo per demo e istantanee (immagini del sito e del README)
         if (demo && e.Args.SkipWhile(a => a != "--lang").Skip(1).FirstOrDefault() is { } lang)
         {
@@ -114,7 +122,7 @@ public partial class App : Application
         if (launch is null) log.Write("engine not found next to the app");
         // il motore si chiude un minuto dopo l'ultima previsione: non resta in memoria fra un calcolo e l'altro
         worker = launch is null ? null : new ForecastWorker(launch, new WorkerOptions { IdleLimit = TimeSpan.FromMinutes(1) });
-        collector = new Collector(provider, Store);
+        collector = new Collector(provider, Store, context: demo ? null : new WindowsSystemContext(), collectContext: () => Settings.CollectSystemContext);
         Coordinator = new ForecastCoordinator(collector, Store, worker, () => Settings, paths.LastForecast, demo: demo);
         Coordinator.Changed += s => Dispatcher.BeginInvoke(() => Render(s));
         notices = new NotificationRules(Store);
@@ -162,6 +170,10 @@ public partial class App : Application
             const int WM_CLOSE = 0x10, WM_QUERYENDSESSION = 0x11, WM_ENDSESSION = 0x16;
             switch (msg)
             {
+                case 0x0312 when w.ToInt32() == GlobalHotkey.Id:
+                    handled = true;
+                    Dispatcher.BeginInvoke(ShowPanel);
+                    break;
                 case WM_QUERYENDSESSION:
                     handled = true;
                     return 1;                                   // si può chiudere
@@ -192,6 +204,7 @@ public partial class App : Application
         try
         {
             var settings = Settings;
+            if (settings.IsQuietAt(DateTimeOffset.UtcNow)) return;
             var notice = await Task.Run(() =>
             {
                 var (reserveAt, fresh, source) = NoticeText.Estimate(s);
@@ -292,9 +305,43 @@ public partial class App : Application
         prefs.Activate();
     }
 
+    public bool TrySetPanelHotkey(string text)
+    {
+        var ok = HotkeySpec.TryParse(text, out _) && (hotkey is null || hotkey.TrySet(text));
+        ShortcutError = ok ? null : "HotkeyConflict";
+        return ok;
+    }
+
+    public string BatterySummary()
+    {
+        if (last is null) return "Battery Forecast";
+        var m = PanelPresenter.Present(last);
+        return string.Join(Environment.NewLine, new[] { "Battery Forecast", m.Level, m.PowerLine,
+            m.Headline, m.Detail, m.Note, m.SourceLine, m.TargetLabel + " " + m.TargetValue,
+            m.ExtraTargets, m.DemoLine }.Where(t => !string.IsNullOrWhiteSpace(t)));
+    }
+
+    public void ExportDiagnostics(string destination)
+    {
+        using var file = new FileStream(destination, FileMode.Create, FileAccess.Write);
+        using var archive = new System.IO.Compression.ZipArchive(file, System.IO.Compression.ZipArchiveMode.Create);
+        void Text(string name, string content)
+        {
+            using var writer = new StreamWriter(archive.CreateEntry(name).Open());
+            writer.Write(content);
+        }
+        Text("README.txt", "Battery Forecast local diagnostics. Created explicitly by the user. No battery history or logs included.");
+        Text("versions.txt", $"Battery Forecast {Version}\nArchitecture: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}\nRuntime: {Environment.Version}\nEngine: {EngineDescription}");
+        Text("preferences.json", System.Text.Json.JsonSerializer.Serialize(Settings, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+        foreach (var (name, path) in new[] { ("MODEL_CARD.md", Path.Combine(AppContext.BaseDirectory, "docs", "MODEL_CARD.md")),
+            ("MODEL_INFO.json", Path.Combine(AppContext.BaseDirectory, "engine", "model", "MODEL_INFO.json")) })
+            if (File.Exists(path)) Text(name, File.ReadAllText(path));
+    }
+
     public void UpdateSettings(Settings next)
     {
         var prev = Settings;
+        if (prev.PanelHotkey != next.PanelHotkey && !TrySetPanelHotkey(next.PanelHotkey)) next = next with { PanelHotkey = prev.PanelHotkey };
         Settings = next.Normalized();
         try { Settings.Save(paths.Settings); } catch (IOException ex) { log?.Write($"settings: {ex.Message}"); }
         if (prev.Theme != Settings.Theme) { Theme.Apply(Settings.Theme); panel?.ApplyFrame(); }
@@ -310,7 +357,9 @@ public partial class App : Application
         if (prev.RetentionDays != Settings.RetentionDays)
             Task.Run(() => Store?.Prune(DateTimeOffset.UtcNow, Settings.RetentionDays));
         if (prev.ReservePct != Settings.ReservePct || prev.TargetTime != Settings.TargetTime || prev.TrayText != Settings.TrayText
-            || prev.Refresh != Settings.Refresh
+            || prev.Refresh != Settings.Refresh || prev.ChargeTargetPct != Settings.ChargeTargetPct
+            || !prev.AdditionalTargets.SequenceEqual(Settings.AdditionalTargets) || prev.ShowChart != Settings.ShowChart
+            || prev.KeepPanelOpen != Settings.KeepPanelOpen || prev.UseSystemContext != Settings.UseSystemContext || prev.CollectSystemContext != Settings.CollectSystemContext
             || prev.Language != Settings.Language)
             Coordinator?.SettingsChanged();
     }
@@ -366,6 +415,7 @@ public partial class App : Application
         collector?.Dispose();
         try { worker?.DisposeAsync().AsTask().Wait(TimeSpan.FromSeconds(4)); } catch (AggregateException) { }
         Store?.Dispose();
+        hotkey?.Dispose();
         messages?.Dispose();
         instance?.Dispose();
         Shutdown();

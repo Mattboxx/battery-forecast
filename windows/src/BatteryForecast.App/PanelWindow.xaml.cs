@@ -24,6 +24,8 @@ public partial class PanelWindow : Window
     {
         this.app = app;
         InitializeComponent();
+        KeepOpen.IsChecked = app.Settings.KeepPanelOpen;
+        KeepOpen.Click += (_, _) => app.UpdateSettings(app.Settings with { KeepPanelOpen = KeepOpen.IsChecked == true });
         SourceInitialized += (_, _) =>
         {
             ApplyFrame();
@@ -70,7 +72,8 @@ public partial class PanelWindow : Window
 
     public void Update(PanelModel model, DateTimeOffset target)
     {
-        DataContext = model;
+        KeepOpen.IsChecked = app.Settings.KeepPanelOpen;
+        DataContext = app.Settings.ShowChart ? model : model with { Chart = null, ChartSummary = null };
         Chart.Target = target;
         Chart.InvalidateVisual();
     }
@@ -157,6 +160,12 @@ public partial class PanelWindow : Window
             rect.Right - rect.Left, rect.Bottom - rect.Top, (int)Math.Round(Gap * scale));
         Native.SetWindowPos(hwnd, IntPtr.Zero, bounds.X, bounds.Y, 0, 0,
             Native.SWP_NOSIZE | Native.SWP_NOZORDER | Native.SWP_NOACTIVATE);
+    }
+
+    void Copy_Click(object sender, RoutedEventArgs e)
+    {
+        try { Clipboard.SetText(app.BatterySummary()); }
+        catch (System.Runtime.InteropServices.COMException) { }
     }
 
     void Retry_Click(object sender, RoutedEventArgs e) => app.Coordinator?.Retry();

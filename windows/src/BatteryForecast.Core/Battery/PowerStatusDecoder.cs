@@ -49,7 +49,8 @@ public static class PowerStatusDecoder
         int? osSeconds = s.BatteryLifeTime != UnknownSeconds && onAc == false ? (int)Math.Min(s.BatteryLifeTime, int.MaxValue) : null;
 
         return new BatterySample(now, state, level, onAc, remaining, full, design, discharge, osSeconds,
-            BatterySaver: s.SystemStatusFlag == 1, Source: "windows");
+            BatterySaver: s.SystemStatusFlag == 1, Source: "windows")
+        { ChargingPowerMW = onAc == true && report?.ChargeRateMW is > 0 ? report.Value.ChargeRateMW : null };
     }
 
     static int? Positive(int? v) => v is > 0 ? v : null;

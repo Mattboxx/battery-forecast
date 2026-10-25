@@ -1,6 +1,7 @@
 using System.Text.Json;
 using BatteryForecast.Core.Battery;
 using BatteryForecast.Core.Storage;
+using BatteryForecast.Core.Telemetry;
 
 namespace BatteryForecast.Core.Forecasting;
 
@@ -22,7 +23,10 @@ public sealed record DashboardState
     public ForecastView? Forecast { get; init; }
     /// <summary>Meno di 5 minuti e livello ancora uguale: altrimenti la UI la mostra attenuata.</summary>
     public bool ForecastFresh { get; init; }
+    public SystemSample? SystemContext { get; init; }
     public RecentEstimate? Recent { get; init; }
+    public ChargeEstimate? Charging { get; init; }
+    public IReadOnlyList<TargetTime> AdditionalTargets { get; init; } = [];
     public bool Updating { get; init; }
     public EngineState Engine { get; init; }
     public string? EngineError { get; init; }
@@ -184,7 +188,8 @@ public sealed class ForecastCoordinator : IDisposable
         {
             if (!engine!.IsWarm) SetEngine(EngineState.Loading, null);
             var history = store.ModelSamples(started - HistoryDays);
-            var r = await engine.ForecastAsync(new ForecastRequest(s.TimestampUtc, level, s.OnAc, reserve, history)).ConfigureAwait(false);
+            var r = await engine.ForecastAsync(new ForecastRequest(s.TimestampUtc, level, s.OnAc, reserve, history,
+                settings().UseSystemContext && settings().CollectSystemContext ? store.ModelCovariates(started-HistoryDays,started) : null)).ConfigureAwait(false);
             var view = ForecastView.From(r);
             lock (gate)
             {
@@ -230,6 +235,12 @@ public sealed class ForecastCoordinator : IDisposable
         var cfg = settings();
         var now = clock.GetUtcNow();
         var recent = SafeRecent(s, cfg.ReservePct, now);
+        ChargeEstimate? charging = null;
+        if (s.OnAc == true && s.State == ChargeState.Charging && now - s.TimestampUtc <= TimeSpan.FromMinutes(2))
+        {
+            try { charging = ChargeRate.Estimate(store.Samples(now.AddDays(-30), now), s, cfg.ChargeTargetPct); }
+            catch (Microsoft.Data.Sqlite.SqliteException) { charging = new(ChargeEstimateKind.Collecting, cfg.ChargeTargetPct); }
+        }
         DashboardState next;
         lock (gate)
         {
@@ -244,10 +255,13 @@ public sealed class ForecastCoordinator : IDisposable
             {
                 Now = now,
                 Battery = s,
+                SystemContext = collector.CurrentContext,
                 Phase = PhaseOf(s),
                 Forecast = active,
                 ForecastFresh = fresh,
                 Recent = s.IsDischarging ? recent : null,
+                Charging = charging,
+                AdditionalTargets = [.. cfg.AdditionalTargets.Select(t => TargetTime.Next(now, t, zone))],
                 Updating = updating,
                 Engine = engineState,
                 EngineError = engineError,

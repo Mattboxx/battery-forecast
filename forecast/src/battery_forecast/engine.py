@@ -82,9 +82,11 @@ class Engine:
         h = req["horizon"]
         # Scenario "no_charge": da ora in poi l'alimentatore resta scollegato.
         known = np.concatenate([s.ac, np.zeros(h, np.float32)])
+        past, categories, context_features = series.past_covariates(req.get("past_covariates", {}), s)
         with self._torch.inference_mode():
             q = self.fc.forecast(s.level[None, None], prediction_length=h,
-                                 known_covariates=known[None, None]).quantiles[0, 0].numpy()
+                                 known_covariates=known[None, None], past_covariates=past,
+                                 categorical_past_covariates=categories).quantiles[0, 0].numpy()
         times = s.end + STEP_SECONDS * np.arange(1, h + 1, dtype=np.float64)
         q, plug, rate = self._no_charge(q[:, self.qi], req["level"], s)
         cross = [physics.crossing(q[:, k], times, req["reserve"], req["level"], req["now"]) for k in range(3)]
@@ -99,6 +101,7 @@ class Engine:
             "scenario": req["scenario"],
             "reserve_pct": req["reserve"],
             "level": req["level"],
+            "context_features": context_features,
             "quality": {
                 "state": quality_state(s),
                 "observed_days": s.observed_days,

@@ -6,4 +6,6 @@
 *.cmd text eol=crlf
 
 # Preserve audited upstream legal documents byte-for-byte.
-licenses/vendor/** -text
+licenses/vendor/** -text -whitespace
+
+licenses/vendor/*.rtf binary

@@ -20,6 +20,24 @@ public sealed record Settings
     public double ReservePct { get; init; } = 5;
     /// <summary>Ora locale dell'obiettivo serale ("Alle 22:00 circa …%").</summary>
     public TimeOnly TargetTime { get; init; } = new(22, 0);
+    public TimeOnly[] AdditionalTargets { get; init; } = [];
+    public int ChargeTargetPct { get; init; } = 80;
+    public string PanelHotkey { get; init; } = "Ctrl+Alt+B";
+    public bool CollectSystemContext { get; init; } = true;
+    public bool UseSystemContext { get; init; } = true;
+    public bool ShowChart { get; init; } = true;
+    public bool KeepPanelOpen { get; init; }
+    public bool QuietHoursEnabled { get; init; }
+    public TimeOnly QuietStart { get; init; } = new(22, 0);
+    public TimeOnly QuietEnd { get; init; } = new(8, 0);
+
+    public bool IsQuietAt(DateTimeOffset now, TimeZoneInfo? zone = null)
+    {
+        if (!QuietHoursEnabled || QuietStart == QuietEnd) return false;
+        var time = TimeOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, zone ?? TimeZoneInfo.Local).DateTime);
+        return QuietStart < QuietEnd ? time >= QuietStart && time < QuietEnd : time >= QuietStart || time < QuietEnd;
+    }
+
     public ThemeChoice Theme { get; init; } = ThemeChoice.System;
     public LanguageChoice Language { get; init; } = LanguageChoice.System;
     public TrayText TrayText { get; init; } = TrayText.None;
@@ -36,7 +54,10 @@ public sealed record Settings
     {
         ReservePct = ReservePct is >= 1 and <= 30 ? ReservePct : 5,
         RetentionDays = RetentionDays is >= 7 and <= 3650 ? RetentionDays : 90,
-        Notifications = Notifications.Normalized(),
+        Notifications = (Notifications ?? new()).Normalized(),
+        AdditionalTargets = [.. (AdditionalTargets ?? []).Where(t => t != TargetTime).Distinct().Order().Take(4)],
+        ChargeTargetPct = ChargeTargetPct is >= 50 and <= 100 ? ChargeTargetPct : 80,
+        PanelHotkey = HotkeySpec.TryParse(PanelHotkey, out _) ? PanelHotkey?.Trim() ?? "" : "Ctrl+Alt+B",
     };
 
     static readonly JsonSerializerOptions Json = new()
@@ -68,7 +89,7 @@ public sealed record NotificationSettings
 
     public NotificationSettings Normalized() => this with
     {
-        MinutesLeft = [.. MinutesLeft.Where(m => m is >= 5 and <= 600).Distinct().OrderDescending()],
+        MinutesLeft = [.. (MinutesLeft ?? []).Where(m => m is >= 5 and <= 600).Distinct().OrderDescending()],
         LowPct = LowPct is >= 0 and <= 50 ? LowPct : 10,
         ChargedPct = ChargedPct is 0 or (>= 50 and <= 100) ? ChargedPct : 0,
     };

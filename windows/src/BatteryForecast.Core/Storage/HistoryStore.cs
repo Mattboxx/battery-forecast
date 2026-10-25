@@ -1,11 +1,13 @@
 using System.Globalization;
 using Microsoft.Data.Sqlite;
 using BatteryForecast.Core.Battery;
+using BatteryForecast.Core.Telemetry;
 
 namespace BatteryForecast.Core.Storage;
 
 /// <summary>Un passo a 5 minuti come lo legge il motore: livello medio e alimentatore se collegato in quel passo.</summary>
 public readonly record struct ModelSample(long Ts, double? Level, int? Ac);
+public readonly record struct ModelCovariate(long Ts,double? Value);
 
 /// <summary>
 /// Storico locale in SQLite. L'app è l'unico processo che scrive; il motore riceve i dati nella richiesta.
@@ -13,7 +15,7 @@ public readonly record struct ModelSample(long Ts, double? Level, int? Ac);
 /// </summary>
 public sealed class HistoryStore : IDisposable
 {
-    public const int SchemaVersion = 2;
+    public const int SchemaVersion = 3;
     readonly SqliteConnection db;
     readonly Lock gate = new();
 
@@ -61,6 +63,70 @@ public sealed class HistoryStore : IDisposable
             using var tx = db.BeginTransaction();
             Exec("CREATE TABLE notification_state (id INTEGER PRIMARY KEY CHECK(id=1), json TEXT NOT NULL); PRAGMA user_version=2;", tx);
             tx.Commit();
+        }
+        if (version < 3)
+        {
+            using var tx = db.BeginTransaction();
+            Exec("""
+                CREATE TABLE context_samples (ts INTEGER PRIMARY KEY,
+                    cpu_pct REAL, cpu_mhz REAL, memory_pct REAL, cpu_temp_c REAL, battery_temp_c REAL,
+                    thermal_zone_c REAL, brightness_pct REAL, discharge_w REAL, charge_w REAL, power_profile REAL,
+                    source TEXT NOT NULL);
+                PRAGMA user_version=3;
+                """,tx);
+            tx.Commit();
+        }
+    }
+
+    static readonly string[] ContextColumns = ["cpu_pct","cpu_mhz","memory_pct","cpu_temp_c","battery_temp_c","thermal_zone_c","brightness_pct","discharge_w","charge_w","power_profile"];
+
+    public void AppendContext(SystemSample sample)
+    {
+        lock(gate)
+        {
+            using var cmd=db.CreateCommand();
+            cmd.CommandText="INSERT OR IGNORE INTO context_samples VALUES ($ts,$v0,$v1,$v2,$v3,$v4,$v5,$v6,$v7,$v8,$v9,$source)";
+            cmd.Parameters.AddWithValue("$ts",sample.TimestampUtc.ToUnixTimeSeconds());
+            var values=new double?[] { sample.CpuPct,sample.CpuMHz,sample.MemoryPct,sample.CpuTemperatureC,sample.BatteryTemperatureC,
+                sample.ThermalZoneC,sample.BrightnessPct,sample.DischargeW,sample.ChargeW,sample.PowerProfile };
+            for(int i=0;i<values.Length;i++)cmd.Parameters.AddWithValue($"$v{i}",values[i] is double v && double.IsFinite(v)?v:DBNull.Value);
+            cmd.Parameters.AddWithValue("$source",sample.Source);
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    public Dictionary<string,IReadOnlyList<ModelCovariate>> ModelCovariates(DateTimeOffset since, DateTimeOffset until)
+    {
+        lock(gate)
+        {
+            using var cmd=db.CreateCommand();
+            cmd.CommandText=$"SELECT (ts/300)*300, {string.Join(',',ContextColumns.Select(c=>c=="power_profile"?"CASE WHEN MIN(power_profile)=MAX(power_profile) THEN MAX(power_profile) ELSE NULL END":$"AVG({c})"))} FROM context_samples WHERE ts >= $since AND ts <= $until GROUP BY ts/300 ORDER BY ts/300";
+            cmd.Parameters.AddWithValue("$since",since.ToUnixTimeSeconds());
+            cmd.Parameters.AddWithValue("$until",until.ToUnixTimeSeconds());
+            using var reader=cmd.ExecuteReader();
+            var rows=ContextColumns.ToDictionary(c=>c,_=>new List<ModelCovariate>());
+            while(reader.Read())
+                for(int i=0;i<ContextColumns.Length;i++)
+                    rows[ContextColumns[i]].Add(new(reader.GetInt64(0),reader.IsDBNull(i+1)?null:reader.GetDouble(i+1)));
+            return rows.ToDictionary(x=>x.Key,x=>(IReadOnlyList<ModelCovariate>)x.Value);
+        }
+    }
+
+    public int ExportContextCsv(TextWriter writer)
+    {
+        lock(gate)
+        {
+            using var cmd=db.CreateCommand();cmd.CommandText="SELECT * FROM context_samples ORDER BY ts";
+            using var reader=cmd.ExecuteReader();
+            writer.WriteLine("timestamp_utc,"+string.Join(',',ContextColumns)+",source");
+            int count=0;
+            while(reader.Read())
+            {
+                var values=new List<string> { DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(0)).ToString("O",CultureInfo.InvariantCulture) };
+                for(int i=1;i<=ContextColumns.Length;i++)values.Add(reader.IsDBNull(i)?"":reader.GetDouble(i).ToString("0.###",CultureInfo.InvariantCulture));
+                values.Add(reader.GetString(11));writer.WriteLine(string.Join(',',values));count++;
+            }
+            return count;
         }
     }
 
@@ -257,7 +323,7 @@ public sealed class HistoryStore : IDisposable
         {
             using var tx = db.BeginTransaction();
             var n = 0;
-            foreach (var table in new[] { "battery_samples", "power_events", "forecast_runs", "notification_events" })
+            foreach (var table in new[] { "battery_samples", "power_events", "forecast_runs", "notification_events", "context_samples" })
             {
                 using var cmd = db.CreateCommand();
                 cmd.Transaction = tx;
@@ -275,7 +341,7 @@ public sealed class HistoryStore : IDisposable
     {
         lock (gate)
         {
-            Exec("DELETE FROM battery_samples; DELETE FROM power_events; DELETE FROM forecast_runs; DELETE FROM notification_events; DELETE FROM notification_state;");
+            Exec("DELETE FROM battery_samples; DELETE FROM power_events; DELETE FROM forecast_runs; DELETE FROM notification_events; DELETE FROM notification_state; DELETE FROM context_samples;");
             Exec("VACUUM;");
         }
     }

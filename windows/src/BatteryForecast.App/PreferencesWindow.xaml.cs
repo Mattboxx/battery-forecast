@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Globalization;
+using System.Windows.Input;
 using System.IO;
 using System.Net.Http;
 using System.Windows;
@@ -21,10 +23,20 @@ public partial class PreferencesWindow : Window
         InitializeComponent();
         MaxHeight = SystemParameters.WorkArea.Height - 40;     // il resto scorre
         var s = app.Settings;
+        CollectContext.IsChecked = s.CollectSystemContext;
+        UseContext.IsChecked = s.UseSystemContext;
+        UseContext.IsEnabled = s.CollectSystemContext;
 
-        Fill(Reserve, new double[] { 3, 5, 7, 10, 15, 20 }.Select(v => ($"{v:0}%", (object)v)), s.ReservePct);
-        Fill(Target, Enumerable.Range(34, 14).Select(i => new TimeOnly(i / 2, i % 2 * 30))
-            .Select(t => (t.ToString("t", System.Globalization.CultureInfo.CurrentCulture), (object)t)), s.TargetTime);
+        Reserve.Text = s.ReservePct.ToString("0.##", CultureInfo.InvariantCulture);
+        Target.Text = s.TargetTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+        ExtraTimes.Text = string.Join(", ", s.AdditionalTargets.Select(t => t.ToString("HH:mm", CultureInfo.InvariantCulture)));
+        ChargeTarget.Text = s.ChargeTargetPct.ToString(CultureInfo.InvariantCulture);
+        Hotkey.Text = s.PanelHotkey;
+        QuietStart.Text = s.QuietStart.ToString("HH:mm", CultureInfo.InvariantCulture);
+        QuietEnd.Text = s.QuietEnd.ToString("HH:mm", CultureInfo.InvariantCulture);
+        QuietEnabled.IsChecked = s.QuietHoursEnabled;
+        ShowChart.IsChecked = s.ShowChart;
+        KeepOpenDefault.IsChecked = s.KeepPanelOpen;
         Fill(RefreshBox, [(L.T("RefreshOnOpen"), RefreshPolicy.OnOpen), (L.T("RefreshBalanced"), RefreshPolicy.Balanced),
             (L.T("RefreshFrequent"), RefreshPolicy.Frequent)], s.Refresh);
         Fill(ThemeBox, [(L.T("ThemeSystem"), ThemeChoice.System), (L.T("ThemeLight"), ThemeChoice.Light), (L.T("ThemeMist"), ThemeChoice.Mist),
@@ -33,9 +45,9 @@ public partial class PreferencesWindow : Window
         Fill(Retention, new[] { 30, 90, 180, 365 }.Select(d => (L.F("Days", d), (object)d)), s.RetentionDays);
         var n = s.Notifications;
         NotifyEnabled.IsChecked = n.Enabled;
-        NotifyTime.IsChecked = n.MinutesLeft.Length > 0;
-        Fill(NotifyLow, new[] { 0, 5, 10, 15, 20 }.Select(v => (v == 0 ? L.T("Off") : $"{v}%", (object)v)), n.LowPct);
-        Fill(NotifyCharged, new[] { 0, 80, 90, 100 }.Select(v => (v == 0 ? L.T("Off") : $"{v}%", (object)v)), n.ChargedPct);
+        AlertMinutes.Text = string.Join(", ", n.MinutesLeft);
+        NotifyLow.Text = n.LowPct.ToString(CultureInfo.InvariantCulture);
+        NotifyCharged.Text = n.ChargedPct.ToString(CultureInfo.InvariantCulture);
         NotifyDrain.IsChecked = n.UnusualDrain;
         NotifyOptions.IsEnabled = n.Enabled;
         TrayPercent.IsChecked = s.TrayText == TrayText.Percent;
@@ -45,8 +57,8 @@ public partial class PreferencesWindow : Window
         AutoUpdate.Click += (_, _) => Save();
         ShowUpdate(app.AvailableUpdate);
 
-        foreach (var c in new[] { Reserve, Target, RefreshBox, ThemeBox, LanguageBox, Retention, NotifyLow, NotifyCharged }) c.SelectionChanged += (_, _) => Save();
-        foreach (var c in new[] { NotifyEnabled, NotifyTime, NotifyDrain }) c.Click += (_, _) => Save();
+        foreach (var c in new[] { RefreshBox, ThemeBox, LanguageBox, Retention }) c.SelectionChanged += (_, _) => Save();
+        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, QuietEnabled, CollectContext, UseContext }) c.Click += (_, _) => Save();
         TrayPercent.Click += (_, _) => Save();
         Login.Click += (_, _) =>
         {
@@ -55,6 +67,9 @@ public partial class PreferencesWindow : Window
             Login.IsChecked = LoginItem.IsEnabled;
             Save();
         };
+        foreach (var box in new[] { Reserve, Target, ExtraTimes, ChargeTarget, Hotkey, QuietStart, QuietEnd, AlertMinutes, NotifyLow, NotifyCharged })
+            box.KeyDown += (_, e) => { if (e.Key == Key.Enter) { ApplyCustom(); e.Handled = true; } };
+        if (app.ShortcutError is { } error) CustomStatus.Text = L.T(error);
         loading = false;
     }
 
@@ -76,8 +91,11 @@ public partial class PreferencesWindow : Window
         if (loading) return;
         app.UpdateSettings(app.Settings with
         {
-            ReservePct = Value<double>(Reserve),
-            TargetTime = Value<TimeOnly>(Target),
+            CollectSystemContext = CollectContext.IsChecked == true,
+            UseSystemContext = UseContext.IsChecked == true,
+            ShowChart = ShowChart.IsChecked == true,
+            KeepPanelOpen = KeepOpenDefault.IsChecked == true,
+            QuietHoursEnabled = QuietEnabled.IsChecked == true,
             Refresh = Value<RefreshPolicy>(RefreshBox),
             Theme = Value<ThemeChoice>(ThemeBox),
             Language = Value<LanguageChoice>(LanguageBox),
@@ -88,22 +106,68 @@ public partial class PreferencesWindow : Window
             Notifications = app.Settings.Notifications with
             {
                 Enabled = NotifyEnabled.IsChecked == true,
-                MinutesLeft = NotifyTime.IsChecked == true ? [60, 30, 15] : [],
-                LowPct = Value<int>(NotifyLow),
-                ChargedPct = Value<int>(NotifyCharged),
                 UnusualDrain = NotifyDrain.IsChecked == true,
             },
         });
         NotifyOptions.IsEnabled = NotifyEnabled.IsChecked == true;
+        UseContext.IsEnabled = CollectContext.IsChecked == true;
+    }
+
+    void Custom_Click(object sender, RoutedEventArgs e) => ApplyCustom();
+
+    void ApplyCustom()
+    {
+        static bool Time(string text, out TimeOnly value) => TimeOnly.TryParseExact(text.Trim(), ["HH:mm", "H:mm"], CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
+        var extra = new List<TimeOnly>();
+        bool validExtra = true;
+        foreach (var part in ExtraTimes.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        { if (Time(part, out var t)) extra.Add(t); else validExtra = false; }
+        var minutes = new List<int>();
+        bool validMinutes = true;
+        foreach (var part in AlertMinutes.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        { if (int.TryParse(part, out var m) && m is >= 5 and <= 600) minutes.Add(m); else validMinutes = false; }
+        if (!double.TryParse(Reserve.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var reserve) || reserve is < 1 or > 30 || !double.IsFinite(reserve) ||
+            !Time(Target.Text, out var target) || !Time(QuietStart.Text, out var quietStart) || !Time(QuietEnd.Text, out var quietEnd) ||
+            !validExtra || extra.Distinct().Count() > 4 || !validMinutes ||
+            !int.TryParse(ChargeTarget.Text, out var chargeTarget) || chargeTarget is < 50 or > 100 ||
+            !int.TryParse(NotifyLow.Text, out var low) || low is < 0 or > 50 ||
+            !int.TryParse(NotifyCharged.Text, out var charged) || !(charged == 0 || charged is >= 50 and <= 100) ||
+            !HotkeySpec.TryParse(Hotkey.Text, out _))
+        { CustomStatus.Text = NotifyCustomStatus.Text = L.T("CustomInvalid"); return; }
+        if (!app.TrySetPanelHotkey(Hotkey.Text))
+        { CustomStatus.Text = NotifyCustomStatus.Text = L.T("HotkeyConflict"); return; }
+        app.UpdateSettings(app.Settings with
+        {
+            ReservePct = reserve, TargetTime = target, AdditionalTargets = [.. extra], ChargeTargetPct = chargeTarget,
+            PanelHotkey = Hotkey.Text.Trim(), QuietStart = quietStart, QuietEnd = quietEnd,
+            Notifications = app.Settings.Notifications with { MinutesLeft = [.. minutes], LowPct = low, ChargedPct = charged },
+        });
+        CustomStatus.Text = NotifyCustomStatus.Text = L.T("CustomSaved");
+    }
+
+    void Diagnostics_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog { FileName = $"battery-forecast-diagnostics-{DateTime.Now:yyyy-MM-dd}.zip", Filter = "ZIP|*.zip" };
+        if (dialog.ShowDialog(this) != true) return;
+        try { app.ExportDiagnostics(dialog.FileName); Note(L.T("DiagnosticsSaved")); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Note(ex.Message); }
     }
 
     void TestNotify_Click(object sender, RoutedEventArgs e) => app.TestNotification();
+
+    void ExportContext_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog { FileName = $"battery-forecast-context-{DateTime.Now:yyyy-MM-dd}.csv", Filter = "CSV|*.csv" };
+        if(dialog.ShowDialog(this)!=true)return;
+        try { using var writer=new StreamWriter(dialog.FileName); Note(L.F("Exported",app.Store!.ExportContextCsv(writer))); }
+        catch(Exception ex) when(ex is IOException or UnauthorizedAccessException){Note(ex.Message);}
+    }
 
     void Export_Click(object sender, RoutedEventArgs e)
     {
         var dlg = new Microsoft.Win32.SaveFileDialog
         {
-            FileName = $"till-dusk-history-{DateTime.Now:yyyy-MM-dd}.csv",
+            FileName = $"battery-forecast-history-{DateTime.Now:yyyy-MM-dd}.csv",
             Filter = "CSV|*.csv",
         };
         if (dlg.ShowDialog(this) != true) return;
