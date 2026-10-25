@@ -190,8 +190,10 @@ S = {
     "PrefNotifications": ("Notifications", "Notifiche"),
     "PrefNotifyEnabled": ("Battery alerts", "Avvisi sulla batteria"),
     "PrefNotifyTime": ("When about 60, 30 and 15 minutes are left to the reserve", "Quando mancano circa 60, 30 e 15 minuti alla riserva"),
-    "PrefNotifyLow": ("Alert at", "Avviso al"),
-    "PrefNotifyCharged": ("Charged alert at", "Avviso di carica al"),
+    "PrefNotifyLow": ("Low battery alert (%)", "Avviso di batteria bassa (%)"),
+    "PrefNotifyLowHelp": ("0 turns it off.", "0 lo disattiva."),
+    "PrefNotifyCharged": ("Charged alert (%)", "Avviso di carica raggiunta (%)"),
+    "PrefNotifyChargedHelp": ("50–100%; 0 turns it off.", "50–100%; 0 lo disattiva."),
     "PrefNotifyDrain": ("Unusual power use", "Consumo insolito"),
     "PrefNotifyHelp": ("At most one alert per threshold per discharge; none on the adapter or with an old estimate. Do not disturb can hide them.",
                        "Al massimo un avviso per soglia in ogni scarica; nessuno con l'alimentatore o con stime vecchie. Non disturbare può nasconderli."),
@@ -214,7 +216,7 @@ S = {
     "Coverage": ("{0} days of history · {1} samples", "{0} giorni di storico · {1} campioni"),
     # preferenze
     "PrefsTitle": ("Battery Forecast preferences", "Preferenze di Battery Forecast"),
-    "PrefReserve": ("Reserve threshold", "Soglia di riserva"),
+    "PrefReserve": ("Reserve threshold (%)", "Soglia di riserva (%)"),
     "PrefReserveHelp": ("Estimates tell you when the battery reaches this level, not when the PC turns off.", "Le stime indicano quando la batteria arriva a questo livello, non quando il PC si spegne."),
     "PrefTarget": ("Evening target", "Obiettivo serale"),
     "PrefTargetHelp": ("Once this time has passed, the target moves to the same time tomorrow.", "Passata quest'ora, l'obiettivo si sposta alla stessa ora di domani."),
@@ -265,6 +267,16 @@ S = {
     "UpdateNoticeTitle": ("Update available", "Aggiornamento disponibile"),
     "UpdateNotice": ("Battery Forecast {0} is ready. Click to open Preferences.", "Battery Forecast {0} è pronto. Clicca per aprire le Preferenze."),
     "VersionLine": ("Version {0}", "Versione {0}"),
+    # sezioni delle Preferenze
+    "SecForecast": ("Forecast", "Previsione"),
+    "SecPanel": ("Panel and shortcut", "Pannello e scorciatoia"),
+    "SecAppearance": ("Appearance", "Aspetto"),
+    "SecData": ("Data and privacy", "Dati e privacy"),
+    "SecGeneral": ("General", "Generale"),
+    "PanelSizeTitle": ("Panel size", "Dimensioni del pannello"),
+    "UpdatesTitle": ("Updates", "Aggiornamenti"),
+    "DataActions": ("Export and manage", "Esporta e gestisci"),
+    "LicensesHelp": ("Licenses of Timestral, PyTorch and the other components", "Licenze di Timestral, PyTorch e degli altri componenti"),
 }
 
 RESX_HEAD = """<?xml version="1.0" encoding="utf-8"?>

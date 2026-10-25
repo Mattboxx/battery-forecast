@@ -33,7 +33,16 @@ static class Snapshots
             charging.Update(PanelPresenter.Present(chargingState), state.Target.When);
             Render(charging, Path.Combine(dir, $"charging-{name}.png"));
             var prefs = new PreferencesWindow(app) { Left = -20000, Top = -20000, ShowActivated = false, WindowStartupLocation = WindowStartupLocation.Manual };
-            Render(prefs, Path.Combine(dir, $"preferences-{name}.png"));
+            prefs.ShowSection(0);
+            Render(prefs, Path.Combine(dir, $"preferences-{name}.png"), close: false);
+            // tutte le sezioni solo nei due temi principali
+            var sections = theme is ThemeChoice.Dark or ThemeChoice.Light ? prefs.SectionCount : 1;
+            for (int i = 1; i < sections; i++)
+            {
+                prefs.ShowSection(i);
+                Render(prefs, Path.Combine(dir, $"preferences-{i}-{name}.png"), close: false);
+            }
+            prefs.Close();
             var history = new HistoryWindow(app) { Left = -20000, Top = -20000, ShowActivated = false, WindowStartupLocation = WindowStartupLocation.Manual };
             var since = DateTimeOffset.UtcNow.AddDays(-30);
             history.DataContext = HistoryPresenter.Present(app.Store!.Samples(since), app.Store.Discontinuities(since), state.Battery);
@@ -47,9 +56,9 @@ static class Snapshots
         Theme.Apply(app.Settings.Theme);
     }
 
-    static void Render(Window w, string path)
+    static void Render(Window w, string path, bool close = true)
     {
-        ((Window)w).Show();
+        w.Show();
         w.UpdateLayout();
         // la radice del template della finestra contiene sfondo, bordo e margini del contenuto
         var root = (Visual)VisualTreeHelper.GetChild(w, 0);
@@ -66,6 +75,6 @@ static class Snapshots
         png.Frames.Add(BitmapFrame.Create(bmp));
         using var f = File.Create(path);
         png.Save(f);
-        w.Close();
+        if (close) w.Close();
     }
 }

@@ -2,182 +2,394 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:app="clr-namespace:BatteryForecast.App"
-        Title="{app:T PrefsTitle}" Width="520" SizeToContent="Height" ResizeMode="CanMinimize"
+        Title="{app:T PrefsTitle}" Width="880" Height="660" MinWidth="720" MinHeight="460"
         WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindow}">
     <Window.Resources>
-        <Style x:Key="Help" TargetType="TextBlock" BasedOn="{StaticResource Footnote}">
-            <Setter Property="Margin" Value="0,4,0,0"/>
+        <!-- una riga per impostazione, come nelle Impostazioni di Windows 11: icona, titolo, spiegazione, controllo -->
+        <Style x:Key="Row" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource WindowBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
-        <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+        <Style x:Key="RowIcon" TargetType="TextBlock" BasedOn="{StaticResource Glyph}">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="{DynamicResource Icon}"/>
+            <Setter Property="Margin" Value="0,0,16,0"/>
+            <Setter Property="Width" Value="20"/>
+        </Style>
+        <Style x:Key="RowTitle" TargetType="TextBlock" BasedOn="{StaticResource Body}"/>
+        <Style x:Key="RowHelp" TargetType="TextBlock" BasedOn="{StaticResource Footnote}">
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+        <Style x:Key="Help" TargetType="TextBlock" BasedOn="{StaticResource Footnote}">
+            <Setter Property="Margin" Value="4,4,4,8"/>
+        </Style>
+        <Style x:Key="Group" TargetType="TextBlock" BasedOn="{StaticResource SectionTitle}">
+            <Setter Property="Margin" Value="4,14,0,8"/>
+        </Style>
+        <Style x:Key="PageTitle" TargetType="TextBlock" BasedOn="{StaticResource Headline}">
+            <Setter Property="FontSize" Value="26"/>
+            <Setter Property="Margin" Value="4,0,0,12"/>
+        </Style>
+        <Style x:Key="Field" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Width" Value="120"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,12,0"/>
+        </Style>
+        <Style x:Key="Page" TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="Padding" Value="0,0,12,0"/>
+        </Style>
+        <Style x:Key="Nav" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bg" CornerRadius="6" Padding="12,9" Margin="0,1" Background="Transparent">
+                            <Grid>
+                                <Border x:Name="Mark" Width="3" Height="16" CornerRadius="2" HorizontalAlignment="Left"
+                                        Margin="-12,0,0,0" Background="{DynamicResource Accent}" Visibility="Collapsed"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" Style="{StaticResource Glyph}"
+                                               FontSize="16" Foreground="{DynamicResource Icon}" Margin="0,0,12,0"/>
+                                    <ContentPresenter VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource RowHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource RowHover}"/>
+                                <Setter TargetName="Mark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="24,20,24,20">
-            <Border Style="{StaticResource Card}">
-                <StackPanel>
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
-                        <TextBlock Text="{app:T PrefReserve}" Style="{StaticResource Label}"/>
-                        <TextBox x:Name="Reserve" Grid.Column="1" AutomationProperties.Name="{app:T PrefReserve}"/>
-                    </Grid>
-                    <TextBlock Text="{app:T PrefReserveHelp}" Style="{StaticResource Help}"/>
-                    <Grid Margin="0,14,0,0">
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
-                        <TextBlock Text="{app:T PrefTarget}" Style="{StaticResource Label}"/>
-                        <TextBox x:Name="Target" Grid.Column="1" AutomationProperties.Name="{app:T PrefTarget}"/>
-                    </Grid>
-                    <TextBlock Text="{app:T ManualTimeHelp}" Style="{StaticResource Help}"/>
-                    <TextBlock Text="{app:T ExtraTimes}" Style="{StaticResource Label}" Margin="0,12,0,4"/>
-                    <TextBox x:Name="ExtraTimes" AutomationProperties.Name="{app:T ExtraTimes}"/>
-                    <TextBlock Text="{app:T ChargeTargetLabel}" Style="{StaticResource Label}" Margin="0,12,0,4"/>
-                    <TextBox x:Name="ChargeTarget" AutomationProperties.Name="{app:T ChargeTargetLabel}"/>
-                    <TextBlock Text="{app:T ChargeTargetHelp}" Style="{StaticResource Help}"/>
-                    <TextBlock Text="{app:T HotkeyLabel}" Style="{StaticResource Label}" Margin="0,12,0,4"/>
-                    <!-- registratore: si preme la combinazione invece di scriverla -->
+
+    <Grid Margin="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- navigazione -->
+        <DockPanel Margin="0,0,16,0">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,4,0,18">
+                <Image Source="pack://application:,,,/BatteryForecast;component/app.ico" Width="28" Height="28" Margin="0,0,10,0"
+                       RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name=""/>
+                <TextBlock Text="Battery Forecast" Style="{StaticResource Strong}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <ListBox x:Name="Sections" BorderThickness="0" Background="Transparent" ItemContainerStyle="{StaticResource Nav}"
+                     AutomationProperties.Name="{app:T PrefsTitle}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBoxItem Tag="&#xE9D2;" Content="{app:T SecForecast}"/>
+                <ListBoxItem Tag="&#xE7C4;" Content="{app:T SecPanel}"/>
+                <ListBoxItem Tag="&#xEA8F;" Content="{app:T PrefNotifications}"/>
+                <ListBoxItem Tag="&#xE790;" Content="{app:T SecAppearance}"/>
+                <ListBoxItem Tag="&#xE72E;" Content="{app:T SecData}"/>
+                <ListBoxItem Tag="&#xE713;" Content="{app:T SecGeneral}"/>
+            </ListBox>
+        </DockPanel>
+
+        <!-- 1. previsione -->
+        <ScrollViewer x:Name="PageForecast" Grid.Column="1" Style="{StaticResource Page}">
+            <StackPanel>
+                <TextBlock Text="{app:T SecForecast}" Style="{StaticResource PageTitle}"/>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE7BA;" Style="{StaticResource RowIcon}"/>
+                    <TextBox x:Name="Reserve" DockPanel.Dock="Right" Style="{StaticResource Field}" AutomationProperties.Name="{app:T PrefReserve}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefReserve}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T PrefReserveHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE823;" Style="{StaticResource RowIcon}"/>
+                    <TextBox x:Name="Target" DockPanel.Dock="Right" Style="{StaticResource Field}" AutomationProperties.Name="{app:T PrefTarget}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefTarget}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T ManualTimeHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE787;" Style="{StaticResource RowIcon}"/>
+                    <TextBox x:Name="ExtraTimes" DockPanel.Dock="Right" Style="{StaticResource Field}" Width="200" AutomationProperties.Name="{app:T ExtraTimes}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T ExtraTimes}" Style="{StaticResource RowTitle}"/></StackPanel>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE945;" Style="{StaticResource RowIcon}"/>
+                    <TextBox x:Name="ChargeTarget" DockPanel.Dock="Right" Style="{StaticResource Field}" AutomationProperties.Name="{app:T ChargeTargetLabel}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T ChargeTargetLabel}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T ChargeTargetHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+                <DockPanel Margin="4,6,0,0">
+                    <Button DockPanel.Dock="Left" Click="Custom_Click" Style="{StaticResource PillButton}" Margin="0,0,12,0">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE74E;" Style="{StaticResource Glyph}" FontSize="13" Margin="0,0,8,0"/>
+                            <TextBlock Text="{app:T ApplyCustom}"/></StackPanel>
+                    </Button>
+                    <TextBlock x:Name="CustomStatus" Style="{StaticResource Footnote}" VerticalAlignment="Center"/>
+                </DockPanel>
+
+                <Border Style="{StaticResource Row}" Margin="0,16,0,4"><DockPanel>
+                    <TextBlock Text="&#xE72C;" Style="{StaticResource RowIcon}"/>
+                    <ComboBox x:Name="RefreshBox" DockPanel.Dock="Right" Width="240" VerticalAlignment="Center" AutomationProperties.Name="{app:T PrefRefresh}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefRefresh}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T PrefRefreshHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 2. pannello e icona -->
+        <ScrollViewer x:Name="PagePanel" Grid.Column="1" Style="{StaticResource Page}">
+            <StackPanel>
+                <TextBlock Text="{app:T SecPanel}" Style="{StaticResource PageTitle}"/>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE7C9;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="OpenOnHover" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T OpenOnHover}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T OpenOnHover}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T OpenOnHoverHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE718;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="KeepOpenDefault" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T KeepOpenDefault}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T KeepOpenDefault}" Style="{StaticResource RowTitle}"/></StackPanel>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE9D2;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="ShowChart" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T ShowChart}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T ShowChart}" Style="{StaticResource RowTitle}"/></StackPanel>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE83F;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="TrayPercent" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T PrefTray}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefTray}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T PrefTrayHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+
+                <TextBlock Text="{app:T PanelSizeTitle}" Style="{StaticResource Group}"/>
+                <Border Style="{StaticResource Row}"><StackPanel>
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <TextBlock Text="&#xE740;" Style="{StaticResource RowIcon}"/>
+                        <TextBlock x:Name="ScaleValue" DockPanel.Dock="Right" Style="{StaticResource Body}" Width="56" TextAlignment="Right" VerticalAlignment="Center"/>
+                        <TextBlock Text="{app:T PanelScale}" Style="{StaticResource RowTitle}" Width="100" VerticalAlignment="Center"/>
+                        <Slider x:Name="ScaleSlider" Minimum="0.8" Maximum="1.6" TickFrequency="0.05" IsSnapToTickEnabled="True"
+                                SmallChange="0.05" LargeChange="0.1" VerticalAlignment="Center" AutomationProperties.Name="{app:T PanelScale}"/>
+                    </DockPanel>
+                    <DockPanel Margin="0,10,0,0">
+                        <TextBlock Text="&#xE9A6;" Style="{StaticResource RowIcon}"/>
+                        <TextBlock x:Name="WidthValue" DockPanel.Dock="Right" Style="{StaticResource Body}" Width="56" TextAlignment="Right" VerticalAlignment="Center"/>
+                        <TextBlock Text="{app:T PanelWidth}" Style="{StaticResource RowTitle}" Width="100" VerticalAlignment="Center"/>
+                        <Slider x:Name="WidthSlider" Minimum="320" Maximum="640" TickFrequency="8" IsSnapToTickEnabled="True"
+                                SmallChange="8" LargeChange="32" VerticalAlignment="Center" AutomationProperties.Name="{app:T PanelWidth}"/>
+                    </DockPanel>
+                    <DockPanel Margin="36,8,0,0">
+                        <Button DockPanel.Dock="Right" Content="{app:T PanelSizeReset}" Style="{StaticResource LinkButton}" Click="SizeReset_Click" VerticalAlignment="Center"/>
+                        <TextBlock Text="{app:T PanelSizeHelp}" Style="{StaticResource RowHelp}"/>
+                    </DockPanel>
+                </StackPanel></Border>
+
+                <TextBlock Text="{app:T HotkeyLabel}" Style="{StaticResource Group}"/>
+                <Border Style="{StaticResource Row}"><StackPanel>
+                    <DockPanel>
+                        <TextBlock Text="&#xE765;" Style="{StaticResource RowIcon}"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                             <Button x:Name="HotkeyChange" Content="{app:T HotkeyChange}" Click="HotkeyChange_Click" Padding="12,5" Margin="8,0,0,0"/>
                             <Button Content="{app:T HotkeyDefault}" Click="HotkeyDefault_Click" Padding="12,5" Margin="8,0,0,0"/>
                             <Button Content="{app:T HotkeyDisable}" Click="HotkeyDisable_Click" Padding="12,5" Margin="8,0,0,0"/>
                         </StackPanel>
+                        <!-- registratore: si preme la combinazione invece di scriverla -->
                         <Border x:Name="HotkeyBox" Focusable="True" BorderThickness="1" BorderBrush="{DynamicResource WindowBorder}"
                                 Background="{DynamicResource RowHover}" CornerRadius="6" Padding="12,6" FocusVisualStyle="{StaticResource FocusRing}"
-                                AutomationProperties.Name="{app:T HotkeyLabel}">
+                                HorizontalAlignment="Left" MinWidth="150" Cursor="Hand" AutomationProperties.Name="{app:T HotkeyLabel}">
                             <TextBlock x:Name="HotkeyText" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
                         </Border>
                     </DockPanel>
-                    <TextBlock x:Name="HotkeyStatus" Style="{StaticResource Help}"/>
-                    <TextBlock Text="{app:T HotkeyHelp}" Style="{StaticResource Help}"/>
-                    <Button Content="{app:T ApplyCustom}" Click="Custom_Click" HorizontalAlignment="Left" Margin="0,12,0,0" Padding="12,5"/>
-                    <TextBlock x:Name="CustomStatus" Style="{StaticResource Help}"/>
-                    <Grid Margin="0,14,0,0">
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions>
-                        <TextBlock Text="{app:T PrefRefresh}" Style="{StaticResource Label}"/>
-                        <ComboBox x:Name="RefreshBox" Grid.Column="1" AutomationProperties.Name="{app:T PrefRefresh}"/>
-                    </Grid>
-                    <TextBlock Text="{app:T PrefRefreshHelp}" Style="{StaticResource Help}"/>
-                </StackPanel>
-            </Border>
+                    <TextBlock x:Name="HotkeyStatus" Style="{StaticResource RowHelp}" Margin="36,8,0,0"/>
+                    <TextBlock Text="{app:T HotkeyHelp}" Style="{StaticResource RowHelp}" Margin="36,2,0,0"/>
+                </StackPanel></Border>
+            </StackPanel>
+        </ScrollViewer>
 
-            <Border Style="{StaticResource Card}" Margin="0,10,0,0">
-                <StackPanel>
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
-                        <TextBlock Text="{app:T PrefTheme}" Style="{StaticResource Label}"/>
-                        <ComboBox x:Name="ThemeBox" Grid.Column="1" AutomationProperties.Name="{app:T PrefTheme}"/>
-                    </Grid>
-                    <Grid Margin="0,10,0,0">
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
-                        <TextBlock Text="{app:T PrefLanguage}" Style="{StaticResource Label}"/>
-                        <ComboBox x:Name="LanguageBox" Grid.Column="1" AutomationProperties.Name="{app:T PrefLanguage}"/>
-                    </Grid>
-                    <CheckBox x:Name="ShowChart" Content="{app:T ShowChart}" Margin="0,12,0,0"/>
-                    <CheckBox x:Name="KeepOpenDefault" Content="{app:T KeepOpenDefault}" Margin="0,10,0,0"/>
-                    <CheckBox x:Name="OpenOnHover" Content="{app:T OpenOnHover}" Margin="0,10,0,0"/>
-                    <TextBlock Text="{app:T OpenOnHoverHelp}" Style="{StaticResource Help}"/>
-                    <Grid Margin="0,14,0,0">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition/><ColumnDefinition Width="64"/></Grid.ColumnDefinitions>
-                        <TextBlock Text="{app:T PanelScale}" Style="{StaticResource Label}"/>
-                        <Slider x:Name="ScaleSlider" Grid.Column="1" Minimum="0.8" Maximum="1.6" TickFrequency="0.05" IsSnapToTickEnabled="True"
-                                SmallChange="0.05" LargeChange="0.1" VerticalAlignment="Center" AutomationProperties.Name="{app:T PanelScale}"/>
-                        <TextBlock x:Name="ScaleValue" Grid.Column="2" Style="{StaticResource Body}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    </Grid>
-                    <Grid Margin="0,8,0,0">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition/><ColumnDefinition Width="64"/></Grid.ColumnDefinitions>
-                        <TextBlock Text="{app:T PanelWidth}" Style="{StaticResource Label}"/>
-                        <Slider x:Name="WidthSlider" Grid.Column="1" Minimum="320" Maximum="640" TickFrequency="8" IsSnapToTickEnabled="True"
-                                SmallChange="8" LargeChange="32" VerticalAlignment="Center" AutomationProperties.Name="{app:T PanelWidth}"/>
-                        <TextBlock x:Name="WidthValue" Grid.Column="2" Style="{StaticResource Body}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    </Grid>
-                    <TextBlock Text="{app:T PanelSizeHelp}" Style="{StaticResource Help}"/>
-                    <Button Content="{app:T PanelSizeReset}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left" Margin="0,6,0,0" Click="SizeReset_Click"/>
-                    <CheckBox x:Name="TrayPercent" Margin="0,14,0,0" Content="{app:T PrefTray}"/>
-                    <TextBlock Text="{app:T PrefTrayHelp}" Style="{StaticResource Help}"/>
-                    <CheckBox x:Name="Login" Margin="0,12,0,0" Content="{app:T PrefLogin}"/>
-                    <TextBlock Text="{app:T PrefLoginHelp}" Style="{StaticResource Help}"/>
+        <!-- 3. notifiche -->
+        <ScrollViewer x:Name="PageNotify" Grid.Column="1" Style="{StaticResource Page}">
+            <StackPanel>
+                <TextBlock Text="{app:T PrefNotifications}" Style="{StaticResource PageTitle}"/>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xEA8F;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="NotifyEnabled" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T PrefNotifyEnabled}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefNotifyEnabled}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T PrefNotifyHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+                <StackPanel x:Name="NotifyOptions">
+                    <Border Style="{StaticResource Row}"><DockPanel>
+                        <TextBlock Text="&#xE823;" Style="{StaticResource RowIcon}"/>
+                        <TextBox x:Name="AlertMinutes" DockPanel.Dock="Right" Style="{StaticResource Field}" Width="160" AutomationProperties.Name="{app:T AlertMinutesCustom}"/>
+                        <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T AlertMinutesCustom}" Style="{StaticResource RowTitle}"/></StackPanel>
+                    </DockPanel></Border>
+                    <Border Style="{StaticResource Row}"><DockPanel>
+                        <TextBlock Text="&#xE7BA;" Style="{StaticResource RowIcon}"/>
+                        <TextBox x:Name="NotifyLow" DockPanel.Dock="Right" Style="{StaticResource Field}" AutomationProperties.Name="{app:T PrefNotifyLow}"/>
+                        <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefNotifyLow}" Style="{StaticResource RowTitle}"/>
+                            <TextBlock Text="{app:T PrefNotifyLowHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                    </DockPanel></Border>
+                    <Border Style="{StaticResource Row}"><DockPanel>
+                        <TextBlock Text="&#xE945;" Style="{StaticResource RowIcon}"/>
+                        <TextBox x:Name="NotifyCharged" DockPanel.Dock="Right" Style="{StaticResource Field}" AutomationProperties.Name="{app:T PrefNotifyCharged}"/>
+                        <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefNotifyCharged}" Style="{StaticResource RowTitle}"/>
+                            <TextBlock Text="{app:T PrefNotifyChargedHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                    </DockPanel></Border>
+                    <Border Style="{StaticResource Row}"><DockPanel>
+                        <TextBlock Text="&#xE9D9;" Style="{StaticResource RowIcon}"/>
+                        <CheckBox x:Name="NotifyDrain" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T PrefNotifyDrain}"/>
+                        <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefNotifyDrain}" Style="{StaticResource RowTitle}"/></StackPanel>
+                    </DockPanel></Border>
                 </StackPanel>
-            </Border>
 
-            <Border Style="{StaticResource Card}" Margin="0,10,0,0">
-                <StackPanel>
-                    <TextBlock Text="{app:T PrefNotifications}" Style="{StaticResource SectionTitle}"/>
-                    <CheckBox x:Name="NotifyEnabled" Margin="0,8,0,0" Content="{app:T PrefNotifyEnabled}"/>
-                    <StackPanel x:Name="NotifyOptions" Margin="28,4,0,0">
-                        <TextBlock Text="{app:T AlertMinutesCustom}" Style="{StaticResource Label}"/>
-                        <TextBox x:Name="AlertMinutes" AutomationProperties.Name="{app:T AlertMinutesCustom}" Margin="0,4,0,0"/>
-                        <Grid Margin="0,8,0,0">
-                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
-                            <TextBlock Text="{app:T PrefNotifyLow}" Style="{StaticResource Label}"/>
-                            <TextBox x:Name="NotifyLow" Grid.Column="1" AutomationProperties.Name="{app:T PrefNotifyLow}"/>
-                        </Grid>
-                        <Grid Margin="0,8,0,0">
-                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
-                            <TextBlock Text="{app:T PrefNotifyCharged}" Style="{StaticResource Label}"/>
-                            <TextBox x:Name="NotifyCharged" Grid.Column="1" AutomationProperties.Name="{app:T PrefNotifyCharged}"/>
-                        </Grid>
-                        <CheckBox x:Name="NotifyDrain" Margin="0,8,0,0" Content="{app:T PrefNotifyDrain}"/>
+                <Border Style="{StaticResource Row}" Margin="0,16,0,4"><StackPanel>
+                    <DockPanel>
+                        <TextBlock Text="&#xE708;" Style="{StaticResource RowIcon}"/>
+                        <CheckBox x:Name="QuietEnabled" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T QuietEnabled}"/>
+                        <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T QuietEnabled}" Style="{StaticResource RowTitle}"/>
+                            <TextBlock Text="{app:T QuietHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                    </DockPanel>
+                    <StackPanel Orientation="Horizontal" Margin="36,10,0,0">
+                        <TextBlock Text="{app:T QuietStart}" Style="{StaticResource Body}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox x:Name="QuietStart" Width="90" AutomationProperties.Name="{app:T QuietStart}" Margin="0,0,20,0"/>
+                        <TextBlock Text="{app:T QuietEnd}" Style="{StaticResource Body}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox x:Name="QuietEnd" Width="90" AutomationProperties.Name="{app:T QuietEnd}"/>
                     </StackPanel>
-                    <CheckBox x:Name="QuietEnabled" Content="{app:T QuietEnabled}" Margin="0,12,0,0"/>
-                    <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                        <StackPanel><TextBlock Text="{app:T QuietStart}" Style="{StaticResource Label}"/><TextBox x:Name="QuietStart" AutomationProperties.Name="{app:T QuietStart}" Margin="0,4,8,0"/></StackPanel>
-                        <StackPanel Grid.Column="1"><TextBlock Text="{app:T QuietEnd}" Style="{StaticResource Label}"/><TextBox x:Name="QuietEnd" AutomationProperties.Name="{app:T QuietEnd}" Margin="0,4,0,0"/></StackPanel>
-                    </Grid>
-                    <TextBlock Text="{app:T QuietHelp}" Style="{StaticResource Help}"/>
-                    <Button Content="{app:T ApplyCustom}" Click="Custom_Click" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="12,5"/>
-                    <TextBlock x:Name="NotifyCustomStatus" Style="{StaticResource Help}"/>
-                    <TextBlock Text="{app:T PrefNotifyHelp}" Style="{StaticResource Help}"/>
-                    <Button Content="{app:T TestNotification}" Click="TestNotify_Click" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="12,5"/>
-                </StackPanel>
-            </Border>
+                </StackPanel></Border>
+                <WrapPanel Margin="4,6,0,0">
+                    <Button Click="Custom_Click" Style="{StaticResource PillButton}" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE74E;" Style="{StaticResource Glyph}" FontSize="13" Margin="0,0,8,0"/>
+                            <TextBlock Text="{app:T ApplyCustom}"/></StackPanel>
+                    </Button>
+                    <Button Click="TestNotify_Click" Padding="12,5">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xEA8F;" Style="{StaticResource Glyph}" FontSize="13" Margin="0,0,8,0"/>
+                            <TextBlock Text="{app:T TestNotification}"/></StackPanel>
+                    </Button>
+                </WrapPanel>
+                <TextBlock x:Name="NotifyCustomStatus" Style="{StaticResource Help}"/>
+            </StackPanel>
+        </ScrollViewer>
 
-            <Border Style="{StaticResource Card}" Margin="0,10,0,0">
-                <StackPanel>
-                    <TextBlock Text="{app:T PrefData}" Style="{StaticResource SectionTitle}"/>
-                    <CheckBox x:Name="CollectContext" Content="{app:T CollectContext}" Margin="0,10,0,0"/>
-                    <CheckBox x:Name="UseContext" Content="{app:T UseContext}" Margin="0,8,0,0"/>
-                    <TextBlock Text="{app:T ContextHelp}" Style="{StaticResource Help}"/>
-                    <Grid Margin="0,8,0,0">
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
-                        <TextBlock Text="{app:T PrefRetention}" Style="{StaticResource Label}"/>
-                        <ComboBox x:Name="Retention" Grid.Column="1" AutomationProperties.Name="{app:T PrefRetention}"/>
-                    </Grid>
-                    <WrapPanel Margin="0,12,0,0">
-                        <Button Content="{app:T ExportContext}" Click="ExportContext_Click" Padding="12,5" Margin="0,0,8,8"/>
-                        <Button Content="{app:T ExportCsv}" Click="Export_Click" Margin="0,0,8,0" Padding="12,5"/>
-                        <Button Content="{app:T DeleteHistory}" Click="Delete_Click" Padding="12,5"/>
-                        <Button Content="{app:T Diagnostics}" Click="Diagnostics_Click" Padding="12,5" Margin="0,8,0,0"/>
+        <!-- 4. aspetto -->
+        <ScrollViewer x:Name="PageLook" Grid.Column="1" Style="{StaticResource Page}">
+            <StackPanel>
+                <TextBlock Text="{app:T SecAppearance}" Style="{StaticResource PageTitle}"/>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE790;" Style="{StaticResource RowIcon}"/>
+                    <ComboBox x:Name="ThemeBox" DockPanel.Dock="Right" Width="220" VerticalAlignment="Center" AutomationProperties.Name="{app:T PrefTheme}"/>
+                    <TextBlock Text="{app:T PrefTheme}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE774;" Style="{StaticResource RowIcon}"/>
+                    <ComboBox x:Name="LanguageBox" DockPanel.Dock="Right" Width="220" VerticalAlignment="Center" AutomationProperties.Name="{app:T PrefLanguage}"/>
+                    <TextBlock Text="{app:T PrefLanguage}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                </DockPanel></Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 5. dati e privacy -->
+        <ScrollViewer x:Name="PageData" Grid.Column="1" Style="{StaticResource Page}">
+            <StackPanel>
+                <TextBlock Text="{app:T SecData}" Style="{StaticResource PageTitle}"/>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE9D9;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="CollectContext" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T CollectContext}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T CollectContext}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T ContextHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE9D2;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="UseContext" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T UseContext}"/>
+                    <TextBlock Text="{app:T UseContext}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE81C;" Style="{StaticResource RowIcon}"/>
+                    <ComboBox x:Name="Retention" DockPanel.Dock="Right" Width="160" VerticalAlignment="Center" AutomationProperties.Name="{app:T PrefRetention}"/>
+                    <TextBlock Text="{app:T PrefRetention}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                </DockPanel></Border>
+
+                <TextBlock Text="{app:T DataActions}" Style="{StaticResource Group}"/>
+                <Border Style="{StaticResource Row}"><StackPanel>
+                    <WrapPanel>
+                        <Button Click="Export_Click" Padding="12,5" Margin="0,0,8,8">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE896;" Style="{StaticResource Glyph}" FontSize="13" Margin="0,0,8,0"/>
+                                <TextBlock Text="{app:T ExportCsv}"/></StackPanel></Button>
+                        <Button Click="ExportContext_Click" Padding="12,5" Margin="0,0,8,8">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE896;" Style="{StaticResource Glyph}" FontSize="13" Margin="0,0,8,0"/>
+                                <TextBlock Text="{app:T ExportContext}"/></StackPanel></Button>
+                        <Button Click="Diagnostics_Click" Padding="12,5" Margin="0,0,8,8">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE9D9;" Style="{StaticResource Glyph}" FontSize="13" Margin="0,0,8,0"/>
+                                <TextBlock Text="{app:T Diagnostics}"/></StackPanel></Button>
+                        <Button Click="Delete_Click" Padding="12,5" Margin="0,0,8,8">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE74D;" Style="{StaticResource Glyph}" FontSize="13" Margin="0,0,8,0"
+                                Foreground="{DynamicResource Reserve}"/><TextBlock Text="{app:T DeleteHistory}"/></StackPanel></Button>
                     </WrapPanel>
-                    <TextBlock Text="{app:T DiagnosticsHelp}" Style="{StaticResource Help}"/>
-                    <TextBlock x:Name="DataNote" Style="{StaticResource Help}" Visibility="Collapsed"/>
-                </StackPanel>
-            </Border>
+                    <TextBlock Text="{app:T DiagnosticsHelp}" Style="{StaticResource RowHelp}"/>
+                    <TextBlock x:Name="DataNote" Style="{StaticResource RowHelp}" Visibility="Collapsed"/>
+                </StackPanel></Border>
+            </StackPanel>
+        </ScrollViewer>
 
-            <Border Style="{StaticResource Card}" Margin="0,10,0,0">
-                <StackPanel>
-                    <TextBlock Text="{app:T PrefAbout}" Style="{StaticResource SectionTitle}"/>
-                    <TextBlock x:Name="About" Style="{StaticResource Secondary}" Margin="0,6,0,0"/>
-                    <WrapPanel Margin="0,12,0,0">
-                        <Button x:Name="CheckButton" Content="{app:T UpdateCheck}" Click="CheckUpdates_Click" Padding="12,5" Margin="0,0,8,0"/>
-                        <Button x:Name="InstallButton" Content="{app:T UpdateInstall}" Click="InstallUpdate_Click" Padding="12,5" Margin="0,0,8,0"
-                                Style="{StaticResource PillButton}" Visibility="Collapsed"/>
-                    </WrapPanel>
-                    <TextBlock x:Name="UpdateStatus" Style="{StaticResource Help}" Visibility="Collapsed"/>
-                    <Button x:Name="NotesButton" Content="{app:T UpdateNotes}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left"
-                            Margin="0,4,0,0" Click="Notes_Click" Visibility="Collapsed"/>
-                    <CheckBox x:Name="AutoUpdate" Margin="0,10,0,0" Content="{app:T UpdateAuto}"/>
-                    <TextBlock Text="{app:T UpdateAutoHelp}" Style="{StaticResource Help}"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                        <Button Content="{app:T Licenses}" Style="{StaticResource LinkButton}" Click="Licenses_Click" Margin="0,0,18,0"/>
-                        <!-- sostegno: un link discreto, mai un invito ripetuto -->
-                        <TextBlock Text="&#xEB51;" Style="{StaticResource Glyph}" FontSize="12" Foreground="{DynamicResource Accent}" Margin="0,0,6,0"/>
-                        <Button Content="{app:T Support}" Style="{StaticResource LinkButton}" Click="Support_Click"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
+        <!-- 6. generale -->
+        <ScrollViewer x:Name="PageGeneral" Grid.Column="1" Style="{StaticResource Page}">
+            <StackPanel>
+                <TextBlock Text="{app:T SecGeneral}" Style="{StaticResource PageTitle}"/>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE768;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="Login" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T PrefLogin}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefLogin}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T PrefLoginHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
 
-            <Button Content="{app:T Close}" HorizontalAlignment="Right" Margin="0,16,0,0" Padding="18,5" IsCancel="True" IsDefault="True" Click="Close_Click"/>
-        </StackPanel>
-    </ScrollViewer>
+                <TextBlock Text="{app:T UpdatesTitle}" Style="{StaticResource Group}"/>
+                <Border Style="{StaticResource Row}"><StackPanel>
+                    <DockPanel>
+                        <TextBlock Text="&#xE946;" Style="{StaticResource RowIcon}"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="InstallButton" Content="{app:T UpdateInstall}" Click="InstallUpdate_Click" Margin="0,0,8,0"
+                                    Style="{StaticResource PillButton}" Visibility="Collapsed"/>
+                            <Button x:Name="CheckButton" Content="{app:T UpdateCheck}" Click="CheckUpdates_Click" Padding="12,5"/>
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Center"><TextBlock x:Name="About" Style="{StaticResource RowTitle}"/>
+                            <TextBlock x:Name="UpdateStatus" Style="{StaticResource RowHelp}" Visibility="Collapsed"/>
+                            <Button x:Name="NotesButton" Content="{app:T UpdateNotes}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left"
+                                    Margin="0,4,0,0" Click="Notes_Click" Visibility="Collapsed"/></StackPanel>
+                    </DockPanel>
+                </StackPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE895;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="AutoUpdate" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T UpdateAuto}"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T UpdateAuto}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T UpdateAutoHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+
+                <TextBlock Text="{app:T PrefAbout}" Style="{StaticResource Group}"/>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE8A5;" Style="{StaticResource RowIcon}"/>
+                    <Button DockPanel.Dock="Right" Content="{app:T Licenses}" Click="Licenses_Click" Padding="12,5" VerticalAlignment="Center"/>
+                    <TextBlock Text="{app:T LicensesHelp}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                </DockPanel></Border>
+                <!-- sostegno: una riga discreta, mai un invito ripetuto -->
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xEB51;" Style="{StaticResource RowIcon}" Foreground="{DynamicResource Accent}"/>
+                    <Button DockPanel.Dock="Right" Content="Ko-fi" Click="Support_Click" Padding="12,5" VerticalAlignment="Center"/>
+                    <TextBlock Text="{app:T Support}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                </DockPanel></Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Button Grid.Row="1" Grid.Column="1" Content="{app:T Close}" HorizontalAlignment="Right" Margin="0,12,12,0" Padding="20,6"
+                IsCancel="True" IsDefault="True" Click="Close_Click"/>
+    </Grid>
 </Window>

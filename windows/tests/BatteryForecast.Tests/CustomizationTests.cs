@@ -40,7 +40,7 @@ public class CustomizationTests
     public void PanelSizeAndHoverDefaultsAndLimits()
     {
         var d = new Settings().Normalized();
-        Assert.False(d.OpenOnHover);
+        Assert.True(d.OpenOnHover);
         Assert.Equal(Settings.DefaultPanelWidth, d.PanelWidth);
         Assert.Equal(1.0, d.PanelScale);
         var big = new Settings { PanelWidth = 5000, PanelScale = 9, PanelHotkey = "alt+ctrl+b" }.Normalized();

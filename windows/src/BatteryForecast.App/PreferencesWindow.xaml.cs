@@ -22,6 +22,9 @@ public partial class PreferencesWindow : Window
         this.app = app;
         InitializeComponent();
         MaxHeight = SystemParameters.WorkArea.Height - 40;     // il resto scorre
+        pages = [PageForecast, PagePanel, PageNotify, PageLook, PageData, PageGeneral];
+        Sections.SelectionChanged += (_, _) => ShowSection(Sections.SelectedIndex);
+        Sections.SelectedIndex = lastSection;
         var s = app.Settings;
         CollectContext.IsChecked = s.CollectSystemContext;
         UseContext.IsChecked = s.UseSystemContext;
@@ -81,6 +84,23 @@ public partial class PreferencesWindow : Window
         foreach (var box in new[] { Reserve, Target, ExtraTimes, ChargeTarget, QuietStart, QuietEnd, AlertMinutes, NotifyLow, NotifyCharged })
             box.KeyDown += (_, e) => { if (e.Key == Key.Enter) { ApplyCustom(); e.Handled = true; } };
         loading = false;
+    }
+
+    // MARK: sezioni
+
+    readonly ScrollViewer[] pages;
+    static int lastSection;     // riaprendo le Preferenze si torna all'ultima sezione vista
+
+    public int SectionCount => pages.Length;
+    public const int GeneralSection = 5;     // aggiornamenti e informazioni
+
+    public void ShowSection(int index)
+    {
+        if (index < 0 || index >= pages.Length) return;
+        if (Sections.SelectedIndex != index) { Sections.SelectedIndex = index; return; }
+        for (int i = 0; i < pages.Length; i++) pages[i].Visibility = i == index ? Visibility.Visible : Visibility.Collapsed;
+        pages[index].ScrollToTop();
+        lastSection = index;
     }
 
     static void Fill(ComboBox box, IEnumerable<(string text, object value)> items, object current)

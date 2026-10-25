@@ -51,6 +51,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="Coverage" xml:space="preserve"><value>{0} days of history · {1} samples</value></data>
   <data name="CustomInvalid" xml:space="preserve"><value>Check HH:mm times, percentages and shortcut. No invalid changes were saved.</value></data>
   <data name="CustomSaved" xml:space="preserve"><value>Settings saved.</value></data>
+  <data name="DataActions" xml:space="preserve"><value>Export and manage</value></data>
   <data name="DayAt" xml:space="preserve"><value>{0} at {1}</value></data>
   <data name="Days" xml:space="preserve"><value>{0} days</value></data>
   <data name="DeleteConfirm" xml:space="preserve"><value>Delete all recorded battery history? Forecasts will start learning again from scratch.</value></data>
@@ -104,6 +105,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="LangSystem" xml:space="preserve"><value>Use Windows setting</value></data>
   <data name="Later" xml:space="preserve"><value>later</value></data>
   <data name="Licenses" xml:space="preserve"><value>Licenses…</value></data>
+  <data name="LicensesHelp" xml:space="preserve"><value>Licenses of Timestral, PyTorch and the other components</value></data>
   <data name="ManualTimeHelp" xml:space="preserve"><value>Enter any time as HH:mm (24-hour clock). A past target refers to tomorrow.</value></data>
   <data name="MinimizeToTray" xml:space="preserve"><value>Minimize</value></data>
   <data name="Minutes" xml:space="preserve"><value>{0} min</value></data>
@@ -130,6 +132,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="PanelScale" xml:space="preserve"><value>Size</value></data>
   <data name="PanelSizeHelp" xml:space="preserve"><value>Size enlarges text, chart and window together; width adds room. Changes apply immediately.</value></data>
   <data name="PanelSizeReset" xml:space="preserve"><value>Reset size</value></data>
+  <data name="PanelSizeTitle" xml:space="preserve"><value>Panel size</value></data>
   <data name="PanelWidth" xml:space="preserve"><value>Width</value></data>
   <data name="PluggedIn" xml:space="preserve"><value>Power adapter connected</value></data>
   <data name="PowerSource" xml:space="preserve"><value>Power source: {0}</value></data>
@@ -139,16 +142,18 @@ Indicative range {2}–{3}%</value></data>
   <data name="PrefLogin" xml:space="preserve"><value>Start when I sign in to Windows</value></data>
   <data name="PrefLoginHelp" xml:space="preserve"><value>History is only recorded while Battery Forecast is running.</value></data>
   <data name="PrefNotifications" xml:space="preserve"><value>Notifications</value></data>
-  <data name="PrefNotifyCharged" xml:space="preserve"><value>Charged alert at</value></data>
+  <data name="PrefNotifyCharged" xml:space="preserve"><value>Charged alert (%)</value></data>
+  <data name="PrefNotifyChargedHelp" xml:space="preserve"><value>50–100%; 0 turns it off.</value></data>
   <data name="PrefNotifyDrain" xml:space="preserve"><value>Unusual power use</value></data>
   <data name="PrefNotifyEnabled" xml:space="preserve"><value>Battery alerts</value></data>
   <data name="PrefNotifyHelp" xml:space="preserve"><value>At most one alert per threshold per discharge; none on the adapter or with an old estimate. Do not disturb can hide them.</value></data>
-  <data name="PrefNotifyLow" xml:space="preserve"><value>Alert at</value></data>
+  <data name="PrefNotifyLow" xml:space="preserve"><value>Low battery alert (%)</value></data>
+  <data name="PrefNotifyLowHelp" xml:space="preserve"><value>0 turns it off.</value></data>
   <data name="PrefNotifyTime" xml:space="preserve"><value>When about 60, 30 and 15 minutes are left to the reserve</value></data>
   <data name="PrefPanel" xml:space="preserve"><value>Panel</value></data>
   <data name="PrefRefresh" xml:space="preserve"><value>Forecast updates</value></data>
   <data name="PrefRefreshHelp" xml:space="preserve"><value>The model starts only to compute (about 3 s of CPU) and then closes. With battery saver on it never starts by itself; recent-use estimates keep working.</value></data>
-  <data name="PrefReserve" xml:space="preserve"><value>Reserve threshold</value></data>
+  <data name="PrefReserve" xml:space="preserve"><value>Reserve threshold (%)</value></data>
   <data name="PrefReserveHelp" xml:space="preserve"><value>Estimates tell you when the battery reaches this level, not when the PC turns off.</value></data>
   <data name="PrefRetention" xml:space="preserve"><value>Keep history for</value></data>
   <data name="PrefTarget" xml:space="preserve"><value>Evening target</value></data>
@@ -177,6 +182,11 @@ Indicative range {2}–{3}%</value></data>
   <data name="SavingLikelyTitle" xml:space="preserve"><value>It may not last until {0}</value></data>
   <data name="SavingPossible" xml:space="preserve"><value>If you use it more than usual, it could run low {0}.</value></data>
   <data name="SavingPossibleTitle" xml:space="preserve"><value>Little margin today</value></data>
+  <data name="SecAppearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="SecData" xml:space="preserve"><value>Data and privacy</value></data>
+  <data name="SecForecast" xml:space="preserve"><value>Forecast</value></data>
+  <data name="SecGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="SecPanel" xml:space="preserve"><value>Panel and shortcut</value></data>
   <data name="SegmentEnergy" xml:space="preserve"><value>{0} Wh</value></data>
   <data name="SegmentRate" xml:space="preserve"><value>{0}%/h</value></data>
   <data name="SegmentRow" xml:space="preserve"><value>{0}% → {1}% in {2}</value></data>
@@ -246,6 +256,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="UpdateNoticeTitle" xml:space="preserve"><value>Update available</value></data>
   <data name="UpdateStarting" xml:space="preserve"><value>Starting the installer…</value></data>
   <data name="UpdatedAt" xml:space="preserve"><value>at {0}</value></data>
+  <data name="UpdatesTitle" xml:space="preserve"><value>Updates</value></data>
   <data name="UseContext" xml:space="preserve"><value>Use historical sensors in Timestral (experimental)</value></data>
   <data name="VersionLine" xml:space="preserve"><value>Version {0}</value></data>
   <data name="WindowsLine" xml:space="preserve"><value>Windows: {0} of continuous use at the current rate</value></data>

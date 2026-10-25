@@ -66,6 +66,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        WheelScrolling.Register();
         var snapshotDir = e.Args.SkipWhile(a => a != "--snapshot").Skip(1).FirstOrDefault();
         demo = e.Args.Contains("--demo") || snapshotDir is not null;
 #if DEBUG
@@ -241,7 +242,7 @@ public partial class App : Application
                 var known = AvailableUpdate?.Version;
                 var u = await CheckForUpdateAsync();
                 if (u is not null && (known is null || u.Version.CompareTo(known) > 0))
-                    tray?.Notify(L.T("UpdateNoticeTitle"), L.F("UpdateNotice", u.Version), ShowPreferences);
+                    tray?.Notify(L.T("UpdateNoticeTitle"), L.F("UpdateNotice", u.Version), () => ShowPreferences(PreferencesWindow.GeneralSection));
             }
             catch (Exception ex) when (ex is UpdateException or HttpRequestException or TaskCanceledException)
             {
@@ -339,13 +340,17 @@ public partial class App : Application
         history.Activate();
     }
 
-    public void ShowPreferences()
+    public void ShowPreferences() => ShowPreferences(null);
+
+    /// <summary>section: indice della sezione da mostrare (null = l'ultima vista).</summary>
+    public void ShowPreferences(int? section)
     {
         if (prefs is null)
         {
             prefs = new PreferencesWindow(this);
             prefs.Closed += (_, _) => prefs = null;
         }
+        if (section is { } i) prefs.ShowSection(i);
         prefs.Show();
         prefs.Activate();
     }

@@ -33,7 +33,7 @@ public partial class HistoryWindow : Window
     {
         var dlg = new Microsoft.Win32.SaveFileDialog
         {
-            FileName = $"till-dusk-history-{DateTime.Now:yyyy-MM-dd}.csv",
+            FileName = $"battery-forecast-history-{DateTime.Now:yyyy-MM-dd}.csv",
             Filter = "CSV|*.csv",
         };
         if (dlg.ShowDialog(this) != true || app.Store is null) return;

@@ -144,6 +144,8 @@ public partial class PanelWindow : Window
     public void ApplySize()
     {
         var s = app.Settings;
+        // "clicca sull'icona per riaprire" serve solo quando il pannello non si apre già al passaggio
+        MinimizeButton.ToolTip = L.T(s.OpenOnHover ? "MinimizeToTray" : "TrayHint");
         Width = s.PanelWidth * s.PanelScale;
         if (Content is FrameworkElement root)
             root.LayoutTransform = Math.Abs(s.PanelScale - 1) < 0.001 ? Transform.Identity : new ScaleTransform(s.PanelScale, s.PanelScale);
@@ -246,7 +248,14 @@ public partial class PanelWindow : Window
     void Copy_Click(object sender, RoutedEventArgs e)
     {
         try { Clipboard.SetText(app.BatterySummary()); }
-        catch (System.Runtime.InteropServices.COMException) { }
+        catch (System.Runtime.InteropServices.COMException) { return; }
+        // pulsante a sola icona: un segno di spunta per un attimo conferma la copia
+        if (sender is not System.Windows.Controls.Button b) return;
+        var icon = b.Content;
+        b.Content = "";
+        var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.2) };
+        t.Tick += (_, _) => { t.Stop(); b.Content = icon; };
+        t.Start();
     }
 
     void Retry_Click(object sender, RoutedEventArgs e) => app.Coordinator?.Retry();

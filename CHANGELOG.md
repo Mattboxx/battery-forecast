@@ -5,7 +5,10 @@
 - Manual target times and four extra targets, quiet hours and custom alerts.
 - Global shortcut that toggles the panel (open/close), recorded by pressing the keys in Preferences, with Win key
   support and a clear message when Windows or another app already uses the combination.
-- Optional "open on hover" for the tray icon, and adjustable panel scale and width.
+- "Open on hover" for the tray icon (on by default), and adjustable panel scale and width.
+- Compact panel: icon-only toolbar with tooltips; sensor details moved out of the panel.
+- Preferences reorganized into sections (Forecast, Panel and shortcut, Notifications, Appearance, Data and privacy,
+  General) with explanatory icons; touchpad scrolling no longer races through the page.
 - Charging forecast with Timestral ("stay plugged in" scenario) learned from past charges, with habitual-unplug
   handling and the recent charging rate as comparison/fallback; chart probing by mouse/keyboard, summary copy and
   local diagnostics.

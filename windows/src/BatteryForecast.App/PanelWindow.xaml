@@ -43,8 +43,6 @@
             <TextBlock Text="{Binding DemoLine}" Foreground="{DynamicResource DemoText}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"/>
         </Border>
 
-        <TextBlock Text="{Binding SensorLine}" Style="{StaticResource Footnote}" Margin="4,0,4,10"
-            Visibility="{Binding SensorLine, Converter={StaticResource Visible}}"/>
         <!-- previsione: la card principale, con una leggera sfumatura -->
         <Border Background="{DynamicResource Hero}" BorderBrush="{DynamicResource HeroBorder}" BorderThickness="1"
                 CornerRadius="14" Padding="16,14,16,12">
@@ -98,8 +96,6 @@
                     </Border>
 
                     <StackPanel Margin="0,10,0,0">
-                        <TextBlock Text="{Binding ContextLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
-                                   Visibility="{Binding ContextLine, Converter={StaticResource Visible}}"/>
                         <TextBlock Text="{Binding SourceLine}" Style="{StaticResource Footnote}"
                                    Visibility="{Binding SourceLine, Converter={StaticResource Visible}}"/>
                         <TextBlock Text="{Binding RechargeLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
@@ -128,22 +124,27 @@
             </StackPanel>
         </Border>
 
-        <StackPanel Margin="0,10,0,0">
-            <Button Style="{StaticResource IconRow}" Tag="&#xE945;" Click="Power_Click" Content="{app:T OpenPowerSettings}"/>
-            <Button Style="{StaticResource IconRow}" Tag="&#xE81C;" Click="History_Click" Content="{app:T History}"/>
-            <Button Style="{StaticResource IconRow}" Tag="&#xE8C8;" Click="Copy_Click" Content="{app:T CopySummary}"/>
-            <Button Style="{StaticResource IconRow}" Tag="&#xE713;" Click="Prefs_Click" Content="{app:T Preferences}"/>
-            <Button Style="{StaticResource IconRow}" Tag="&#xE7E8;" Click="Quit_Click" Content="{app:T Quit}"/>
-        </StackPanel>
-
-        <!-- piè di pagina discreto: il contenuto resta la cosa più visibile -->
-        <Border Height="1" Background="{DynamicResource WindowBorder}" Margin="14,8,14,0"/>
-        <DockPanel Margin="14,8,14,0">
-            <Button DockPanel.Dock="Right" Content="{app:T MinimizeToTray}" Click="Minimize_Click"
-                    Style="{StaticResource LinkButton}" ToolTip="{app:T TrayHint}" VerticalAlignment="Center"/>
-            <CheckBox x:Name="KeepOpen" Content="{app:T KeepOpen}" VerticalAlignment="Center" FontSize="12"/>
+        <!-- barra compatta: solo icone, il nome compare nel suggerimento e per gli screen reader -->
+        <DockPanel Margin="0,10,0,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <ToggleButton x:Name="KeepOpen" Style="{StaticResource IconButton}" Width="38" Content="&#xE718;"
+                              ToolTip="{app:T KeepOpen}" AutomationProperties.Name="{app:T KeepOpen}"/>
+                <Button x:Name="MinimizeButton" Style="{StaticResource IconButton}" Width="38" Content="&#xE921;" Click="Minimize_Click"
+                        AutomationProperties.Name="{app:T MinimizeToTray}"/>
+                <Button Style="{StaticResource IconButton}" Width="38" Content="&#xE7E8;" Click="Quit_Click"
+                        ToolTip="{app:T Quit}" AutomationProperties.Name="{app:T Quit}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource IconButton}" Width="38" Content="&#xE713;" Click="Prefs_Click"
+                        ToolTip="{app:T Preferences}" AutomationProperties.Name="{app:T Preferences}"/>
+                <Button Style="{StaticResource IconButton}" Width="38" Content="&#xE81C;" Click="History_Click"
+                        ToolTip="{app:T History}" AutomationProperties.Name="{app:T History}"/>
+                <Button Style="{StaticResource IconButton}" Width="38" Content="&#xE945;" Click="Power_Click"
+                        ToolTip="{app:T OpenPowerSettings}" AutomationProperties.Name="{app:T OpenPowerSettings}"/>
+                <Button Style="{StaticResource IconButton}" Width="38" Content="&#xE8C8;" Click="Copy_Click"
+                        ToolTip="{app:T CopySummary}" AutomationProperties.Name="{app:T CopySummary}"/>
+            </StackPanel>
         </DockPanel>
-        <TextBlock Text="{app:T TrayHint}" Style="{StaticResource Footnote}" Foreground="{DynamicResource TextTertiary}" Margin="14,6,14,2"/>
     </StackPanel>
     </ScrollViewer>
 </Window>

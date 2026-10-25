@@ -82,6 +82,39 @@
         </Setter>
     </Style>
 
+    <!-- Pulsante a sola icona (Content = glifo): il nome per gli screen reader e il suggerimento vanno sul pulsante.
+         Vale anche per ToggleButton, che resta evidenziato quando è attivo. -->
+    <Style x:Key="IconButton" TargetType="ButtonBase">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Icon}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Height" Value="34"/>
+        <Setter Property="ToolTipService.InitialShowDelay" Value="400"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ButtonBase">
+                    <Border x:Name="Bg" Background="Transparent" CornerRadius="8">
+                        <TextBlock Text="{TemplateBinding Content}" Style="{StaticResource Glyph}" FontSize="16"
+                                   Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource RowHover}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource RowHover}"/>
+                        </Trigger>
+                        <Trigger Property="ToggleButton.IsChecked" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource RowHover}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="Headline" TargetType="TextBlock" BasedOn="{StaticResource Body}">
         <Setter Property="FontFamily" Value="{StaticResource DisplayFont}"/>
         <Setter Property="FontSize" Value="28"/>

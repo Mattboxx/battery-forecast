@@ -28,7 +28,7 @@ public sealed record Settings
     public bool ShowChart { get; init; } = true;
     public bool KeepPanelOpen { get; init; }
     /// <summary>Apre il pannello quando il puntatore resta un attimo sull'icona (senza clic).</summary>
-    public bool OpenOnHover { get; init; }
+    public bool OpenOnHover { get; init; } = true;
     /// <summary>Larghezza del pannello a scala 100%, in pixel logici.</summary>
     public double PanelWidth { get; init; } = DefaultPanelWidth;
     /// <summary>Scala di tutto il pannello (testo, grafico, larghezza).</summary>
