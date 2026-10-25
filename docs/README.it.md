@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://mattboxx.github.io/battery-forecast/"><b>Sito</b></a> ·
-  <a href="https://github.com/Mattboxx/battery-forecast/releases/latest"><b>Download</b></a> ·
+  <a href="https://github.com/Mattboxx/battery-forecast/releases"><b>Download</b></a> ·
   <a href="../README.md">English</a> ·
   <a href="https://ko-fi.com/mattboxx">♥ Supporta su Ko-fi</a>
 </p>
@@ -77,7 +77,7 @@ giornaliero facoltativo degli aggiornamenti su `api.github.com`.
 ## Installazione
 
 1. Scarica `BatteryForecast-Setup-<versione>-x64.exe` (Intel/AMD) oppure `-arm64.exe` (PC ARM) dalle
-   [Release](https://github.com/Mattboxx/battery-forecast/releases/latest).
+   [Release](https://github.com/Mattboxx/battery-forecast/releases).
 2. Facoltativo: confronta il file con il suo `.sha256` usando `Get-FileHash .\BatteryForecast-Setup-*.exe`.
 3. Avvialo: si installa solo per il tuo utente, senza privilegi di amministratore. L'anteprima **non è firmata**,
    quindi SmartScreen può avvisarti: scegli *Ulteriori informazioni → Esegui comunque*.
@@ -98,3 +98,37 @@ Requisiti: Windows 10 2004 o Windows 11, x64 o ARM64, circa 280 MB da scaricare.
 
 Se Battery Forecast ti è utile puoi sostenerlo su **[Ko-fi](https://ko-fi.com/mattboxx)**. Segnalazioni e idee
 nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
+
+## Novità della preview alpha.2
+
+- **Grafico esplorabile:** passa il mouse per spostare il pallino e leggere data/ora, percentuale e fascia
+  indicativa. Da tastiera usa frecce, Home e Fine. Il tooltip distingue la parte estrapolata.
+- **Orari liberi:** scrivi l’obiettivo e fino a quattro altri orari in `HH:mm`, anche di notte.
+  Gli orari passati si riferiscono esplicitamente a domani. Pulsante Salva o Invio per i campi manuali.
+- **Scorciatoia globale configurabile:** inizialmente `Ctrl+Alt+B`; campo vuoto per disattivarla.
+  Se è già occupata, resta quella precedente. Supportati Ctrl o Alt con lettere/cifre/tasti F tranne F12.
+- **Ricarica fino alla soglia scelta:** obiettivo 50–100%, inizialmente 80%. Stima sperimentale dal ritmo
+  di ricarica osservato o da sessioni precedenti comparabili. Oltre 80% serve abbastanza storico per
+  considerare il rallentamento finale. Non cambia il limite di ricarica del firmware.
+- **Contesto hardware locale:** CPU aggregata, frequenza, memoria, watt batteria, luminosità, profilo
+  energetico e temperature disponibili. Timestral riceve canali storici utilizzabili e il pannello dice
+  quali ha usato. Sensori mancanti restano non disponibili; zona ACPI, CPU e batteria sono distinte.
+  La temperatura CPU richiede un provider compatibile già installato. Nessun driver, elevazione,
+  nome di processo, telemetria online o valore futuro inventato.
+- **Personalizzazione e strumenti:** orario silenzioso, soglie avvisi manuali, grafico facoltativo,
+  mantenimento aperto, copia riepilogo, CSV batteria/contesto e diagnostica ZIP locale senza storico/log.
+
+I test funzionali includono il modello reale, ma **non è stato misurato un aumento di accuratezza**.
+Ricarica e sensori sono sperimentali; raccolta e uso nel modello si disattivano separatamente.
+Vedi [scheda modello](MODEL_CARD.md).
+
+La MIT copre il codice del progetto per cui i contributori hanno i relativi diritti. Il pacchetto
+contiene dipendenze con termini propri. I pesi Timestral hanno una **Modified MIT**, non MIT standard:
+la clausola riguarda il fatturato globale consolidato mensile dell’azienda **o del datore di lavoro**,
+oltre 20 milioni di dollari (o equivalente) **nel mese precedente**, e menziona anche derivati e opere
+combinate. Leggi i [termini originali completi](../licenses/vendor/Timestral-28M-LICENSE.txt) e
+l’[audit di distribuzione](LICENSE_AUDIT.md). Nessuna certificazione generale di conformità è dichiarata.
+
+Battery Forecast è un adattamento indipendente, non un prodotto ufficiale o approvato da Matteo
+Bonfanti o Mistral AI. Le donazioni Ko-fi a Mattboxx sostengono il porting Windows, non gli autori
+originali. Copyright e attribuzioni sono conservati nel pacchetto.

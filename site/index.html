@@ -33,7 +33,7 @@
       <h1>Battery Forecast</h1>
       <p class="lead">How long will your laptop really last today? An AI forecast that learns how <em>you</em> use your PC, and runs entirely on it.</p>
       <div class="ctas">
-        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases/latest">
+        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg>
           Download for Windows</a>
         <a class="btn secondary" href="#how">How it works →</a>
@@ -102,7 +102,7 @@
         <div class="fact"><b>30 min</b><span>at most, between background forecasts on battery (you can choose)</span></div>
         <div class="fact"><b>~3 s</b><span>of CPU per forecast, measured on the development laptop</span></div>
         <div class="fact"><b>0</b><span>engine processes left running a minute after a forecast</span></div>
-        <div class="fact"><b>0</b><span>CPU while waiting: idle threads don't spin</span></div>
+        <div class="fact"><b>Passive</b><span>waiting between forecasts: idle engine threads do not spin</span></div>
       </div>
     </section>
 
@@ -118,6 +118,21 @@
         <figure><img src="assets/panel-dark.png" alt="Dusk theme" loading="lazy"><figcaption>Dusk</figcaption></figure>
         <figure><img src="assets/panel-midnight.png" alt="Midnight theme" loading="lazy"><figcaption>Midnight</figcaption></figure>
       </div>
+    </section>
+
+    <section id="controls" class="wrap reveal">
+      <p class="eyebrow">Your schedule, your machine</p>
+      <div class="split"><h2>More than a battery percentage.</h2>
+        <p>Choose your times, inspect the curve and see the system context behind the estimate.</p></div>
+      <div class="cards" style="margin-top:32px">
+        <article class="card"><h3>Explore any hour</h3><p>Hover over the chart to move its dot and read the date, time, expected percentage and indicative range. Keyboard arrows work too.</p></article>
+        <article class="card"><h3>Your own targets</h3><p>Type any HH:mm target and up to four extra times. Open the panel with a configurable shortcut, initially Ctrl+Alt+B.</p></article>
+        <article class="card"><h3>Charging, too</h3><p>Choose a charging target from 50–100%. An experimental observed-data estimate appears when enough charging history exists, including the final slowdown. It does not control the hardware.</p></article>
+        <article class="card"><h3>Useful local context</h3><p>Optionally record CPU load and frequency, memory, battery watts, brightness, power profile and available temperatures. Timestral receives usable historical channels; future values are not invented.</p></article>
+        <article class="card"><h3>Make it yours</h3><p>Custom alert thresholds, quiet hours, chart visibility and a keep-open preference. Copy a summary or export battery and sensor CSV files.</p></article>
+        <article class="card"><h3>Diagnostics you control</h3><p>Create a local diagnostic ZIP without battery history or logs. Nothing is uploaded automatically. Missing sensors stay unavailable; an ACPI thermal zone is not labelled CPU temperature.</p></article>
+      </div>
+      <p class="caption">Charging and sensor context are experimental. Functional tests use the real local model; accuracy gains have not been established.</p>
     </section>
 
     <section id="privacy" class="wrap reveal">
@@ -140,7 +155,7 @@
         <p>One installer per architecture, for your user only: no administrator rights needed.</p>
       </div>
       <div class="ctas" style="justify-content:flex-start;margin-top:32px">
-        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases/latest">Download for Windows</a>
+        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases">Download for Windows</a>
         <a class="btn secondary" href="https://github.com/Mattboxx/battery-forecast#install">Installation guide</a>
       </div>
       <p class="small">Windows 10 (2004) or 11 · Intel/AMD x64 or ARM64 · about 280 MB download</p>
@@ -168,7 +183,10 @@
     <div class="wrap row">
       <div>
         <div>Battery Forecast is a Windows fork of <a href="https://github.com/mattBonfanti/till-dusk">Till Dusk</a> by Matteo Bonfanti (MIT).</div>
-        <div>Forecasts by <a href="https://github.com/mistralai/timestral">Timestral</a> (Mistral AI): code Apache-2.0, weights under their modified MIT license. Not affiliated with Mistral AI.</div>
+        <div>Forecasts by <a href="https://github.com/mistralai/timestral">Timestral</a> (Mistral AI): code Apache-2.0, weights under their modified MIT license. Independent of Matteo Bonfanti and Mistral AI; no endorsement is implied.</div>
+        <div>The code’s MIT license does not replace third-party terms. The model weights have a company/employer revenue condition (global consolidated monthly revenue exceeding USD 20 million in the preceding month).
+        <a href="https://github.com/Mattboxx/battery-forecast/blob/main/licenses/vendor/Timestral-28M-LICENSE.txt">Read the full model terms</a> · <a href="https://github.com/Mattboxx/battery-forecast/blob/main/docs/LICENSE_AUDIT.md">Distribution audit</a>.</div>
+        <div>Ko-fi donations to Mattboxx fund this independent Windows port, not the original authors.</div>
       </div>
       <a class="kofi" href="https://ko-fi.com/mattboxx" rel="noopener">♥ Support on Ko-fi</a>
     </div>

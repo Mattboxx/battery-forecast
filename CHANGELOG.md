@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0-alpha.2
+
+- Manual target times and four extra targets, configurable global shortcut, quiet hours and custom alerts.
+- Experimental charging target estimates, chart probing by mouse/keyboard, summary copy and local diagnostics.
+- Optional CPU, battery power, memory, brightness, power profile and available temperature history; historical Timestral covariates with no invented future inputs.
+- Original copyright restored and complete offline legal inventory, with fail-closed packaging checks and installer verification in CI.
+- No accuracy improvement claimed; unsupported temperatures remain unavailable.
+
+
 ## 0.9.0 preview — first Windows release of Battery Forecast
 
 First public preview of the Windows fork of [Till Dusk](https://github.com/mattBonfanti/till-dusk).

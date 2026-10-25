@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://mattboxx.github.io/battery-forecast/"><b>Website</b></a> ·
-  <a href="https://github.com/Mattboxx/battery-forecast/releases/latest"><b>Download</b></a> ·
+  <a href="https://github.com/Mattboxx/battery-forecast/releases"><b>Download</b></a> ·
   <a href="docs/README.it.md">Italiano</a> ·
   <a href="https://ko-fi.com/mattboxx">♥ Support on Ko-fi</a>
 </p>
@@ -21,7 +21,7 @@
   <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-2457C5">
   <img alt="x64 and ARM64" src="https://img.shields.io/badge/arch-x64%20%7C%20ARM64-3D2F7A">
   <a href="https://github.com/Mattboxx/battery-forecast/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Mattboxx/battery-forecast?include_prereleases&color=B45A0A"></a>
-  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-167351"></a>
+  <a href="LICENSE"><img alt="Project code: MIT; bundled components have separate terms" src="https://img.shields.io/badge/code-MIT-167351"></a>
   <a href="https://ko-fi.com/mattboxx"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-support-C2416B?logo=kofi&logoColor=white"></a>
 </p>
 
@@ -102,7 +102,7 @@ The AI is not a background service. It starts, computes, and closes.
 ## Install
 
 1. Download `BatteryForecast-Setup-<version>-x64.exe` (Intel/AMD) or `-arm64.exe` (Snapdragon and other ARM PCs)
-   from [Releases](https://github.com/Mattboxx/battery-forecast/releases/latest).
+   from [Releases](https://github.com/Mattboxx/battery-forecast/releases).
 2. Optional: check the file against the `.sha256` next to it:
    ```powershell
    Get-FileHash .\BatteryForecast-Setup-*.exe
@@ -163,3 +163,40 @@ because PyInstaller packages the Python it runs on.
 
 If Battery Forecast is useful to you, you can support its development on **[Ko-fi](https://ko-fi.com/mattboxx)**.
 Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/battery-forecast/issues).
+
+## Preview alpha.2: more control and context
+
+- **Explore the chart:** hover to move the dot along the forecast; read the local date/time, expected
+  battery percentage and indicative range. Focus it and use Left/Right, Home or End from the keyboard.
+  The tooltip identifies extrapolated portions; it does not claim calibrated confidence.
+- **Set any time:** enter the main target and up to four additional targets as `HH:mm`, including
+  overnight targets. A past time explicitly refers to tomorrow. Save custom settings with the button
+  or Enter. Reserve percentages and alert minute thresholds are also editable.
+- **Open it instantly:** configurable global shortcut, initially `Ctrl+Alt+B`. Use Ctrl or Alt with a
+  letter, digit or function key (except F12), or leave blank to disable. A conflict keeps the previous shortcut.
+- **See the charging target:** choose 50–100% (default 80%). During charging a separate experimental
+  estimator uses observed charging speed or comparable past charge intervals. The last charging phase
+  can slow down: higher targets require sufficient observed sessions. This does not control a hardware limit.
+- **Give the local model more context:** optionally collect aggregate CPU load/frequency, memory, battery
+  charge/discharge watts, brightness, power profile and temperatures exposed by the device. Timestral
+  receives eligible historical sensor channels; the panel names those actually used. Missing sensors stay
+  unavailable. CPU temperature needs a compatible provider already installed; an ACPI zone is labelled separately.
+  No driver, administrator helper, process names, online telemetry or future sensor values are introduced.
+- **Make it yours:** quiet notification hours, custom alert thresholds, chart visibility and a persistent
+  keep-open preference. Copy a battery summary, export battery/system-context CSV files, or create an
+  explicit local diagnostic ZIP that excludes history and logs and is never uploaded automatically.
+
+Charging and extra sensor context are experimental. The functional tests exercise the real local model,
+but **an accuracy improvement has not been measured**. See [MODEL_CARD](docs/MODEL_CARD.md) for methodology
+and limitations. Collection/model use can be disabled independently in Preferences.
+
+The Windows package contains third-party components under their own terms. In particular, the Timestral
+weights' Modified MIT license restricts exercising its rights when the global consolidated monthly
+revenue of your company **or employer** exceeds USD 20 million (or equivalent) **for the preceding month**;
+the full original text also addresses derivatives and combined works. This is not standard MIT.
+Read the [original terms](licenses/vendor/Timestral-28M-LICENSE.txt) and [distribution audit](docs/LICENSE_AUDIT.md).
+The MIT license applies to project code for which the contributors hold the relevant rights.
+
+Battery Forecast is an independent adaptation and is not an official or endorsed product of Matteo
+Bonfanti or Mistral AI. Donations to Mattboxx on Ko-fi fund this Windows port; they are not donations
+to the original authors. Their copyright and attribution notices are preserved in every package.
