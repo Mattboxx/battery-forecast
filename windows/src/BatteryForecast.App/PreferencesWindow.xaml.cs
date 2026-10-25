@@ -31,7 +31,18 @@ public partial class PreferencesWindow : Window
         Target.Text = s.TargetTime.ToString("HH:mm", CultureInfo.InvariantCulture);
         ExtraTimes.Text = string.Join(", ", s.AdditionalTargets.Select(t => t.ToString("HH:mm", CultureInfo.InvariantCulture)));
         ChargeTarget.Text = s.ChargeTargetPct.ToString(CultureInfo.InvariantCulture);
-        Hotkey.Text = s.PanelHotkey;
+        ShowHotkey(app.ShortcutError is null ? null : L.F("HotkeyConflict", s.PanelHotkey));
+        OpenOnHover.IsChecked = s.OpenOnHover;
+        ScaleSlider.Value = s.PanelScale;
+        WidthSlider.Value = s.PanelWidth;
+        ShowSize();
+        sizeTimer.Tick += (_, _) => { sizeTimer.Stop(); Save(); };
+        foreach (var slider in new[] { ScaleSlider, WidthSlider })
+            slider.ValueChanged += (_, _) => { ShowSize(); if (!loading) { sizeTimer.Stop(); sizeTimer.Start(); } };
+        HotkeyBox.PreviewKeyDown += HotkeyBox_KeyDown;
+        HotkeyBox.LostKeyboardFocus += (_, _) => StopRecording(apply: null);
+        HotkeyBox.MouseLeftButtonDown += (_, _) => StartRecording();
+        Closed += (_, _) => StopRecording(apply: null);
         QuietStart.Text = s.QuietStart.ToString("HH:mm", CultureInfo.InvariantCulture);
         QuietEnd.Text = s.QuietEnd.ToString("HH:mm", CultureInfo.InvariantCulture);
         QuietEnabled.IsChecked = s.QuietHoursEnabled;
@@ -58,7 +69,7 @@ public partial class PreferencesWindow : Window
         ShowUpdate(app.AvailableUpdate);
 
         foreach (var c in new[] { RefreshBox, ThemeBox, LanguageBox, Retention }) c.SelectionChanged += (_, _) => Save();
-        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, QuietEnabled, CollectContext, UseContext }) c.Click += (_, _) => Save();
+        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, OpenOnHover, QuietEnabled, CollectContext, UseContext }) c.Click += (_, _) => Save();
         TrayPercent.Click += (_, _) => Save();
         Login.Click += (_, _) =>
         {
@@ -67,9 +78,8 @@ public partial class PreferencesWindow : Window
             Login.IsChecked = LoginItem.IsEnabled;
             Save();
         };
-        foreach (var box in new[] { Reserve, Target, ExtraTimes, ChargeTarget, Hotkey, QuietStart, QuietEnd, AlertMinutes, NotifyLow, NotifyCharged })
+        foreach (var box in new[] { Reserve, Target, ExtraTimes, ChargeTarget, QuietStart, QuietEnd, AlertMinutes, NotifyLow, NotifyCharged })
             box.KeyDown += (_, e) => { if (e.Key == Key.Enter) { ApplyCustom(); e.Handled = true; } };
-        if (app.ShortcutError is { } error) CustomStatus.Text = L.T(error);
         loading = false;
     }
 
@@ -95,6 +105,9 @@ public partial class PreferencesWindow : Window
             UseSystemContext = UseContext.IsChecked == true,
             ShowChart = ShowChart.IsChecked == true,
             KeepPanelOpen = KeepOpenDefault.IsChecked == true,
+            OpenOnHover = OpenOnHover.IsChecked == true,
+            PanelScale = ScaleSlider.Value,
+            PanelWidth = WidthSlider.Value,
             QuietHoursEnabled = QuietEnabled.IsChecked == true,
             Refresh = Value<RefreshPolicy>(RefreshBox),
             Theme = Value<ThemeChoice>(ThemeBox),
@@ -115,6 +128,89 @@ public partial class PreferencesWindow : Window
 
     void Custom_Click(object sender, RoutedEventArgs e) => ApplyCustom();
 
+    // MARK: pannello
+
+    readonly System.Windows.Threading.DispatcherTimer sizeTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
+
+    void ShowSize()
+    {
+        ScaleValue.Text = $"{Math.Round(ScaleSlider.Value * 100):0}%";
+        WidthValue.Text = $"{WidthSlider.Value:0}";
+    }
+
+    void SizeReset_Click(object sender, RoutedEventArgs e)
+    {
+        ScaleSlider.Value = 1.0;
+        WidthSlider.Value = Settings.DefaultPanelWidth;
+    }
+
+    // MARK: scorciatoia
+
+    bool recording;
+
+    void ShowHotkey(string? status = null)
+    {
+        var current = app.CurrentHotkey;
+        HotkeyText.Text = recording ? L.T("HotkeyRecording") : current.IsEmpty ? L.T("HotkeyNone") : current.ToString();
+        HotkeyStatus.Text = status ?? (recording ? L.T("HotkeyRecordingHelp")
+            : current.IsEmpty ? L.T("HotkeyOff") : L.F("HotkeyActive", current));
+        HotkeyChange.IsEnabled = !recording;
+    }
+
+    void HotkeyChange_Click(object sender, RoutedEventArgs e) => StartRecording();
+
+    void StartRecording()
+    {
+        if (recording) return;
+        recording = true;
+        app.SuspendHotkey();            // altrimenti Windows consumerebbe la combinazione attuale prima di noi
+        ShowHotkey();
+        HotkeyBox.Focus();
+        Keyboard.Focus(HotkeyBox);
+    }
+
+    /// <summary>apply = combinazione da salvare; null = annulla e ripristina la precedente.</summary>
+    void StopRecording(HotkeySpec? apply)
+    {
+        if (!recording) return;
+        recording = false;
+        app.ResumeHotkey();
+        string? status = null;
+        if (apply is { } spec && app.SetPanelHotkey(spec) is not null) status = L.F("HotkeyConflict", spec);
+        ShowHotkey(status);
+    }
+
+    void HotkeyBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (!recording) { if (e.Key is Key.Enter or Key.Space) { StartRecording(); e.Handled = true; } return; }
+        e.Handled = true;
+        var key = e.Key == Key.System ? e.SystemKey : e.Key;
+        if (key == Key.Escape) { StopRecording(apply: null); return; }
+        // si aspetta il tasto "vero": i soli modificatori non bastano
+        if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift
+            or Key.LWin or Key.RWin or Key.ImeProcessed or Key.DeadCharProcessed) return;
+        var m = Keyboard.Modifiers;
+        uint mods = (m.HasFlag(ModifierKeys.Control) ? HotkeySpec.Ctrl : 0) | (m.HasFlag(ModifierKeys.Alt) ? HotkeySpec.Alt : 0)
+                  | (m.HasFlag(ModifierKeys.Shift) ? HotkeySpec.Shift : 0) | (m.HasFlag(ModifierKeys.Windows) ? HotkeySpec.Win : 0);
+        if ((mods & (HotkeySpec.Ctrl | HotkeySpec.Alt | HotkeySpec.Win)) == 0) { HotkeyStatus.Text = L.T("HotkeyNeedsModifier"); return; }
+        if (!HotkeySpec.TryCreate(mods, (uint)KeyInterop.VirtualKeyFromKey(key), out var spec)) { HotkeyStatus.Text = L.T("HotkeyUnsupportedKey"); return; }
+        StopRecording(spec);
+    }
+
+    void HotkeyDefault_Click(object sender, RoutedEventArgs e)
+    {
+        StopRecording(apply: null);
+        HotkeySpec.TryParse("Ctrl+Alt+B", out var spec);
+        ShowHotkey(app.SetPanelHotkey(spec) is null ? null : L.F("HotkeyConflict", spec));
+    }
+
+    void HotkeyDisable_Click(object sender, RoutedEventArgs e)
+    {
+        StopRecording(apply: null);
+        app.SetPanelHotkey(default);
+        ShowHotkey();
+    }
+
     void ApplyCustom()
     {
         static bool Time(string text, out TimeOnly value) => TimeOnly.TryParseExact(text.Trim(), ["HH:mm", "H:mm"], CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
@@ -131,15 +227,12 @@ public partial class PreferencesWindow : Window
             !validExtra || extra.Distinct().Count() > 4 || !validMinutes ||
             !int.TryParse(ChargeTarget.Text, out var chargeTarget) || chargeTarget is < 50 or > 100 ||
             !int.TryParse(NotifyLow.Text, out var low) || low is < 0 or > 50 ||
-            !int.TryParse(NotifyCharged.Text, out var charged) || !(charged == 0 || charged is >= 50 and <= 100) ||
-            !HotkeySpec.TryParse(Hotkey.Text, out _))
+            !int.TryParse(NotifyCharged.Text, out var charged) || !(charged == 0 || charged is >= 50 and <= 100))
         { CustomStatus.Text = NotifyCustomStatus.Text = L.T("CustomInvalid"); return; }
-        if (!app.TrySetPanelHotkey(Hotkey.Text))
-        { CustomStatus.Text = NotifyCustomStatus.Text = L.T("HotkeyConflict"); return; }
         app.UpdateSettings(app.Settings with
         {
             ReservePct = reserve, TargetTime = target, AdditionalTargets = [.. extra], ChargeTargetPct = chargeTarget,
-            PanelHotkey = Hotkey.Text.Trim(), QuietStart = quietStart, QuietEnd = quietEnd,
+            QuietStart = quietStart, QuietEnd = quietEnd,
             Notifications = app.Settings.Notifications with { MinutesLeft = [.. minutes], LowPct = low, ChargedPct = charged },
         });
         CustomStatus.Text = NotifyCustomStatus.Text = L.T("CustomSaved");

@@ -35,7 +35,20 @@
                     <TextBox x:Name="ChargeTarget" AutomationProperties.Name="{app:T ChargeTargetLabel}"/>
                     <TextBlock Text="{app:T ChargeTargetHelp}" Style="{StaticResource Help}"/>
                     <TextBlock Text="{app:T HotkeyLabel}" Style="{StaticResource Label}" Margin="0,12,0,4"/>
-                    <TextBox x:Name="Hotkey" AutomationProperties.Name="{app:T HotkeyLabel}"/>
+                    <!-- registratore: si preme la combinazione invece di scriverla -->
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button x:Name="HotkeyChange" Content="{app:T HotkeyChange}" Click="HotkeyChange_Click" Padding="12,5" Margin="8,0,0,0"/>
+                            <Button Content="{app:T HotkeyDefault}" Click="HotkeyDefault_Click" Padding="12,5" Margin="8,0,0,0"/>
+                            <Button Content="{app:T HotkeyDisable}" Click="HotkeyDisable_Click" Padding="12,5" Margin="8,0,0,0"/>
+                        </StackPanel>
+                        <Border x:Name="HotkeyBox" Focusable="True" BorderThickness="1" BorderBrush="{DynamicResource WindowBorder}"
+                                Background="{DynamicResource RowHover}" CornerRadius="6" Padding="12,6" FocusVisualStyle="{StaticResource FocusRing}"
+                                AutomationProperties.Name="{app:T HotkeyLabel}">
+                            <TextBlock x:Name="HotkeyText" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+                        </Border>
+                    </DockPanel>
+                    <TextBlock x:Name="HotkeyStatus" Style="{StaticResource Help}"/>
                     <TextBlock Text="{app:T HotkeyHelp}" Style="{StaticResource Help}"/>
                     <Button Content="{app:T ApplyCustom}" Click="Custom_Click" HorizontalAlignment="Left" Margin="0,12,0,0" Padding="12,5"/>
                     <TextBlock x:Name="CustomStatus" Style="{StaticResource Help}"/>
@@ -62,6 +75,24 @@
                     </Grid>
                     <CheckBox x:Name="ShowChart" Content="{app:T ShowChart}" Margin="0,12,0,0"/>
                     <CheckBox x:Name="KeepOpenDefault" Content="{app:T KeepOpenDefault}" Margin="0,10,0,0"/>
+                    <CheckBox x:Name="OpenOnHover" Content="{app:T OpenOnHover}" Margin="0,10,0,0"/>
+                    <TextBlock Text="{app:T OpenOnHoverHelp}" Style="{StaticResource Help}"/>
+                    <Grid Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition/><ColumnDefinition Width="64"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{app:T PanelScale}" Style="{StaticResource Label}"/>
+                        <Slider x:Name="ScaleSlider" Grid.Column="1" Minimum="0.8" Maximum="1.6" TickFrequency="0.05" IsSnapToTickEnabled="True"
+                                SmallChange="0.05" LargeChange="0.1" VerticalAlignment="Center" AutomationProperties.Name="{app:T PanelScale}"/>
+                        <TextBlock x:Name="ScaleValue" Grid.Column="2" Style="{StaticResource Body}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition/><ColumnDefinition Width="64"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{app:T PanelWidth}" Style="{StaticResource Label}"/>
+                        <Slider x:Name="WidthSlider" Grid.Column="1" Minimum="320" Maximum="640" TickFrequency="8" IsSnapToTickEnabled="True"
+                                SmallChange="8" LargeChange="32" VerticalAlignment="Center" AutomationProperties.Name="{app:T PanelWidth}"/>
+                        <TextBlock x:Name="WidthValue" Grid.Column="2" Style="{StaticResource Body}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <TextBlock Text="{app:T PanelSizeHelp}" Style="{StaticResource Help}"/>
+                    <Button Content="{app:T PanelSizeReset}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left" Margin="0,6,0,0" Click="SizeReset_Click"/>
                     <CheckBox x:Name="TrayPercent" Margin="0,14,0,0" Content="{app:T PrefTray}"/>
                     <TextBlock Text="{app:T PrefTrayHelp}" Style="{StaticResource Help}"/>
                     <CheckBox x:Name="Login" Margin="0,12,0,0" Content="{app:T PrefLogin}"/>

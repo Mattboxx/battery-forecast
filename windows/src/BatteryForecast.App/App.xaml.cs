@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Windows;
@@ -39,6 +39,7 @@ public partial class App : Application
     NotificationRules? notices;
     readonly SemaphoreSlim noticeGate = new(1, 1);
     bool demo, quitting;
+    public bool UiTest { get; private set; }
     Log? log;
     GlobalHotkey? hotkey;
     public string? ShortcutError { get; private set; }
@@ -67,6 +68,9 @@ public partial class App : Application
         base.OnStartup(e);
         var snapshotDir = e.Args.SkipWhile(a => a != "--snapshot").Skip(1).FirstOrDefault();
         demo = e.Args.Contains("--demo") || snapshotDir is not null;
+#if DEBUG
+        UiTest = demo && e.Args.Contains("--ui-test");
+#endif
         var name = snapshotDir is not null ? "BatteryForecast.Snapshot" : demo ? "BatteryForecast.Demo" : "BatteryForecast";
         if (e.Args.Contains("--quit"))
         {   // usato dall'installer prima di aggiornare o disinstallare
@@ -90,10 +94,12 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += (_, a) => log?.Write($"fatal: {a.ExceptionObject}");
 
         Settings = Settings.Load(paths.Settings);
-        if (!demo && messages is not null)
+        if (UiTest) Settings = Settings with { KeepPanelOpen = true, ShowChart = true, AutoUpdateCheck = false };
+        // anche in demo, così la scorciatoia si può provare; non nelle istantanee
+        if (snapshotDir is null && messages is not null)
         {
             hotkey = new GlobalHotkey(messages.Handle);
-            if (!hotkey.TrySet(Settings.PanelHotkey)) ShortcutError = "HotkeyConflict";
+            if (HotkeySpec.TryParse(Settings.PanelHotkey, out var spec) && !hotkey.TrySet(spec)) ShortcutError = "HotkeyConflict";
         }
         // --lang it|en: solo per demo e istantanee (immagini del sito e del README)
         if (demo && e.Args.SkipWhile(a => a != "--lang").Skip(1).FirstOrDefault() is { } lang)
@@ -128,7 +134,7 @@ public partial class App : Application
         notices = new NotificationRules(Store);
         if (!demo) StartUpdateTimer();
 
-        tray = new TrayIcon(TogglePanel, ShowPanel, ShowHistory, ShowPreferences, Quit, L.T);
+        tray = new TrayIcon(TogglePanel, ShowPanel, ShowHistory, ShowPreferences, Quit, L.T, OnTrayHover);
         SystemEvents.PowerModeChanged += OnPowerMode;
         SystemEvents.UserPreferenceChanged += OnUserPreference;
         SystemEvents.SessionEnding += (_, _) => Quit();
@@ -172,7 +178,7 @@ public partial class App : Application
             {
                 case 0x0312 when w.ToInt32() == GlobalHotkey.Id:
                     handled = true;
-                    Dispatcher.BeginInvoke(ShowPanel);
+                    Dispatcher.BeginInvoke(() => TogglePanel(PanelOpening.Keyboard));    // premuta di nuovo, lo chiude
                     break;
                 case WM_QUERYENDSESSION:
                     handled = true;
@@ -263,21 +269,60 @@ public partial class App : Application
 
     public void TestNotification() => tray?.Notify(L.T("NoticeTestTitle"), L.T("NoticeTest"));
 
-    void TogglePanel()
+    void TogglePanel() => TogglePanel(PanelOpening.Click);
+
+    void TogglePanel(PanelOpening how)
     {
-        if (panel is { IsVisible: true }) { panel.Dismiss(); return; }
+        if (panel is { IsVisible: true })
+        {
+            // aperto passandoci sopra: il clic lo "fissa" invece di chiuderlo
+            if (how == PanelOpening.Click && panel.OpenedBy == PanelOpening.Hover) { panel.Pin(); return; }
+            panel.Dismiss();
+            return;
+        }
         // il clic sull'icona ha appena tolto il focus al pannello, che si è nascosto: non riaprirlo
         if (panel is not null && DateTime.UtcNow - panel.HiddenAt < TimeSpan.FromMilliseconds(400)) return;
-        ShowPanel();
+        ShowPanel(how);
     }
 
-    void ShowPanel()
+    void ShowPanel() => ShowPanel(PanelOpening.Click);
+
+    void ShowPanel(PanelOpening how)
     {
         if (quitting || Coordinator is null) return;
         panel ??= new PanelWindow(this);
         Coordinator.PanelOpened();
         var s = last ?? Coordinator.State;
-        if (s is not null) panel.Show(PanelPresenter.Present(s), s.Target.When);
+        if (s is not null) panel.Show(PanelPresenter.Present(s), s.Target.When, how);
+    }
+
+    DispatcherTimer? hoverTimer;
+    Native.POINT hoverStart;
+
+    /// <summary>
+    /// Modalità "apri al passaggio": se il puntatore resta sull'icona per circa mezzo secondo il pannello si apre
+    /// senza prendere il focus; si richiude da solo quando il puntatore se ne va (vedi PanelWindow).
+    /// </summary>
+    void OnTrayHover()
+    {
+        if (!Settings.OpenOnHover || quitting || panel is { IsVisible: true }) return;
+        if (panel is not null && DateTime.UtcNow - panel.HiddenAt < TimeSpan.FromMilliseconds(600)) return;
+        if (hoverTimer is { IsEnabled: true }) return;
+        Native.GetCursorPos(out hoverStart);
+        hoverTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(450) };
+        hoverTimer.Tick -= HoverElapsed;
+        hoverTimer.Tick += HoverElapsed;
+        hoverTimer.Start();
+    }
+
+    void HoverElapsed(object? sender, EventArgs e)
+    {
+        hoverTimer!.Stop();
+        Native.GetCursorPos(out var p);
+        // ancora sopra l'icona (tolleranza = dimensione dell'icona, in pixel fisici)
+        var tolerance = System.Windows.Forms.SystemInformation.SmallIconSize.Width;
+        if (Math.Abs(p.X - hoverStart.X) <= tolerance && Math.Abs(p.Y - hoverStart.Y) <= tolerance)
+            ShowPanel(PanelOpening.Hover);
     }
 
     /// <summary>Ultima lettura della batteria (per la salute nella finestra storico).</summary>
@@ -305,11 +350,23 @@ public partial class App : Application
         prefs.Activate();
     }
 
-    public bool TrySetPanelHotkey(string text)
+    /// <summary>Registra e salva subito la scorciatoia. Restituisce null se riuscita, altrimenti la chiave del messaggio.</summary>
+    public string? SetPanelHotkey(HotkeySpec spec)
     {
-        var ok = HotkeySpec.TryParse(text, out _) && (hotkey is null || hotkey.TrySet(text));
-        ShortcutError = ok ? null : "HotkeyConflict";
-        return ok;
+        if (hotkey is not null && !hotkey.TrySet(spec)) return ShortcutError = "HotkeyConflict";
+        ShortcutError = null;
+        UpdateSettings(Settings with { PanelHotkey = spec.ToString() });
+        return null;
+    }
+
+    public HotkeySpec CurrentHotkey => hotkey?.Current ?? (HotkeySpec.TryParse(Settings.PanelHotkey, out var s) ? s : default);
+
+    /// <summary>Durante la registrazione dalle Preferenze la scorciatoia attuale non deve scattare.</summary>
+    public void SuspendHotkey() => hotkey?.Suspend();
+
+    public void ResumeHotkey()
+    {
+        if (hotkey is not null && !hotkey.Resume()) ShortcutError = "HotkeyConflict";
     }
 
     public string BatterySummary()
@@ -341,17 +398,24 @@ public partial class App : Application
     public void UpdateSettings(Settings next)
     {
         var prev = Settings;
-        if (prev.PanelHotkey != next.PanelHotkey && !TrySetPanelHotkey(next.PanelHotkey)) next = next with { PanelHotkey = prev.PanelHotkey };
+        // una scorciatoia cambiata per altre vie (es. impostazioni importate) si registra qui; se Windows la rifiuta resta la precedente
+        if (prev.PanelHotkey != next.PanelHotkey && hotkey is not null && HotkeySpec.TryParse(next.PanelHotkey, out var spec)
+            && spec != hotkey.Current && !hotkey.TrySet(spec))
+        {
+            ShortcutError = "HotkeyConflict";
+            next = next with { PanelHotkey = prev.PanelHotkey };
+        }
         Settings = next.Normalized();
         try { Settings.Save(paths.Settings); } catch (IOException ex) { log?.Write($"settings: {ex.Message}"); }
         if (prev.Theme != Settings.Theme) { Theme.Apply(Settings.Theme); panel?.ApplyFrame(); }
+        if (prev.PanelWidth != Settings.PanelWidth || prev.PanelScale != Settings.PanelScale) panel?.ApplySize();
         if (prev.Language != Settings.Language)
         {
             L.Apply(Settings.Language);
             panel?.Close();
             panel = null;
             tray?.Dispose();
-            tray = new TrayIcon(TogglePanel, ShowPanel, ShowHistory, ShowPreferences, Quit, L.T);
+            tray = new TrayIcon(TogglePanel, ShowPanel, ShowHistory, ShowPreferences, Quit, L.T, OnTrayHover);
             if (prefs is not null) { prefs.Close(); ShowPreferences(); }
         }
         if (prev.RetentionDays != Settings.RetentionDays)

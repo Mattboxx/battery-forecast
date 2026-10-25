@@ -17,7 +17,8 @@ sealed class TrayIcon : IDisposable
     IntPtr hicon;
     (int level, bool charging, bool percent, bool dark, int size) drawn = (-1, false, false, false, 0);
 
-    public TrayIcon(Action onClick, Action onOpen, Action onHistory, Action onPreferences, Action onQuit, Func<string, string> text)
+    public TrayIcon(Action onClick, Action onOpen, Action onHistory, Action onPreferences, Action onQuit, Func<string, string> text,
+        Action? onHover = null)
     {
         var menu = new Forms.ContextMenuStrip { RenderMode = Forms.ToolStripRenderMode.System, ShowImageMargin = false };
         menu.Items.Add(text("Open"), null, (_, _) => onOpen());
@@ -27,6 +28,8 @@ sealed class TrayIcon : IDisposable
         menu.Items.Add(text("Quit"), null, (_, _) => onQuit());
         icon = new Forms.NotifyIcon { Text = "Battery Forecast", ContextMenuStrip = menu };
         icon.MouseClick += (_, e) => { if (e.Button == Forms.MouseButtons.Left) onClick(); };
+        // Windows manda un movimento a ogni spostamento sopra l'icona: l'app decide se aprire dopo una breve pausa
+        if (onHover is not null) icon.MouseMove += (_, _) => onHover();
         icon.BalloonTipClicked += (_, _) => (balloonClick ?? onOpen)();
         Set(null, false, false, "Battery Forecast");
         icon.Visible = true;

@@ -54,9 +54,20 @@ jobs:
         run: dotnet test windows/tests/BatteryForecast.Tests -c Release -r win-${{ matrix.arch }}
       - name: Inno Setup
         shell: pwsh
+        # Installer ufficiale dalle release GitHub di jrsoftware/issrc, versione e SHA-256 fissati,
+        # firma Authenticode verificata (jrsoftware.org/download.php restituisce una pagina HTML, non l'eseguibile).
         run: |
-          Invoke-WebRequest https://jrsoftware.org/download.php/is.exe -OutFile is.exe
-          Start-Process .\is.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/CURRENTUSER', '/NORESTART' -Wait
+          $url = 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe'
+          $sha = '9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732'
+          Invoke-WebRequest $url -OutFile innosetup.exe
+          if ((Get-FileHash innosetup.exe -Algorithm SHA256).Hash.ToLower() -ne $sha) { throw "Inno Setup: SHA-256 mismatch" }
+          $sig = Get-AuthenticodeSignature innosetup.exe
+          if ($sig.Status -ne 'Valid') { throw "Inno Setup: signature $($sig.Status)" }
+          $p = Start-Process .\innosetup.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/CURRENTUSER', '/NORESTART', '/SP-' -Wait -PassThru
+          if ($p.ExitCode) { throw "Inno Setup install failed: $($p.ExitCode)" }
+          $iscc = Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) { throw "ISCC.exe not found at $iscc" }
+          & $iscc /? | Select-Object -First 1
       - name: Package
         env:
           REQUESTED_VERSION: ${{ inputs.version }}

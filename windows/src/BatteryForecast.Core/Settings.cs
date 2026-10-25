@@ -27,6 +27,14 @@ public sealed record Settings
     public bool UseSystemContext { get; init; } = true;
     public bool ShowChart { get; init; } = true;
     public bool KeepPanelOpen { get; init; }
+    /// <summary>Apre il pannello quando il puntatore resta un attimo sull'icona (senza clic).</summary>
+    public bool OpenOnHover { get; init; }
+    /// <summary>Larghezza del pannello a scala 100%, in pixel logici.</summary>
+    public double PanelWidth { get; init; } = DefaultPanelWidth;
+    /// <summary>Scala di tutto il pannello (testo, grafico, larghezza).</summary>
+    public double PanelScale { get; init; } = 1.0;
+
+    public const double DefaultPanelWidth = 384, MinPanelWidth = 320, MaxPanelWidth = 640, MinPanelScale = 0.8, MaxPanelScale = 1.6;
     public bool QuietHoursEnabled { get; init; }
     public TimeOnly QuietStart { get; init; } = new(22, 0);
     public TimeOnly QuietEnd { get; init; } = new(8, 0);
@@ -57,7 +65,9 @@ public sealed record Settings
         Notifications = (Notifications ?? new()).Normalized(),
         AdditionalTargets = [.. (AdditionalTargets ?? []).Where(t => t != TargetTime).Distinct().Order().Take(4)],
         ChargeTargetPct = ChargeTargetPct is >= 50 and <= 100 ? ChargeTargetPct : 80,
-        PanelHotkey = HotkeySpec.TryParse(PanelHotkey, out _) ? PanelHotkey?.Trim() ?? "" : "Ctrl+Alt+B",
+        PanelHotkey = HotkeySpec.TryParse(PanelHotkey, out var hotkey) ? hotkey.ToString() : "Ctrl+Alt+B",
+        PanelWidth = double.IsFinite(PanelWidth) ? Math.Clamp(Math.Round(PanelWidth), MinPanelWidth, MaxPanelWidth) : DefaultPanelWidth,
+        PanelScale = double.IsFinite(PanelScale) ? Math.Clamp(Math.Round(PanelScale, 2), MinPanelScale, MaxPanelScale) : 1.0,
     };
 
     static readonly JsonSerializerOptions Json = new()

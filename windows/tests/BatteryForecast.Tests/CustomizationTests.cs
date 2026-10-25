@@ -22,6 +22,45 @@ public class CustomizationTests
     [InlineData("Ctrl+anything", false)]
     public void ShortcutValidation(string text, bool valid) => Assert.Equal(valid, HotkeySpec.TryParse(text,out _));
 
+    [Theory]
+    [InlineData("ctrl+alt+b", "Ctrl+Alt+B")]
+    [InlineData("Win+Shift+F9", "Shift+Win+F9")]
+    [InlineData("Alt+Ctrl+space", "Ctrl+Alt+Space")]
+    [InlineData("Ctrl+Win+NumPad5", "Ctrl+Win+NumPad5")]
+    [InlineData("", "")]
+    public void ShortcutTextIsCanonical(string text, string canonical)
+    {
+        Assert.True(HotkeySpec.TryParse(text, out var spec));
+        Assert.Equal(canonical, spec.ToString());
+        Assert.True(HotkeySpec.TryParse(spec.ToString(), out var again));
+        Assert.Equal(spec, again);
+    }
+
+    [Fact]
+    public void PanelSizeAndHoverDefaultsAndLimits()
+    {
+        var d = new Settings().Normalized();
+        Assert.False(d.OpenOnHover);
+        Assert.Equal(Settings.DefaultPanelWidth, d.PanelWidth);
+        Assert.Equal(1.0, d.PanelScale);
+        var big = new Settings { PanelWidth = 5000, PanelScale = 9, PanelHotkey = "alt+ctrl+b" }.Normalized();
+        Assert.Equal(Settings.MaxPanelWidth, big.PanelWidth);
+        Assert.Equal(Settings.MaxPanelScale, big.PanelScale);
+        Assert.Equal("Ctrl+Alt+B", big.PanelHotkey);
+        var nan = new Settings { PanelWidth = double.NaN, PanelScale = double.PositiveInfinity }.Normalized();
+        Assert.Equal(Settings.DefaultPanelWidth, nan.PanelWidth);
+        Assert.Equal(1.0, nan.PanelScale);
+    }
+
+    [Theory]
+    [InlineData(HotkeySpec.Ctrl | HotkeySpec.Alt, 0x42u, true)]        // Ctrl+Alt+B
+    [InlineData(HotkeySpec.Win, 0x31u, true)]                           // Win+1
+    [InlineData(HotkeySpec.Shift, 0x42u, false)]                        // il solo Shift non basta
+    [InlineData(HotkeySpec.Ctrl, 0x11u, false)]                         // tasto modificatore da solo
+    [InlineData(HotkeySpec.Ctrl, 0x7Bu, false)]                         // F12 riservato
+    [InlineData(HotkeySpec.Ctrl | 0x10u, 0x42u, false)]                 // bit sconosciuto
+    public void ShortcutFromPressedKeys(uint mods, uint vk, bool valid) => Assert.Equal(valid, HotkeySpec.TryCreate(mods, vk, out _));
+
     [Fact]
     public void QuietHoursAcrossMidnightAndBoundaries()
     {

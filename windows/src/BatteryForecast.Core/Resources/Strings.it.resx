@@ -77,9 +77,19 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="HealthValue" xml:space="preserve"><value>{0}% della capacità di progetto</value></data>
   <data name="History" xml:space="preserve"><value>Storico e salute della batteria…</value></data>
   <data name="HistoryTitle" xml:space="preserve"><value>Storico e salute della batteria</value></data>
-  <data name="HotkeyConflict" xml:space="preserve"><value>Scorciatoia non disponibile: potrebbe essere usata da un’altra app. Resta quella precedente.</value></data>
-  <data name="HotkeyHelp" xml:space="preserve"><value>Esempio: Ctrl+Alt+B. Usa Ctrl o Alt con una lettera, cifra o tasto F (tranne F12). Vuoto per disattivare.</value></data>
+  <data name="HotkeyActive" xml:space="preserve"><value>Attiva: premi {0} ovunque per aprire o chiudere il pannello.</value></data>
+  <data name="HotkeyChange" xml:space="preserve"><value>Cambia…</value></data>
+  <data name="HotkeyConflict" xml:space="preserve"><value>{0} è già usata da Windows o da un’altra app. Prova un’altra combinazione; resta quella precedente.</value></data>
+  <data name="HotkeyDefault" xml:space="preserve"><value>Predefinita</value></data>
+  <data name="HotkeyDisable" xml:space="preserve"><value>Disattiva</value></data>
+  <data name="HotkeyHelp" xml:space="preserve"><value>Apre e chiude il pannello da qualsiasi app. Premi Cambia, poi i tasti insieme: Ctrl, Alt o Win più una lettera, una cifra, un tasto F o Spazio.</value></data>
   <data name="HotkeyLabel" xml:space="preserve"><value>Scorciatoia per aprire la previsione</value></data>
+  <data name="HotkeyNeedsModifier" xml:space="preserve"><value>Aggiungi Ctrl, Alt o Win: il solo Shift intercetterebbe la normale digitazione.</value></data>
+  <data name="HotkeyNone" xml:space="preserve"><value>Nessuna</value></data>
+  <data name="HotkeyOff" xml:space="preserve"><value>Nessuna scorciatoia: il pannello si apre dall’icona.</value></data>
+  <data name="HotkeyRecording" xml:space="preserve"><value>Premi i tasti…</value></data>
+  <data name="HotkeyRecordingHelp" xml:space="preserve"><value>Premi ora la combinazione. Esc per annullare.</value></data>
+  <data name="HotkeyUnsupportedKey" xml:space="preserve"><value>Quel tasto non si può usare. Usa una lettera, una cifra, un tasto F (non F12), Spazio, frecce o tastierino numerico.</value></data>
   <data name="Hours" xml:space="preserve"><value>{0} h</value></data>
   <data name="HoursMinutes" xml:space="preserve"><value>{0} h {1} min</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Mantieni aperto</value></data>
@@ -106,8 +116,14 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="NoticeTestTitle" xml:space="preserve"><value>Le notifiche di Battery Forecast funzionano</value></data>
   <data name="Off" xml:space="preserve"><value>Disattivato</value></data>
   <data name="Open" xml:space="preserve"><value>Apri Battery Forecast</value></data>
+  <data name="OpenOnHover" xml:space="preserve"><value>Apri quando il puntatore resta sull’icona</value></data>
+  <data name="OpenOnHoverHelp" xml:space="preserve"><value>Si apre dopo mezzo secondo senza clic e si richiude quando il puntatore si allontana. Un clic lo tiene aperto.</value></data>
   <data name="OpenPowerSettings" xml:space="preserve"><value>Impostazioni alimentazione e batteria…</value></data>
   <data name="OpenSaverSettings" xml:space="preserve"><value>Impostazioni risparmio energetico…</value></data>
+  <data name="PanelScale" xml:space="preserve"><value>Dimensione</value></data>
+  <data name="PanelSizeHelp" xml:space="preserve"><value>La dimensione ingrandisce insieme testo, grafico e finestra; la larghezza aggiunge spazio. Le modifiche si applicano subito.</value></data>
+  <data name="PanelSizeReset" xml:space="preserve"><value>Ripristina dimensioni</value></data>
+  <data name="PanelWidth" xml:space="preserve"><value>Larghezza</value></data>
   <data name="PluggedIn" xml:space="preserve"><value>Alimentatore collegato</value></data>
   <data name="PowerSource" xml:space="preserve"><value>Fonte di alimentazione: {0}</value></data>
   <data name="PrefAbout" xml:space="preserve"><value>Informazioni</value></data>
@@ -122,6 +138,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="PrefNotifyHelp" xml:space="preserve"><value>Al massimo un avviso per soglia in ogni scarica; nessuno con l'alimentatore o con stime vecchie. Non disturbare può nasconderli.</value></data>
   <data name="PrefNotifyLow" xml:space="preserve"><value>Avviso al</value></data>
   <data name="PrefNotifyTime" xml:space="preserve"><value>Quando mancano circa 60, 30 e 15 minuti alla riserva</value></data>
+  <data name="PrefPanel" xml:space="preserve"><value>Pannello</value></data>
   <data name="PrefRefresh" xml:space="preserve"><value>Aggiornamento della previsione</value></data>
   <data name="PrefRefreshHelp" xml:space="preserve"><value>Il modello si avvia solo per calcolare (circa 3 s di CPU) e poi si chiude. Con il risparmio energetico attivo non parte mai da solo; la stima dal consumo recente continua a funzionare.</value></data>
   <data name="PrefReserve" xml:space="preserve"><value>Soglia di riserva</value></data>

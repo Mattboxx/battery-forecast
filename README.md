@@ -172,8 +172,12 @@ Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/batter
 - **Set any time:** enter the main target and up to four additional targets as `HH:mm`, including
   overnight targets. A past time explicitly refers to tomorrow. Save custom settings with the button
   or Enter. Reserve percentages and alert minute thresholds are also editable.
-- **Open it instantly:** configurable global shortcut, initially `Ctrl+Alt+B`. Use Ctrl or Alt with a
-  letter, digit or function key (except F12), or leave blank to disable. A conflict keeps the previous shortcut.
+- **Open it instantly:** a global shortcut (initially `Ctrl+Alt+B`) opens the panel and, pressed again, closes it.
+  To change it, click *Change* in Preferences and press the keys: Ctrl, Alt or Win with a letter, digit, F key
+  (except F12), Space, arrows or the numeric keypad. If Windows or another app already uses it, the previous one is kept.
+- **Open on hover (optional):** rest the pointer on the tray icon and the panel opens without a click, without
+  stealing focus, and closes when the pointer moves away; a click keeps it open.
+- **Your size:** scale (80–160%) and width of the panel, applied as you move the sliders.
 - **See the charging target:** choose 50–100% (default 80%). During charging a separate experimental
   estimator uses observed charging speed or comparable past charge intervals. The last charging phase
   can slow down: higher targets require sufficient observed sessions. This does not control a hardware limit.

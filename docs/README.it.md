@@ -105,7 +105,12 @@ nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
   indicativa. Da tastiera usa frecce, Home e Fine. Il tooltip distingue la parte estrapolata.
 - **Orari liberi:** scrivi l’obiettivo e fino a quattro altri orari in `HH:mm`, anche di notte.
   Gli orari passati si riferiscono esplicitamente a domani. Pulsante Salva o Invio per i campi manuali.
-- **Scorciatoia globale configurabile:** inizialmente `Ctrl+Alt+B`; campo vuoto per disattivarla.
+- **Scorciatoia globale:** inizialmente `Ctrl+Alt+B`, apre il pannello e, premuta di nuovo, lo chiude. Per cambiarla
+  premi *Cambia* nelle Preferenze e poi i tasti: Ctrl, Alt o Win con una lettera, una cifra, un tasto F (non F12),
+  Spazio, frecce o tastierino numerico. Se è già usata da Windows o da un'altra app resta la precedente.
+- **Apertura al passaggio (facoltativa):** lascia il puntatore sull'icona e il pannello si apre senza clic, senza
+  rubare il focus, e si richiude quando il puntatore si allontana; un clic lo tiene aperto.
+- **Dimensione a piacere:** scala (80–160%) e larghezza del pannello, applicate mentre muovi i cursori.
   Se è già occupata, resta quella precedente. Supportati Ctrl o Alt con lettere/cifre/tasti F tranne F12.
 - **Ricarica fino alla soglia scelta:** obiettivo 50–100%, inizialmente 80%. Stima sperimentale dal ritmo
   di ricarica osservato o da sessioni precedenti comparabili. Oltre 80% serve abbastanza storico per

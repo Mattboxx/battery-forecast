@@ -77,9 +77,19 @@ Indicative range {2}–{3}%</value></data>
   <data name="HealthValue" xml:space="preserve"><value>{0}% of design capacity</value></data>
   <data name="History" xml:space="preserve"><value>History and battery health…</value></data>
   <data name="HistoryTitle" xml:space="preserve"><value>Battery history and health</value></data>
-  <data name="HotkeyConflict" xml:space="preserve"><value>Shortcut unavailable: it may be used by another app. The previous shortcut is kept.</value></data>
-  <data name="HotkeyHelp" xml:space="preserve"><value>Example: Ctrl+Alt+B. Use Ctrl or Alt plus a letter, digit or F key (except F12). Empty disables it.</value></data>
+  <data name="HotkeyActive" xml:space="preserve"><value>Active: press {0} anywhere to open or close the panel.</value></data>
+  <data name="HotkeyChange" xml:space="preserve"><value>Change…</value></data>
+  <data name="HotkeyConflict" xml:space="preserve"><value>{0} is already used by Windows or another app. Try another combination; the previous one is kept.</value></data>
+  <data name="HotkeyDefault" xml:space="preserve"><value>Default</value></data>
+  <data name="HotkeyDisable" xml:space="preserve"><value>Turn off</value></data>
+  <data name="HotkeyHelp" xml:space="preserve"><value>Opens and closes the panel from any app. Click Change, then press the keys together: Ctrl, Alt or Win plus a letter, digit, F key or Space.</value></data>
   <data name="HotkeyLabel" xml:space="preserve"><value>Open forecast shortcut</value></data>
+  <data name="HotkeyNeedsModifier" xml:space="preserve"><value>Add Ctrl, Alt or Win: Shift alone would catch normal typing.</value></data>
+  <data name="HotkeyNone" xml:space="preserve"><value>None</value></data>
+  <data name="HotkeyOff" xml:space="preserve"><value>No shortcut: the panel opens from the tray icon.</value></data>
+  <data name="HotkeyRecording" xml:space="preserve"><value>Press the keys…</value></data>
+  <data name="HotkeyRecordingHelp" xml:space="preserve"><value>Press the combination now. Esc cancels.</value></data>
+  <data name="HotkeyUnsupportedKey" xml:space="preserve"><value>That key cannot be used. Use a letter, digit, F key (not F12), Space, arrows or the numeric keypad.</value></data>
   <data name="Hours" xml:space="preserve"><value>{0} h</value></data>
   <data name="HoursMinutes" xml:space="preserve"><value>{0} h {1} min</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Keep open</value></data>
@@ -106,8 +116,14 @@ Indicative range {2}–{3}%</value></data>
   <data name="NoticeTestTitle" xml:space="preserve"><value>Battery Forecast notifications work</value></data>
   <data name="Off" xml:space="preserve"><value>Off</value></data>
   <data name="Open" xml:space="preserve"><value>Open Battery Forecast</value></data>
+  <data name="OpenOnHover" xml:space="preserve"><value>Open when the pointer rests on the tray icon</value></data>
+  <data name="OpenOnHoverHelp" xml:space="preserve"><value>Opens after half a second without clicking and closes when the pointer moves away. A click keeps it open.</value></data>
   <data name="OpenPowerSettings" xml:space="preserve"><value>Power &amp; battery settings…</value></data>
   <data name="OpenSaverSettings" xml:space="preserve"><value>Battery saver settings…</value></data>
+  <data name="PanelScale" xml:space="preserve"><value>Size</value></data>
+  <data name="PanelSizeHelp" xml:space="preserve"><value>Size enlarges text, chart and window together; width adds room. Changes apply immediately.</value></data>
+  <data name="PanelSizeReset" xml:space="preserve"><value>Reset size</value></data>
+  <data name="PanelWidth" xml:space="preserve"><value>Width</value></data>
   <data name="PluggedIn" xml:space="preserve"><value>Power adapter connected</value></data>
   <data name="PowerSource" xml:space="preserve"><value>Power source: {0}</value></data>
   <data name="PrefAbout" xml:space="preserve"><value>About</value></data>
@@ -122,6 +138,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="PrefNotifyHelp" xml:space="preserve"><value>At most one alert per threshold per discharge; none on the adapter or with an old estimate. Do not disturb can hide them.</value></data>
   <data name="PrefNotifyLow" xml:space="preserve"><value>Alert at</value></data>
   <data name="PrefNotifyTime" xml:space="preserve"><value>When about 60, 30 and 15 minutes are left to the reserve</value></data>
+  <data name="PrefPanel" xml:space="preserve"><value>Panel</value></data>
   <data name="PrefRefresh" xml:space="preserve"><value>Forecast updates</value></data>
   <data name="PrefRefreshHelp" xml:space="preserve"><value>The model starts only to compute (about 3 s of CPU) and then closes. With battery saver on it never starts by itself; recent-use estimates keep working.</value></data>
   <data name="PrefReserve" xml:space="preserve"><value>Reserve threshold</value></data>

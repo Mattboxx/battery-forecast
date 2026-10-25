@@ -2,11 +2,15 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using BatteryForecast.Core.Presentation;
 
 namespace BatteryForecast.App;
+
+/// <summary>Come è stato aperto il pannello: decide posizione, focus e chiusura.</summary>
+public enum PanelOpening { Click, Hover, Keyboard }
 
 /// <summary>
 /// Il pannello che si apre dall'icona. Si chiude con Esc o perdendo il focus, come i riquadri di sistema;
@@ -24,6 +28,9 @@ public partial class PanelWindow : Window
     {
         this.app = app;
         InitializeComponent();
+        if (app.UiTest) ShowInTaskbar = true;
+        ApplySize();
+        hoverWatch.Tick += (_, _) => WatchHover();
         KeepOpen.IsChecked = app.Settings.KeepPanelOpen;
         KeepOpen.Click += (_, _) => app.UpdateSettings(app.Settings with { KeepPanelOpen = KeepOpen.IsChecked == true });
         SourceInitialized += (_, _) =>
@@ -33,6 +40,8 @@ public partial class PanelWindow : Window
         };
         SizeChanged += (_, _) => QueuePlacement();
         Deactivated += (_, _) => { if (KeepOpen.IsChecked != true) Dismiss(); };
+        // un clic dentro un pannello aperto al passaggio lo rende un pannello normale
+        Activated += (_, _) => { if (OpenedBy == PanelOpening.Hover) Pin(); };
         PreviewKeyDown += (_, e) =>
         {
             if (e.Key == Key.Escape) { Dismiss(); e.Handled = true; }
@@ -42,16 +51,23 @@ public partial class PanelWindow : Window
     /// <summary>Quando il pannello si è nascosto perdendo il focus: un clic sull'icona subito dopo non deve riaprirlo.</summary>
     public DateTime HiddenAt { get; private set; }
 
-    public void Show(PanelModel model, DateTimeOffset target)
+    public PanelOpening OpenedBy { get; private set; }
+
+    public void Show(PanelModel model, DateTimeOffset target, PanelOpening how = PanelOpening.Click)
     {
         Update(model, target);
         ++animationVersion;
         dismissing = false;
         IsHitTestVisible = true;
         BeginAnimation(OpacityProperty, null);
-        if (IsVisible) { Opacity = 1; Activate(); return; }
-        Native.GetCursorPos(out anchor);
+        if (IsVisible) { Opacity = 1; if (how != PanelOpening.Hover) { Pin(); Activate(); } return; }
+        OpenedBy = how;
+        // da tastiera il puntatore può essere ovunque: il pannello va vicino all'area di notifica
+        if (how == PanelOpening.Keyboard && TrayCorner() is { } corner) anchor = corner;
+        else Native.GetCursorPos(out anchor);
         anchored = true;
+        // aperto al passaggio non prende il focus: chi sta scrivendo altrove non viene interrotto
+        ShowActivated = how != PanelOpening.Hover;
         Opacity = 0;
         Show();
         // Enter the destination monitor before measuring, so WPF processes its DPI change.
@@ -65,9 +81,73 @@ public partial class PanelWindow : Window
             PlaceAtAnchor();
             AnimateOpacity(1, null);
         });
+        if (how == PanelOpening.Hover)
+        {
+            hoverLeftAt = null;
+            hoverWatch.Start();
+            return;
+        }
         Activate();
         Native.SetForegroundWindow(hwnd);
         MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+    }
+
+    /// <summary>Da pannello "al passaggio" a pannello normale: resta aperto finché non si clicca fuori o si preme Esc.</summary>
+    public void Pin()
+    {
+        if (OpenedBy != PanelOpening.Hover) return;
+        OpenedBy = PanelOpening.Click;
+        hoverWatch.Stop();
+        if (!IsActive) { Activate(); Native.SetForegroundWindow(new WindowInteropHelper(this).Handle); }
+    }
+
+    readonly DispatcherTimer hoverWatch = new() { Interval = TimeSpan.FromMilliseconds(120) };
+    DateTime? hoverLeftAt;
+
+    /// <summary>
+    /// Pannello aperto al passaggio: si richiude quando il puntatore non è né sul pannello né vicino all'icona
+    /// per più di 0,6 s. "Mantieni aperto" lo impedisce.
+    /// </summary>
+    void WatchHover()
+    {
+        if (!IsVisible || OpenedBy != PanelOpening.Hover) { hoverWatch.Stop(); return; }
+        Native.GetCursorPos(out var p);
+        var hwnd = new WindowInteropHelper(this).Handle;
+        var margin = System.Windows.Forms.SystemInformation.SmallIconSize.Width;
+        var inside = Native.GetWindowRect(hwnd, out var r)
+            && p.X >= r.Left - margin && p.X <= r.Right + margin && p.Y >= r.Top - margin && p.Y <= r.Bottom + margin;
+        var nearIcon = Math.Abs(p.X - anchor.X) <= margin * 1.5 && Math.Abs(p.Y - anchor.Y) <= margin * 1.5;
+        if (inside || nearIcon || KeepOpen.IsChecked == true) { hoverLeftAt = null; return; }
+        hoverLeftAt ??= DateTime.UtcNow;
+        if (DateTime.UtcNow - hoverLeftAt > TimeSpan.FromMilliseconds(600))
+        {
+            hoverWatch.Stop();
+            Dismiss();
+        }
+    }
+
+    /// <summary>Angolo della barra delle applicazioni dove stanno le icone di notifica, in pixel fisici.</summary>
+    static Native.POINT? TrayCorner()
+    {
+        var bar = new Native.APPBARDATA { cbSize = System.Runtime.InteropServices.Marshal.SizeOf<Native.APPBARDATA>() };
+        if (Native.SHAppBarMessage(Native.ABM_GETTASKBARPOS, ref bar) == UIntPtr.Zero) return null;
+        var rc = bar.rc;
+        return (TaskbarEdge)bar.uEdge switch
+        {
+            TaskbarEdge.Top => new Native.POINT { X = rc.Right - 2, Y = rc.Top + 2 },
+            TaskbarEdge.Left => new Native.POINT { X = rc.Left + 2, Y = rc.Bottom - 2 },
+            _ => new Native.POINT { X = rc.Right - 2, Y = rc.Bottom - 2 },      // in basso o a destra: l'orologio è nell'angolo
+        };
+    }
+
+    /// <summary>Larghezza e scala dalle Preferenze; la scala ingrandisce tutto il contenuto insieme alla finestra.</summary>
+    public void ApplySize()
+    {
+        var s = app.Settings;
+        Width = s.PanelWidth * s.PanelScale;
+        if (Content is FrameworkElement root)
+            root.LayoutTransform = Math.Abs(s.PanelScale - 1) < 0.001 ? Transform.Identity : new ScaleTransform(s.PanelScale, s.PanelScale);
+        if (IsVisible) QueuePlacement();
     }
 
     public void Update(PanelModel model, DateTimeOffset target)
@@ -81,6 +161,7 @@ public partial class PanelWindow : Window
     public void Dismiss()
     {
         if (!IsVisible || dismissing) return;
+        hoverWatch.Stop();
         dismissing = true;
         HiddenAt = DateTime.UtcNow;
         IsHitTestVisible = false;
