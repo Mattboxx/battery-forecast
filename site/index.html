@@ -38,19 +38,13 @@
           Download for Windows</a>
         <a class="btn secondary" href="#how">How it works →</a>
       </div>
-      <p class="small">Free and open source · No account · Works offline</p>
+      <p class="small">Free · MIT-licensed project code · No account · Works offline</p>
       <picture>
         <source srcset="assets/panel-dark.png" media="(prefers-color-scheme: dark)">
         <img class="shot" src="assets/panel-light.png" width="768" height="1417"
              alt="Battery Forecast interface with estimated battery life, indicative range and the 24-hour chart">
       </picture>
       <p class="caption">Demo interface: synthetic history, with forecasts computed by the real local model.</p>
-      <picture>
-        <source srcset="assets/hover-open-dark.gif" media="(prefers-color-scheme: dark)">
-        <img class="shot" src="assets/hover-open-light.gif" width="420" height="540"
-             alt="The pointer rests on the battery icon next to the clock and the Battery Forecast panel opens; when the pointer moves away it closes">
-      </picture>
-      <p class="caption">Rest the pointer on the icon: the panel opens, no click needed. Demo mode: the discharge is simulated from a real battery level.</p>
     </header>
 
     <section class="wrap reveal">
@@ -75,6 +69,32 @@
           <h3>Calm alerts</h3>
           <p>About 60, 30 and 15 minutes before the reserve, at low battery, when charged, or when something drains unusually fast. Once each.</p>
         </article>
+      </div>
+    </section>
+
+    <section id="at-a-glance" class="wrap reveal">
+      <div class="glance-feature">
+        <div class="glance-copy">
+          <p class="eyebrow">There when you need it</p>
+          <h2>A glance.<br>Then back to work.</h2>
+          <p class="glance-lead">Your battery forecast lives beside the clock. Reach it without leaving what you’re doing.</p>
+          <ol class="glance-steps">
+            <li><span>01</span><div><b>Rest your pointer.</b><p>Hover over the battery icon to bring up the forecast.</p></div></li>
+            <li><span>02</span><div><b>See what’s ahead.</b><p>Read your remaining time, evening level and the 24-hour curve.</p></div></li>
+            <li><span>03</span><div><b>Carry on.</b><p>Move away to close it, or click to keep it open. Your keyboard shortcut works too.</p></div></li>
+          </ol>
+        </div>
+        <figure class="glance-media">
+          <div class="glance-label"><span></span> Open from the notification area</div>
+          <picture>
+            <source srcset="assets/panel-dark.png" media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)">
+            <source srcset="assets/panel-light.png" media="(prefers-reduced-motion: reduce)">
+            <source srcset="assets/hover-open-dark.gif" media="(prefers-color-scheme: dark)">
+            <img src="assets/hover-open-light.gif" width="420" height="540" loading="lazy"
+                 alt="Hovering the battery icon opens the forecast panel; moving away closes it">
+          </picture>
+          <figcaption>Hover preview · demo with simulated battery history.</figcaption>
+        </figure>
       </div>
     </section>
 

@@ -25,15 +25,6 @@
 </p>
 <p align="center"><sub>Interfaccia demo · storico sintetico; previsioni calcolate dal vero modello locale.</sub></p>
 
-<p align="center">
-  <picture>
-    <source srcset="images/it-hover-open-dark.gif" media="(prefers-color-scheme: dark)">
-    <img src="images/it-hover-open-light.gif" width="420" alt="Il puntatore si ferma sull'icona della batteria vicino all'orologio e il pannello di Battery Forecast si apre; quando si allontana si richiude">
-  </picture>
-</p>
-<p align="center"><sub>Lascia il puntatore sull'icona: il pannello si apre senza clic e si richiude quando ti allontani.
-Modalità demo: la scarica è simulata a partire da un livello reale della batteria.</sub></p>
-
 > **Anteprima.** Battery Forecast funziona ed è in prova su portatili reali. La sua accuratezza non è ancora stata
 > misurata, quindi non ne dichiara: mostra una fascia e dice da dove viene ogni numero.
 
@@ -78,6 +69,28 @@ legge come contesto il tuo storico della batteria: nulla viene caricato in rete 
   &nbsp;
   <img src="images/it-preferences-dark.png" width="520" alt="Preferenze, ordinate in sezioni con icone">
 </p>
+
+## Un’occhiata dall’area di notifica
+
+<table>
+  <tr>
+    <td width="55%" valign="middle">
+      <p>La previsione resta accanto all’orologio. Aprila quando ti serve, poi torna a quello che stavi facendo.</p>
+      <ul>
+        <li><b>Passa sull’icona</b> della batteria per aprire il pannello.</li>
+        <li><b>Allontanati</b> per richiuderlo; clicca per tenerlo aperto.</li>
+        <li><b>Usa la tastiera</b> con la tua scorciatoia: premila di nuovo per chiudere.</li>
+      </ul>
+    </td>
+    <td width="45%" align="center">
+      <picture>
+        <source srcset="images/it-hover-open-dark.gif" media="(prefers-color-scheme: dark)">
+        <img src="images/it-hover-open-light.gif" width="300" alt="Anteprima dell’apertura al passaggio · demo con storico simulato.">
+      </picture>
+    </td>
+  </tr>
+</table>
+<p align="center"><sub>Anteprima dell’apertura al passaggio · demo con storico simulato.</sub></p>
 
 ## Come funziona
 

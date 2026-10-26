@@ -33,15 +33,6 @@
 </p>
 <p align="center"><sub>Demo interface · synthetic history; forecasts computed by the real local model.</sub></p>
 
-<p align="center">
-  <picture>
-    <source srcset="docs/images/hover-open-dark.gif" media="(prefers-color-scheme: dark)">
-    <img src="docs/images/hover-open-light.gif" width="420" alt="The pointer rests on the battery icon next to the clock and the Battery Forecast panel opens; when the pointer moves away it closes">
-  </picture>
-</p>
-<p align="center"><sub>Rest the pointer on the icon: the panel opens without a click and closes when you move away.
-Demo mode: the discharge is simulated from a real battery level.</sub></p>
-
 > **Preview.** Battery Forecast works and is being tested on real laptops. Its accuracy has not been measured
 > yet, so it does not claim any: it shows a range and tells you where each number comes from.
 
@@ -86,6 +77,28 @@ history as context; nothing is uploaded and the model is not retrained.
   &nbsp;
   <img src="docs/images/preferences-dark.png" width="520" alt="Preferences, organized in sections with icons">
 </p>
+
+## One glance from the tray
+
+<table>
+  <tr>
+    <td width="55%" valign="middle">
+      <p>Your forecast stays beside the clock. Open it when you need it, then return to what you were doing.</p>
+      <ul>
+        <li><b>Hover</b> over the battery icon to open the panel.</li>
+        <li><b>Move away</b> to let it close; click to keep it open.</li>
+        <li><b>Use the keyboard</b> with your own shortcut — press again to close.</li>
+      </ul>
+    </td>
+    <td width="45%" align="center">
+      <picture>
+        <source srcset="docs/images/hover-open-dark.gif" media="(prefers-color-scheme: dark)">
+        <img src="docs/images/hover-open-light.gif" width="300" alt="Hover preview · demo with simulated battery history.">
+      </picture>
+    </td>
+  </tr>
+</table>
+<p align="center"><sub>Hover preview · demo with simulated battery history.</sub></p>
 
 ## How it works
 
