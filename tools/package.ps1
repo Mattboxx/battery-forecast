@@ -62,7 +62,7 @@ Write-Host "$($info.model_id) @ $($info.revision) verificato"
 
 $docOut = Join-Path $dist 'docs'
 New-Item -ItemType Directory -Force $docOut | Out-Null
-foreach ($doc in 'MODEL_CARD.md', 'LICENSE_AUDIT.md', 'UPSTREAM.md') {
+foreach ($doc in 'MODEL_CARD.md', 'LICENSE_AUDIT.md', 'UPSTREAM.md', 'INSTALLER_TERMS_PLAN.it.md') {
     Copy-Item -LiteralPath (Join-Path $root "docs\$doc") -Destination $docOut
 }
 

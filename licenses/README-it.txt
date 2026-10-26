@@ -33,5 +33,5 @@ la copia dei testi e degli avvisi richiesti. La build verifica la loro presenza 
 Runtime nativi: Intel OpenMP (x64), ArmPL (ARM64) e Microsoft Visual C++ hanno termini propri,
 anche proprietari, riprodotti in vendor/. inventory.json associa ogni DLL/PYD del motore ai documenti.
 INSTALLER-TERMS-it.txt e INSTALLER-TERMS-en.txt riportano l’introduzione e gli originali pertinenti.
-L’installer mostra la pagina dei termini; i vecchi aggiornamenti silenziosi aprono il wizard visibile.
+L’installer mostra la pagina dei termini; i vecchi aggiornamenti silenziosi mostrano un dialogo con gli stessi termini prima di installare.
 Le installazioni non interattive richiedono /ACCEPTCOMPONENTTERMS dopo lettura delle condizioni.

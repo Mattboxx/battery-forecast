@@ -62,6 +62,11 @@ en.RemoveData=Also delete Battery Forecast's battery history and preferences?%n%
 it.CloseFailed=Battery Forecast è ancora in esecuzione. Chiudilo dall'icona nell'area di notifica (Esci) e riprova.
 en.CloseFailed=Battery Forecast is still running. Quit it from the notification area icon and try again.
 
+it.ComponentTermsTitle=Battery Forecast — termini dei componenti dell’aggiornamento
+en.ComponentTermsTitle=Battery Forecast — update component terms
+it.AcceptComponentTerms=Accetto i termini
+en.AcceptComponentTerms=I accept the terms
+
 [Tasks]
 Name: "startup"; Description: "{cm:StartupTask}"
 Name: "desktopicon"; Description: "{cm:DesktopTask}"; Flags: unchecked
@@ -96,39 +101,75 @@ Filename: "{app}\BatteryForecast.exe"; Parameters: "--background"; Flags: nowait
 Filename: "{app}\BatteryForecast.exe"; Parameters: "--quit"; RunOnceId: "QuitBatteryForecast"; Flags: runhidden waituntilterminated skipifdoesntexist
 
 [Code]
+var
+  LegacyTermsRequired: Boolean;
+
 function InitializeSetup: Boolean;
 var
-  I, Code: Integer;
+  I: Integer;
   Accepted, FromOldUpdater: Boolean;
-  Arg, InteractiveArgs: String;
 begin
   Accepted := False;
   FromOldUpdater := False;
-  InteractiveArgs := '';
   for I := 1 to ParamCount do
   begin
-    Arg := ParamStr(I);
-    if CompareText(Arg, '/ACCEPTCOMPONENTTERMS') = 0 then Accepted := True;
-    if CompareText(Arg, '/RELAUNCH') = 0 then FromOldUpdater := True;
-    if (CompareText(Arg, '/SILENT') <> 0) and
-       (CompareText(Arg, '/VERYSILENT') <> 0) and
-       (CompareText(Arg, '/SUPPRESSMSGBOXES') <> 0) and
-       (CompareText(Arg, '/NOCANCEL') <> 0) then
-      InteractiveArgs := InteractiveArgs + ' ' + AddQuotes(Arg);
+    if CompareText(ParamStr(I), '/ACCEPTCOMPONENTTERMS') = 0 then Accepted := True;
+    if CompareText(ParamStr(I), '/RELAUNCH') = 0 then FromOldUpdater := True;
   end;
-  Result := (not WizardSilent) or Accepted;
+  LegacyTermsRequired := WizardSilent and FromOldUpdater and (not Accepted);
+  Result := (not WizardSilent) or Accepted or LegacyTermsRequired;
   if not Result then
-  begin
-    // Alpha.2's updater passes /SILENT /RELAUNCH. Start a visible wizard so that
-    // existing users can read and accept terms instead of receiving a silent failure.
-    if FromOldUpdater then
+    Log('Silent installation requires explicit /ACCEPTCOMPONENTTERMS acceptance of the bundled component terms.');
+end;
+
+procedure InitializeWizard;
+var
+  Dialog: TSetupForm;
+  Terms: TNewMemo;
+  AcceptButton, CancelButton: TNewButton;
+  ButtonWidth: Integer;
+begin
+  if not LegacyTermsRequired then Exit;
+  // Alpha.2 passes /SILENT /RELAUNCH. Inno forbids restarting Setup before installation;
+  // require explicit consent in a modal dialog before allowing that legacy flow to proceed.
+  if Length(WizardForm.LicenseMemo.Text) = 0 then
+    RaiseException('Component terms are missing; installation has been stopped.');
+  Dialog := CreateCustomForm(ScaleX(600), ScaleY(430), False, False);
+  try
+    Dialog.Caption := CustomMessage('ComponentTermsTitle');
+    Terms := TNewMemo.Create(Dialog);
+    Terms.Parent := Dialog;
+    Terms.SetBounds(ScaleX(16), ScaleY(16), Dialog.ClientWidth - ScaleX(32), Dialog.ClientHeight - ScaleY(72));
+    Terms.ScrollBars := ssVertical;
+    Terms.ReadOnly := True;
+    Terms.WordWrap := True;
+    Terms.MaxLength := 0;
+    Terms.Text := WizardForm.LicenseMemo.Text;
+    if Length(Terms.Text) <> Length(WizardForm.LicenseMemo.Text) then
+      RaiseException('Component terms could not be displayed completely; installation has been stopped.');
+    AcceptButton := TNewButton.Create(Dialog);
+    AcceptButton.Parent := Dialog;
+    AcceptButton.Caption := CustomMessage('AcceptComponentTerms');
+    AcceptButton.ModalResult := mrOk;
+    CancelButton := TNewButton.Create(Dialog);
+    CancelButton.Parent := Dialog;
+    CancelButton.Caption := SetupMessage(msgButtonCancel);
+    CancelButton.ModalResult := mrCancel;
+    CancelButton.Cancel := True;
+    CancelButton.Default := True;
+    ButtonWidth := Dialog.CalculateButtonWidth([AcceptButton.Caption, CancelButton.Caption]);
+    AcceptButton.SetBounds(Dialog.ClientWidth - 2 * ButtonWidth - ScaleX(24), Dialog.ClientHeight - ScaleY(40), ButtonWidth, ScaleY(25));
+    CancelButton.SetBounds(Dialog.ClientWidth - ButtonWidth - ScaleX(16), AcceptButton.Top, ButtonWidth, AcceptButton.Height);
+    Dialog.ActiveControl := CancelButton;
+    Log('Legacy updater: showing complete component terms for explicit acceptance.');
+    if Dialog.ShowModal() <> mrOk then
     begin
-      Log('Legacy updater: opening the interactive component-terms wizard.');
-      if not Exec(ExpandConstant('{srcexe}'), Trim(InteractiveArgs), '', SW_SHOWNORMAL, ewNoWait, Code) then
-        Log('Could not start the interactive installer; run the downloaded setup manually.');
-    end
-    else
-      Log('Silent installation requires explicit /ACCEPTCOMPONENTTERMS acceptance of the bundled component terms.');
+      Log('Legacy component terms declined; installation aborted before file changes.');
+      Abort;
+    end;
+    Log('Legacy component terms explicitly accepted.');
+  finally
+    Dialog.Free();
   end;
 end;
 

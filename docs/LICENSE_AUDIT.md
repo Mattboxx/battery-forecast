@@ -21,7 +21,7 @@ license evidence, not a representation that every possible use is legally cleare
 | VC++ runtime agreements were only indirect in Python notices | Native file versions 14.40/14.51 and Python Additional Conditions | Include original Microsoft 2022/2026 agreements (original DOCX and exact paragraph-text extraction) |
 | OS UCRT/API-set copies were redundantly redistributed | PyInstaller binary analysis on supported Windows 10+ | Exclude these OS-supplied copies; retain Python/VC runtime components |
 | Native DLL/PYD coverage was not individually checked | No per-file mapping in previous legal inventory | Schema 2 maps every frozen engine native binary to documents and hashes; unknown/changed vendor binaries fail |
-| Silent updates bypassed recipient terms | Previously `/SILENT` updater, no LicenseFile | Approved IT/EN component-terms page; visible updates; legacy alpha.2 updater reopens an interactive wizard; other unattended installs require explicit acceptance |
+| Silent updates bypassed recipient terms | Previously `/SILENT` updater, no LicenseFile | Approved IT/EN component-terms page; visible updates; legacy alpha.2 updater shows a modal terms dialog before installation; other unattended installs require explicit acceptance |
 | Publisher metadata could suggest original-author publishing | Authors flowed into CompanyName; inconsistent AppPublisher | Mattboxx is the Windows publisher, original and port copyrights retained separately |
 | Public wording could imply all bundled components were MIT/open source | Website tagline and duplicated README licensing | Scope MIT to project code; disclose model and native-runtime terms and independent donations |
 
@@ -113,8 +113,8 @@ or summarized as a substitute for the original. Build collection is offline from
 `INSTALLER-TERMS-it.txt` / `INSTALLER-TERMS-en.txt` combine an explicitly scoped introduction with complete
 applicable originals; those originals and notices also remain separately readable in the installed folder.
 The user approved this installer-only flow change on 2026-10-26. The MIT grant on the project code is unchanged.
-Silent CI installs use `/ACCEPTCOMPONENTTERMS`; absence is rejected. Legacy alpha.2's silent updater opens the
-visible wizard instead of treating silence as agreement. See [installer implementation](INSTALLER_TERMS_PLAN.it.md).
+Silent CI installs use `/ACCEPTCOMPONENTTERMS`; absence is rejected. Legacy alpha.2's silent updater shows a modal dialog with the complete same terms
+before installation, instead of treating silence as agreement. Its default action is Cancel. See [installer implementation](INSTALLER_TERMS_PLAN.it.md).
 
 Original downloads, resolved URLs where relevant, and SHA-256 are in `licenses/sources.json`.
 Vendor files use Git `-text` to preserve exact bytes. Subsequent packaging runs use these local originals,
@@ -126,16 +126,30 @@ reusing old notices. `inventory.json` records versions and hashes of the collect
 - Existing alpha.2 release: GitHub run `40250510086` on `6e8f73e` passed x64 and ARM64 package builds,
   frozen-engine smoke tests, actual installation, installed-file verification, reinstall and uninstall.
   This establishes the previous installer behavior, **not** the new native-license corrections.
-- Current source changes: **128 C#**, **36 forecast Python**, **11 license-tool tests** passed locally.
+- Current source changes: **128 C#** and **47 Python** (36 forecast + 11 license-tool) tests passed locally on the
+  final working tree, including the line-ending regression test; `git diff --check` clean.
   Original source hashes and exact original MIT notice/disclaimer pass automatic verification.
-- A preliminary local x64 alpha.3 package collected 30 Python distributions, 9 .NET components and 58
-  native engine binaries. It preceded the final terms-page change and is not published.
-- Corrected 0.9.0 x64 build, final frozen-engine test and per-architecture installation checks: in progress.
-  The result must be recorded separately before publication; no untested local alpha.3 binary is a release asset.
-- No installer is executed over the user's existing installation during this audit. Native ARM64 verification
-  uses disposable GitHub-hosted Windows ARM runners. CI verifies files and execution, not human comprehension.
-- The visible wizard and migration from an old updater still require a manual walkthrough; compiled setup and
-  silent CI tests alone do not establish that a person read or legally accepted every term.
+- Preflight GitHub run [40284646848](https://github.com/Mattboxx/battery-forecast/actions/runs/40284646848)
+  on `54f04f3` passed both x64 and native ARM64 builds, frozen-engine/model checks, actual installation,
+  rejection of unattended setup without acceptance, installed-file checks, reinstall and uninstall.
+  Publication was intentionally skipped for that workflow_dispatch run. This predates the final display-line-ending
+  and legacy-consent-dialog corrections; the release-tag workflow must validate the final source again.
+- Corrected local x64 legal collection covers 30 Python distributions, 9 .NET components and 58 native
+  engine binaries. The frozen real-model smoke test passed with 288 forecast points; no model/weight change.
+  Generated IT/EN terms were checked for doubled CR line endings, with a regression test and originals unchanged.
+- The Italian license page was observed and confirmed by the user on 2026-10-26; Next was disabled without
+  acceptance. The preview was cancelled before installation. The Windows executable metadata identifies
+  Mattboxx as publisher and retains both copyrights. No installation was performed over the user's app.
+- A real legacy-updater test found that Inno forbids executing Setup itself before installation. The installer
+  now uses a modal dialog for the old `/SILENT /RELAUNCH` route instead of trying to restart itself. The dialog
+  uses the complete same language-specific terms and defaults to Cancel; empty or truncated text aborts.
+  Walkthrough on 2026-10-26 with the compiled x64 setup started exactly as the alpha.2 updater does
+  (`/SILENT /SP- /NOCANCEL /NORESTART /RELAUNCH /LANG=en`): the log records "showing complete component terms
+  for explicit acceptance", then, after declining, "installation aborted before file changes". The accept path
+  was not exercised on the user's PC. Silent CI checks alone do not establish human comprehension or legal acceptance.
+- Final release publication requires both architecture installation jobs to succeed. The release workflow
+  runs the tests again on the exact tagged source and publishes installers plus SHA-256 and smoke reports.
+  The historical preflight does not substitute for that final gate. CI verifies files and execution, not consent validity.
 - Model accuracy gains have not been measured. Offline model flags are tested; a clean VM with network adapters
   disabled has not been established by those flags. Code signing remains absent.
 - A legal review of distributor entitlement (Microsoft/Intel/Arm), model employer/revenue eligibility,

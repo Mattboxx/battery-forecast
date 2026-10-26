@@ -211,6 +211,8 @@ File e condizioni dei rispettivi fornitori:
             text = data.decode("utf-8-sig")
         except UnicodeDecodeError:
             text = data.decode("cp1252")
+        # Normalize line endings only for the generated display; original files remain byte-identical.
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
         body.append("\n\n===== " + name + " =====\n\n" + text)
     for language, header in headers.items():
         (out / f"INSTALLER-TERMS-{language}.txt").write_text(header + mapping + "".join(body), encoding="utf-8-sig")

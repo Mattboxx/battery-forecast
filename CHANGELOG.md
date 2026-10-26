@@ -4,7 +4,7 @@
 
 - Preserve complete offline Intel OpenMP and ArmPL agreements/notices, verified against the exact bundled DLLs.
 - Include version-specific Microsoft Visual C++ runtime original terms, with pinned provenance and file hashes.
-- Show the applicable component terms in the Italian/English installer; updates open a visible wizard, including updates launched from alpha.2. Unattended installs require explicit component-term acceptance.
+- Show the applicable component terms in the Italian/English installer; updates open a visible wizard; the legacy alpha.2 updater shows a modal component-terms dialog before installation. Unattended installs require explicit component-term acceptance.
 - Map every frozen engine DLL/PYD to legal documents; reject unknown native components, changed vendor binaries and missing installer terms.
 - Omit OS-supplied UCRT/API-set copies on supported Windows versions; retain the bundled Python, .NET and model.
 - Identify Mattboxx as the Windows publisher while retaining Matteo Bonfanti’s original copyright and Mistral AI attribution.

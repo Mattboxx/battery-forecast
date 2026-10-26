@@ -79,11 +79,12 @@ def test_installer_terms_preserve_applicable_original_texts(tmp_path):
     for name, text in originals.items():
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        path.write_bytes(text.replace("\n", "\r\n").encode("utf-8"))
     legal.write_installer_terms(tmp_path, [{"path": "torch/lib/libiomp5md.dll", "component": "Intel OpenMP", "license_documents": ["vendor/Intel-OpenMP-EULA.txt"]}])
     for lang in ("en", "it"):
         text = (tmp_path / f"INSTALLER-TERMS-{lang}.txt").read_text(encoding="utf-8-sig")
         assert all(original in text for original in originals.values())
+        assert b"\r\r\n" not in (tmp_path / f"INSTALLER-TERMS-{lang}.txt").read_bytes()
         assert "torch/lib/libiomp5md.dll: Intel OpenMP" in text
         assert "ArmPL" not in text
 

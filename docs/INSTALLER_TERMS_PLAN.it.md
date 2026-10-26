@@ -34,7 +34,9 @@ al codice MIT di Battery Forecast.
 
 L’utente ha autorizzato questa modifica circoscritta all’installer il 26/10/2026. È implementata
 con LicenseFile IT/EN, testi generati dalle copie originali verificate e aggiornamenti interattivi.
-L’updater alpha.2 che passa `/SILENT /RELAUNCH` viene reindirizzato al wizard interattivo.
+L’updater alpha.2 che passa `/SILENT /RELAUNCH` riceve un dialogo modale con gli stessi termini completi prima di qualsiasi installazione.
+Inno Setup vieta il riavvio del proprio eseguibile prima dell’installazione: non si aggira tale protezione.
+Il dialogo consente di leggere e accettare oppure annullare; il pulsante predefinito è Annulla.
 Un’installazione silenziosa senza tale provenienza richiede esplicitamente `/ACCEPTCOMPONENTTERMS`; la CI verifica sia il
 rifiuto senza tale parametro sia installazione, reinstallazione e licenze con il parametro.
 Nessun permesso aggiuntivo dagli autori originali viene richiesto per il codice MIT.
