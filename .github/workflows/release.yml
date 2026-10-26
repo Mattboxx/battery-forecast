@@ -111,4 +111,7 @@ jobs:
         run: |
           tag="${{ github.ref_name }}"
           pre=""; [[ "$tag" == *-* ]] && pre="--prerelease"
-          gh release create "$tag" dist/*.exe dist/*.exe.sha256 dist/*smoke-*.json --title "Battery Forecast ${tag#v}" --notes-file CHANGELOG.md $pre --verify-tag
+          # note della release: dalla sezione di questa versione in giù, senza il titolo del file
+          awk -v head="## ${tag#v}" '$0 == head { on = 1 } on' CHANGELOG.md > notes.md
+          [ -s notes.md ] || cp CHANGELOG.md notes.md
+          gh release create "$tag" dist/*.exe dist/*.exe.sha256 dist/*smoke-*.json --title "Battery Forecast ${tag#v}" --notes-file notes.md $pre --verify-tag
