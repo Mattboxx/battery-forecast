@@ -269,3 +269,8 @@ summary-only records cannot reconstruct missing past curves. The popup's gold do
 has been removed. Available in 0.9.1. The last genuine cached forecast is also preserved when upgrading.
 
 In Battery trend, the observed and predicted curves have independent checkboxes. Their visibility is saved; hiding a curve never changes saved data or starts inference. The refresh button explanation is inline, without a tooltip.
+
+<picture>
+  <source srcset="docs/images/trend-dark.png" media="(prefers-color-scheme: dark)">
+  <img src="docs/images/trend-light.png" width="880" alt="Battery trend settings with independent observed and forecast checkboxes. Demo with synthetic battery history and a real local-model forecast.">
+</picture>

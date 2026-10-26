@@ -215,3 +215,8 @@ Le interfacce usano l’icona vettoriale originale; rimosso il comando copia rie
 presenti nella 0.9.1. All’aggiornamento viene conservata anche l’ultima previsione autentica rimasta nella cache.
 
 In Andamento puoi spuntare separatamente le curve osservata e prevista: la scelta resta salvata e non modifica i dati né avvia calcoli. Il pulsante Ricalcola ora ha una spiegazione integrata nel pannello, senza didascalia.
+
+<picture>
+  <source srcset="images/it-trend-dark.png" media="(prefers-color-scheme: dark)">
+  <img src="images/it-trend-light.png" width="880" alt="Andamento nelle impostazioni, con curve osservata e prevista spuntabili. Demo con storico sintetico e previsione del modello locale reale.">
+</picture>

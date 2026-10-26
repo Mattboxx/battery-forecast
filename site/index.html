@@ -209,6 +209,13 @@
         <article class="card"><h3>See actual battery trends</h3><p>The first settings page compares recorded battery readings with original saved forecasts and explains individual differences. Toggle observed and predicted curves independently when they overlap. Data and privacy adds observed power, CPU, memory and session display-state charts, with collection controls and missing values kept explicit. Sensor details stay in preferences.</p></article>
       </div>
       <p class="caption">Calculation corrections use consistent timestamps, continuous recent trends and historical context. Functional checks do not establish greater accuracy. <a href="https://github.com/Mattboxx/battery-forecast/blob/main/docs/FORECAST_METHOD.md">Read how the calculation works</a>.</p>
+      <figure style="margin:32px 0 0">
+        <picture>
+          <source srcset="assets/trend-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/trend-light.png" alt="Battery trend settings with separately selectable observed and forecast curves" loading="lazy">
+        </picture>
+        <figcaption class="caption">Demo with synthetic observed history and a real local-model forecast. Original predictions are retained for comparison as new readings arrive.</figcaption>
+      </figure>
     </section>
 
     <section id="privacy" class="wrap reveal">
