@@ -120,6 +120,26 @@ public class PresenterTests
     }
 
     [Fact]
+    public void Held_charge_shows_the_unplug_now_forecast_with_chart_and_explains_the_limit()
+    {
+        var hf = View(hours: 6);
+        var st = State(Bat(79, true, ChargeState.Idle)) with { HeldForecast = hf, HeldForecastFresh = true };
+        var m = PanelPresenter.Present(st, Rome);
+        Assert.Equal("Se stacchi adesso", m.SectionTitle);
+        Assert.Equal("Fino alle 16:00", m.Headline);
+        Assert.Equal("Carica ferma al 79%: probabilmente un limite di carica protegge la batteria", m.HeldLine);
+        Assert.Same(hf, m.Chart);
+        Assert.False(m.ShowEveningMarker);
+        Assert.Contains("staccando: circa 6 h", m.Tooltip);
+
+        var waiting = PanelPresenter.Present(State(Bat(79, true, ChargeState.Idle), updating: true), Rome);
+        Assert.Equal("Alimentatore collegato", waiting.Headline);
+        Assert.Equal("Calcolo di quanto durerebbe la batteria staccando adesso…", waiting.Detail);
+        Assert.True(waiting.Busy);
+        Assert.Null(PanelPresenter.Present(State(Bat(100, true, ChargeState.Idle)), Rome).HeldLine);   // piena: nessun limite da spiegare
+    }
+
+    [Fact]
     public void Beyond_horizon_never_claims_exactly_24_hours()
     {
         var m = PanelPresenter.Present(State(Bat(), View(CrossingStatus.BeyondHorizon, early: null)), Rome);

@@ -45,7 +45,7 @@ def serve(model_dir: str, threads: int | None) -> int:
             else:
                 msg = protocol.encode(engine.predict(req))
         except protocol.ProtocolError as e:
-            msg = protocol.error(e.code, str(e), rid, e.retryable)
+            msg = protocol.error(e.code, str(e), protocol.request_id(line) if rid is None else rid, e.retryable)
         except Exception as e:
             traceback.print_exc()
             msg = protocol.error("forecast_failed", f"{type(e).__name__}: {e}", rid, retryable=True)

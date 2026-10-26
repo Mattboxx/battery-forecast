@@ -32,6 +32,12 @@ static class Snapshots
             var charging = new PanelWindow(app) { Left = -20000, Top = -20000, ShowActivated = false };
             charging.Update(PanelPresenter.Present(chargingState), state.Target.When);
             Render(charging, Path.Combine(dir, $"charging-{name}.png"));
+            // collegato con la carica ferma (limite di carica): previsione "se stacchi adesso"
+            var heldState = state with { Battery = state.Battery with { State = ChargeState.Idle, OnAc = true },
+                Phase = PowerPhase.PluggedIn, HeldForecast = state.Forecast, HeldForecastFresh = true, Forecast = null, Recent = null, Demo = true };
+            var held = new PanelWindow(app) { Left = -20000, Top = -20000, ShowActivated = false };
+            held.Update(PanelPresenter.Present(heldState), state.Target.When);
+            Render(held, Path.Combine(dir, $"held-{name}.png"));
             var prefs = new PreferencesWindow(app) { Left = -20000, Top = -20000, ShowActivated = false, WindowStartupLocation = WindowStartupLocation.Manual };
             prefs.ShowSection(0);
             Render(prefs, Path.Combine(dir, $"preferences-{name}.png"), close: false);

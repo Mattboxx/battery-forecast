@@ -41,7 +41,7 @@
       <p class="small">Free and open source · No account · Works offline</p>
       <picture>
         <source srcset="assets/panel-dark.png" media="(prefers-color-scheme: dark)">
-        <img class="shot" src="assets/panel-light.png" width="384" height="800"
+        <img class="shot" src="assets/panel-light.png" width="384" height="708"
              alt="Battery Forecast panel: until tomorrow at 04:10, about 8 hours 40 minutes, with a 24-hour chart">
       </picture>
       <p class="caption">Demo mode: the discharge in this screenshot is simulated from a real battery level.</p>
@@ -127,10 +127,21 @@
       <div class="cards" style="margin-top:32px">
         <article class="card"><h3>Explore any hour</h3><p>Hover over the chart to move its dot and read the date, time, expected percentage and indicative range. Keyboard arrows work too.</p></article>
         <article class="card"><h3>Your own targets</h3><p>Type any HH:mm target and up to four extra times. Open and close the panel with a shortcut you record (initially Ctrl+Alt+B), or just rest the pointer on the icon. Make the panel as large as you like.</p></article>
-        <article class="card"><h3>Charging, too</h3><p>Choose a charging target from 50–100%. While charging, the same AI learns from your past charges and tells you when you will reach it, slowdown near full included, next to the current charging rate. It does not control the hardware.</p></article>
+        <article class="card"><h3>Charging, too</h3><p>Choose a charging target from 50–100%. While charging, the same AI learns from your past charges and tells you when you will reach it, slowdown near full included, next to the current charging rate. It does not control the hardware. When a charge limit holds the battery, it shows how long it would last if you unplugged now.</p></article>
         <article class="card"><h3>Useful local context</h3><p>Optionally record CPU load and frequency, memory, battery watts, brightness, power profile and available temperatures. Timestral receives usable historical channels; future values are not invented.</p></article>
         <article class="card"><h3>Make it yours</h3><p>Custom alert thresholds, quiet hours, chart visibility and a keep-open preference. Copy a summary or export battery and sensor CSV files.</p></article>
         <article class="card"><h3>Diagnostics you control</h3><p>Create a local diagnostic ZIP without battery history or logs. Nothing is uploaded automatically. Missing sensors stay unavailable; an ACPI thermal zone is not labelled CPU temperature.</p></article>
+      </div>
+      <div class="duo" style="margin-top:40px">
+        <ul class="checks">
+          <li><b>Plugged in, still useful.</b> With the charge held by a charge limit (or a full battery), the panel shows how long you would last if you unplugged now, with the same chart.</li>
+          <li><b>Says why it stops.</b> A short line explains that the charge is paused by a limit, so you know nothing is wrong.</li>
+          <li><b>Tidy preferences.</b> Six sections with icons: forecast, panel and shortcut, notifications, appearance, data and privacy, general.</li>
+        </ul>
+        <picture>
+          <source srcset="assets/held-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/held-light.png" width="384" height="521" alt="Panel while plugged in with the charge held at 80%: if you unplug now, until 16:50, with a 24-hour chart" loading="lazy">
+        </picture>
       </div>
       <p class="caption">Charging and sensor context are experimental. Functional tests use the real local model; accuracy gains have not been established.</p>
     </section>

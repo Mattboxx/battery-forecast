@@ -29,6 +29,12 @@ public sealed record DashboardState
     /// <summary>Previsione Timestral di carica valida ora (in carica, dopo l'ultimo stacco, stesso obiettivo).</summary>
     public ForecastView? ChargeForecast { get; init; }
     public bool ChargeForecastFresh { get; init; }
+    /// <summary>
+    /// Collegato ma con la carica ferma (limite di carica, batteria piena): previsione Timestral "se stacchi adesso",
+    /// calcolata dal livello attuale. Null se manca o se il livello si è mosso troppo da quando è stata calcolata.
+    /// </summary>
+    public ForecastView? HeldForecast { get; init; }
+    public bool HeldForecastFresh { get; init; }
     public IReadOnlyList<TargetTime> AdditionalTargets { get; init; } = [];
     public bool Updating { get; init; }
     public EngineState Engine { get; init; }
@@ -58,6 +64,16 @@ public sealed class ForecastCoordinator : IDisposable
     /// <summary>Chi chiede la previsione: il timer, un evento (scollegamento, ripresa) o l'utente.</summary>
     enum Trigger { Background, Event, User }
 
+    /// <summary>
+    /// Quale previsione: a batteria fino alla riserva; in carica fino all'obiettivo; collegato con la carica ferma,
+    /// "se stacchi adesso" (scenario di scarica dal livello attuale). Quest'ultima non parte mai dal timer: il livello
+    /// è fermo e il PC può restare collegato tutto il giorno, si ricalcola all'apertura del pannello o a un evento.
+    /// </summary>
+    enum Mode { Discharge, Charge, Held }
+
+    /// <summary>Oltre questo scarto di livello la previsione "se stacchi adesso" non descrive più la batteria.</summary>
+    const double HeldMaxDrift = 3;
+
     /// <summary>Intervallo e scarto di livello per gli aggiornamenti automatici; null = solo su richiesta.</summary>
     static (TimeSpan Every, double Drift)? Automatic(RefreshPolicy policy, bool saverOn) => (policy, saverOn) switch
     {
@@ -78,7 +94,8 @@ public sealed class ForecastCoordinator : IDisposable
 
     ForecastView? forecast;
     DateTimeOffset? lastRun, lastAcSeen, lastChargeRun, lastBatterySeen;
-    ForecastView? chargeForecast;
+    ForecastView? chargeForecast, heldForecast;
+    DateTimeOffset? lastHeldRun;
     bool updating, pendingForce;
     EngineState engineState = EngineState.Off;
     string? engineError;
@@ -116,7 +133,12 @@ public sealed class ForecastCoordinator : IDisposable
     {
         collector.Sample();
         bool fresh;
-        lock (gate) fresh = state is { Phase: PowerPhase.Charging } ? state.ChargeForecastFresh : state?.ForecastFresh == true;
+        lock (gate) fresh = state switch
+        {
+            { Phase: PowerPhase.Charging } => state.ChargeForecastFresh,
+            { Phase: PowerPhase.PluggedIn } => state.HeldForecastFresh,
+            _ => state?.ForecastFresh == true,
+        };
         if (!fresh) Request(Trigger.User);
     });
 
@@ -138,7 +160,7 @@ public sealed class ForecastCoordinator : IDisposable
     /// <summary>Lo storico è stato cancellato: si dimentica anche la previsione che ne derivava.</summary>
     public void Reset() => Task.Run(() =>
     {
-        lock (gate) (forecast, lastRun, lastAcSeen, chargeForecast, lastChargeRun) = (null, null, null, null, null);
+        lock (gate) (forecast, lastRun, lastAcSeen, chargeForecast, lastChargeRun, heldForecast, lastHeldRun) = (null, null, null, null, null, null, null);
         Publish();
         Request(Trigger.User);
     });
@@ -163,9 +185,13 @@ public sealed class ForecastCoordinator : IDisposable
     {
         var s = collector.Current;
         if (engine is null || s is not { LevelPct: double level }) return;
-        // in scarica la previsione fino alla riserva; in carica, finché l'obiettivo non è raggiunto, quella di carica
-        var charge = s is { OnAc: true, State: ChargeState.Charging } && level < settings().ChargeTargetPct;
-        if (!s.IsDischarging && !charge) return;
+        // in scarica la previsione fino alla riserva; in carica, finché l'obiettivo non è raggiunto, quella di carica;
+        // collegato con la carica ferma, quella "se stacchi adesso"
+        Mode mode;
+        if (s.IsDischarging) mode = Mode.Discharge;
+        else if (s is { OnAc: true, State: ChargeState.Charging } && level < settings().ChargeTargetPct) mode = Mode.Charge;
+        else if (PhaseOf(s) == PowerPhase.PluggedIn && trigger != Trigger.Background) mode = Mode.Held;
+        else return;
         var now = clock.GetUtcNow();
         var auto = Automatic(settings().Refresh, s.BatterySaver == true);
         if (trigger != Trigger.User && auto is null) return;       // solo su richiesta dell'utente
@@ -179,19 +205,25 @@ public sealed class ForecastCoordinator : IDisposable
             }
             if (!force)
             {
-                var age = (charge ? lastChargeRun : lastRun) is { } r ? now - r : TimeSpan.MaxValue;
-                var drift = (charge ? chargeForecast : forecast) is { } f ? Math.Abs(level - f.Level) : 99;
+                var age = (mode == Mode.Charge ? lastChargeRun : lastRun) is { } r ? now - r : TimeSpan.MaxValue;
+                var drift = (mode == Mode.Charge ? chargeForecast : forecast) is { } f ? Math.Abs(level - f.Level) : 99;
                 if (!(age >= auto!.Value.Every || (drift >= auto.Value.Drift && age >= DriftMinAge))) return;
             }
             updating = true;
-            if (charge) lastChargeRun = now; else lastRun = now;
+            switch (mode)
+            {
+                case Mode.Charge: lastChargeRun = now; break;
+                case Mode.Held: lastHeldRun = now; break;
+                default: lastRun = now; break;
+            }
         }
         Publish();
-        _ = RunAsync(s, level, now, charge);
+        _ = RunAsync(s, level, now, mode);
     }
 
-    async Task RunAsync(BatterySample s, double level, DateTimeOffset started, bool charge = false)
+    async Task RunAsync(BatterySample s, double level, DateTimeOffset started, Mode mode)
     {
+        var charge = mode == Mode.Charge;
         var reserve = charge ? settings().ChargeTargetPct : settings().ReservePct;
         try
         {
@@ -204,18 +236,24 @@ public sealed class ForecastCoordinator : IDisposable
             lock (gate)
             {
                 // Cambiata l'alimentazione mentre si calcolava: la risposta descrive uno scenario che non c'è più.
-                if (!charge && lastAcSeen is { } ac && ac >= started) view = null;
+                if (mode == Mode.Discharge && lastAcSeen is { } ac && ac >= started) view = null;
                 if (charge && lastBatterySeen is { } bat && bat >= started) view = null;
-                if (view is not null && charge) chargeForecast = view;
-                else if (view is not null) forecast = view;
+                if (view is not null)
+                    switch (mode)
+                    {
+                        case Mode.Charge: chargeForecast = view; break;
+                        case Mode.Held: heldForecast = view; break;
+                        default: forecast = view; break;
+                    }
                 (engineState, engineError) = (EngineState.Ready, null);
             }
             if (view is not null)
             {
-                if (!charge) SaveCache(r);
+                if (mode == Mode.Discharge) SaveCache(r);
                 try
                 {
-                    store.RecordForecast(view.Generated, charge ? r.Source + ":charge" : r.Source, level, reserve, r.Crossing.Status, view.Central,
+                    var source = mode switch { Mode.Charge => r.Source + ":charge", Mode.Held => r.Source + ":held", _ => r.Source };
+                    store.RecordForecast(view.Generated, source, level, reserve, r.Crossing.Status, view.Central,
                         view.Early, view.Late, r.Quality.State, r.ModelId, r.ModelRevision, r.ElapsedMs);
                 }
                 catch (Microsoft.Data.Sqlite.SqliteException) { }
@@ -266,6 +304,11 @@ public sealed class ForecastCoordinator : IDisposable
                 ? cf : null;
             var chargeFresh = activeCharge is not null && now - activeCharge.Generated < FreshFor
                 && s.LevelPct is double cl && Math.Abs(cl - activeCharge.Level) <= FreshDrift;
+            var activeHeld = heldForecast is { } hf && s.OnAc == true && now - hf.Generated < ValidFor
+                && Math.Abs(hf.ReservePct - cfg.ReservePct) < 0.01 && s.LevelPct is double hl && Math.Abs(hl - hf.Level) <= HeldMaxDrift
+                ? hf : null;
+            var heldFresh = activeHeld is not null && now - activeHeld.Generated < FreshFor
+                && Math.Abs(s.LevelPct!.Value - activeHeld.Level) <= FreshDrift;
             var target = TargetTime.Next(now, cfg.TargetTime, zone);
             var (saving, savingAt) = Suggest(active, now, target.When, s.BatterySaver == true);
             next = new DashboardState
@@ -280,6 +323,8 @@ public sealed class ForecastCoordinator : IDisposable
                 Charging = charging,
                 ChargeForecast = activeCharge,
                 ChargeForecastFresh = chargeFresh,
+                HeldForecast = activeHeld,
+                HeldForecastFresh = heldFresh,
                 AdditionalTargets = [.. cfg.AdditionalTargets.Select(t => TargetTime.Next(now, t, zone))],
                 Updating = updating,
                 Engine = engineState,

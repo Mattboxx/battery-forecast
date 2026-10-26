@@ -34,6 +34,9 @@
 - **La tua sera:** il livello previsto alle 22:00 o all'ora che scegli, e il suggerimento del risparmio
   energetico quando non basterebbe.
 - **Grafico delle 24 ore** con stima centrale, fascia, linea della riserva e obiettivo serale.
+- **Anche con l'alimentatore:** in carica, quando arrivi all'obiettivo (80% di default), imparato da Timestral
+  dalle tue ricariche passate. Con la carica ferma per un limite di carica (o a batteria piena): quanto
+  dureresti staccando adesso, con lo stesso grafico.
 - **Abitudini e presente insieme:** accanto alla previsione sulle abitudini ci sono sempre la stima al ritmo
   attuale e quella di Windows.
 - **Avvisi discreti:** a circa 60, 30 e 15 minuti dalla riserva, a batteria bassa, a carica raggiunta e con un
@@ -44,7 +47,12 @@
 - **Aggiornamenti dall'app:** un clic controlla GitHub, scarica l'installer e ne verifica lo SHA-256.
 
 <p align="center">
+  <img src="images/it-held-dark.png" width="300" alt="Collegato con la carica ferma per un limite di carica: previsione se stacchi adesso">
+  &nbsp;
   <img src="images/it-history-dark.png" width="420" alt="Finestra Storico e salute della batteria">
+</p>
+<p align="center">
+  <img src="images/it-preferences-dark.png" width="640" alt="Preferenze, ordinate in sezioni">
 </p>
 
 ## Come funziona

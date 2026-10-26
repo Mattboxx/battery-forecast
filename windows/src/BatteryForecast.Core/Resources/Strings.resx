@@ -21,6 +21,7 @@
   <data name="ChargeCollecting" xml:space="preserve"><value>Learning charging speed</value></data>
   <data name="ChargeCollectingHelp" xml:space="preserve"><value>Not enough continuous charging data for the {0}% target yet. The final charging phase may slow down.</value></data>
   <data name="ChargeHabitsSource" xml:space="preserve"><value>Learns from your charging · {0} days of history</value></data>
+  <data name="ChargeHeld" xml:space="preserve"><value>Charging paused at {0}: a charge limit is probably protecting the battery</value></data>
   <data name="ChargeHistorySource" xml:space="preserve"><value>Based on {0} comparable observed charging sessions, including the final slowdown.</value></data>
   <data name="ChargeLearningSource" xml:space="preserve"><value>Still learning how you charge · {0} days of history</value></data>
   <data name="ChargeReached" xml:space="preserve"><value>Charging target {0}% reached</value></data>
@@ -83,6 +84,8 @@ Indicative range {2}–{3}%</value></data>
   <data name="HealthTitle" xml:space="preserve"><value>Battery health</value></data>
   <data name="HealthUnknown" xml:space="preserve"><value>This battery does not report its capacities to Windows.</value></data>
   <data name="HealthValue" xml:space="preserve"><value>{0}% of design capacity</value></data>
+  <data name="HeldCalculating" xml:space="preserve"><value>Calculating how long the battery would last if you unplugged now…</value></data>
+  <data name="HeldCollecting" xml:space="preserve"><value>Not enough history yet to say how long the battery would last.</value></data>
   <data name="History" xml:space="preserve"><value>History and battery health…</value></data>
   <data name="HistoryTitle" xml:space="preserve"><value>Battery history and health</value></data>
   <data name="HotkeyActive" xml:space="preserve"><value>Active: press {0} anywhere to open or close the panel.</value></data>
@@ -100,6 +103,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="HotkeyUnsupportedKey" xml:space="preserve"><value>That key cannot be used. Use a letter, digit, F key (not F12), Space, arrows or the numeric keypad.</value></data>
   <data name="Hours" xml:space="preserve"><value>{0} h</value></data>
   <data name="HoursMinutes" xml:space="preserve"><value>{0} h {1} min</value></data>
+  <data name="IfUnplugNow" xml:space="preserve"><value>If you unplug now</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Keep open</value></data>
   <data name="KeepOpenDefault" xml:space="preserve"><value>Keep panel open when clicking elsewhere</value></data>
   <data name="LangSystem" xml:space="preserve"><value>Use Windows setting</value></data>
@@ -230,6 +234,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="ThemeSystem" xml:space="preserve"><value>Use Windows setting</value></data>
   <data name="TipAtTarget" xml:space="preserve"><value>{0}: ~{1}%</value></data>
   <data name="TipCharging" xml:space="preserve"><value>Charging</value></data>
+  <data name="TipIfUnplugged" xml:space="preserve"><value>if unplugged: about {0}</value></data>
   <data name="TipPlugged" xml:space="preserve"><value>On power adapter</value></data>
   <data name="TipUntil" xml:space="preserve"><value>about {0} left</value></data>
   <data name="ToReserve" xml:space="preserve"><value>to the {0}% reserve, with your usual use and no charging</value></data>

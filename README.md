@@ -44,6 +44,9 @@ Windows shows a percentage. Battery Forecast tells you what that percentage mean
 - **Your evening.** The level expected at 22:00 or at any time you choose, and a suggestion to turn on battery
   saver when it would not last.
 - **24-hour chart.** Central estimate, cautious/optimistic band, reserve line and your evening target.
+- **Plugged in, too.** While charging: when you will reach your charge target (80% by default), learned by
+  Timestral from your past charges. When the charge is held by a charge limit (or the battery is full): how
+  long it would last if you unplugged now, with the same chart.
 - **Habits and the present, side by side.** The forecast from your habits always comes with the estimate at your
   current rate and with Windows' own.
 - **Calm alerts.** About 60, 30 and 15 minutes before the reserve, at low battery, when charged, and when the PC
@@ -54,9 +57,12 @@ Windows shows a percentage. Battery Forecast tells you what that percentage mean
 - **Updates from the app.** One click checks GitHub, downloads the installer and verifies its SHA-256.
 
 <p align="center">
-  <img src="docs/images/history-dark.png" width="420" alt="History and battery health window">
+  <img src="docs/images/held-dark.png" width="300" alt="Plugged in with the charge held by a charge limit: forecast if you unplug now">
   &nbsp;
-  <img src="docs/images/preferences-dark.png" width="300" alt="Preferences">
+  <img src="docs/images/history-dark.png" width="420" alt="History and battery health window">
+</p>
+<p align="center">
+  <img src="docs/images/preferences-dark.png" width="640" alt="Preferences, organized in sections">
 </p>
 
 ## How it works

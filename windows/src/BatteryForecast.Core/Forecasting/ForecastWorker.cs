@@ -283,6 +283,12 @@ public sealed class ForecastWorker : IForecastEngine, IAsyncDisposable
                         case { Id: long id } m when pending.TryRemove(id, out var tcs):
                             tcs.TrySetResult(m);
                             break;
+                        // errore su una richiesta di cui il motore non ha letto l'id: le richieste sono una alla
+                        // volta, quindi è la risposta a quella in attesa (altrimenti resterebbe appesa fino al timeout)
+                        case WorkerError { Id: null } e:
+                            foreach (var key in pending.Keys)
+                                if (pending.TryRemove(key, out var waiting)) waiting.TrySetResult(e);
+                            break;
                     }
                 }
             }

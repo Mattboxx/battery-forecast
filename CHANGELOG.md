@@ -5,6 +5,11 @@
 - Manual target times and four extra targets, quiet hours and custom alerts.
 - Global shortcut that toggles the panel (open/close), recorded by pressing the keys in Preferences, with Win key
   support and a clear message when Windows or another app already uses the combination.
+- Plugged in with the charge held by a charge limit (or a full battery): the panel shows the Timestral forecast
+  "if you unplug now" with its chart, and explains that the charge is paused by a limit. Computed when the panel
+  opens or the adapter is connected, never by the background timer.
+- Engine errors on a request now reach the app at once instead of waiting for the timeout; a real-engine test
+  checks requests exactly as the app sends them.
 - "Open on hover" for the tray icon (on by default), and adjustable panel scale and width.
 - Compact panel: icon-only toolbar with tooltips; sensor details moved out of the panel.
 - Preferences reorganized into sections (Forecast, Panel and shortcut, Notifications, Appearance, Data and privacy,

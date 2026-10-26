@@ -267,6 +267,15 @@ S = {
     "UpdateNoticeTitle": ("Update available", "Aggiornamento disponibile"),
     "UpdateNotice": ("Battery Forecast {0} is ready. Click to open Preferences.", "Battery Forecast {0} è pronto. Clicca per aprire le Preferenze."),
     "VersionLine": ("Version {0}", "Versione {0}"),
+    # collegato con la carica ferma
+    "IfUnplugNow": ("If you unplug now", "Se stacchi adesso"),
+    "ChargeHeld": ("Charging paused at {0}: a charge limit is probably protecting the battery",
+                   "Carica ferma al {0}: probabilmente un limite di carica protegge la batteria"),
+    "HeldCalculating": ("Calculating how long the battery would last if you unplugged now…",
+                        "Calcolo di quanto durerebbe la batteria staccando adesso…"),
+    "HeldCollecting": ("Not enough history yet to say how long the battery would last.",
+                       "Lo storico non basta ancora per dire quanto durerebbe la batteria."),
+    "TipIfUnplugged": ("if unplugged: about {0}", "staccando: circa {0}"),
     # sezioni delle Preferenze
     "SecForecast": ("Forecast", "Previsione"),
     "SecPanel": ("Panel and shortcut", "Pannello e scorciatoia"),

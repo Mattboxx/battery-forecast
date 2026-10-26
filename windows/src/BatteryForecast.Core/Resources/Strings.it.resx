@@ -21,6 +21,7 @@
   <data name="ChargeCollecting" xml:space="preserve"><value>Raccolta dati di ricarica</value></data>
   <data name="ChargeCollectingHelp" xml:space="preserve"><value>Dati di ricarica continua ancora insufficienti per l’obiettivo {0}%. La fase finale può rallentare.</value></data>
   <data name="ChargeHabitsSource" xml:space="preserve"><value>Impara dalle tue ricariche · {0} giorni di storia</value></data>
+  <data name="ChargeHeld" xml:space="preserve"><value>Carica ferma al {0}: probabilmente un limite di carica protegge la batteria</value></data>
   <data name="ChargeHistorySource" xml:space="preserve"><value>Da {0} sessioni di ricarica osservate comparabili, incluso il rallentamento finale.</value></data>
   <data name="ChargeLearningSource" xml:space="preserve"><value>Sto ancora imparando come ricarichi · {0} giorni di storia</value></data>
   <data name="ChargeReached" xml:space="preserve"><value>Obiettivo di carica {0}% raggiunto</value></data>
@@ -83,6 +84,8 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="HealthTitle" xml:space="preserve"><value>Salute della batteria</value></data>
   <data name="HealthUnknown" xml:space="preserve"><value>Questa batteria non comunica le sue capacità a Windows.</value></data>
   <data name="HealthValue" xml:space="preserve"><value>{0}% della capacità di progetto</value></data>
+  <data name="HeldCalculating" xml:space="preserve"><value>Calcolo di quanto durerebbe la batteria staccando adesso…</value></data>
+  <data name="HeldCollecting" xml:space="preserve"><value>Lo storico non basta ancora per dire quanto durerebbe la batteria.</value></data>
   <data name="History" xml:space="preserve"><value>Storico e salute della batteria…</value></data>
   <data name="HistoryTitle" xml:space="preserve"><value>Storico e salute della batteria</value></data>
   <data name="HotkeyActive" xml:space="preserve"><value>Attiva: premi {0} ovunque per aprire o chiudere il pannello.</value></data>
@@ -100,6 +103,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="HotkeyUnsupportedKey" xml:space="preserve"><value>Quel tasto non si può usare. Usa una lettera, una cifra, un tasto F (non F12), Spazio, frecce o tastierino numerico.</value></data>
   <data name="Hours" xml:space="preserve"><value>{0} h</value></data>
   <data name="HoursMinutes" xml:space="preserve"><value>{0} h {1} min</value></data>
+  <data name="IfUnplugNow" xml:space="preserve"><value>Se stacchi adesso</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Mantieni aperto</value></data>
   <data name="KeepOpenDefault" xml:space="preserve"><value>Mantieni il pannello aperto al clic esterno</value></data>
   <data name="LangSystem" xml:space="preserve"><value>Come Windows</value></data>
@@ -230,6 +234,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="ThemeSystem" xml:space="preserve"><value>Come Windows</value></data>
   <data name="TipAtTarget" xml:space="preserve"><value>{0}: ~{1}%</value></data>
   <data name="TipCharging" xml:space="preserve"><value>In carica</value></data>
+  <data name="TipIfUnplugged" xml:space="preserve"><value>staccando: circa {0}</value></data>
   <data name="TipPlugged" xml:space="preserve"><value>Con alimentatore</value></data>
   <data name="TipUntil" xml:space="preserve"><value>circa {0} rimanenti</value></data>
   <data name="ToReserve" xml:space="preserve"><value>fino alla riserva del {0}%, con l'uso abituale e senza ricaricare</value></data>

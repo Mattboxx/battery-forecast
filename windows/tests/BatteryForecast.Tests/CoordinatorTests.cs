@@ -10,8 +10,9 @@ sealed class FakeBattery(FakeTimeProvider clock) : IBatteryProvider
 {
     public double Level = 60;
     public bool OnAc;
+    public bool Held;                // collegato ma con la carica ferma (limite di carica)
     public bool? Saver = false;
-    public BatterySample Read() => new(clock.GetUtcNow(), OnAc ? ChargeState.Charging : ChargeState.Discharging, Level, OnAc,
+    public BatterySample Read() => new(clock.GetUtcNow(), OnAc ? Held ? ChargeState.Idle : ChargeState.Charging : ChargeState.Discharging, Level, OnAc,
         BatterySaver: Saver);
 }
 
@@ -147,6 +148,30 @@ public sealed class CoordinatorTests : IDisposable
         Wait(c, _ => true);
         Minutes(40);
         Assert.Equal(0, engine.Calls);
+    }
+
+    [Fact]
+    public void Held_charge_shows_the_unplug_now_forecast_only_when_asked()
+    {
+        battery.OnAc = true;
+        battery.Held = true;
+        battery.Level = 79;
+        var c = Start();
+        Wait(c, s => s.Phase == PowerPhase.PluggedIn);
+        Minutes(40);
+        Assert.Equal(0, engine.Calls);                                    // il timer non avvia il modello
+        c.PanelOpened();
+        var s = Wait(c, s => s.HeldForecast is not null && !s.Updating);
+        Assert.True(s.HeldForecastFresh);
+        Assert.False(s.HeldForecast!.IsCharge);                           // scenario di scarica dal livello attuale
+        Assert.Equal(5, s.HeldForecast.ReservePct);
+        Assert.Null(s.Forecast);
+        Assert.Equal(0, engine.ChargeCalls);
+        Minutes(60);
+        Assert.Equal(1, engine.Calls);
+        battery.Level = 70;                                               // livello lontano: la previsione non vale più
+        Minutes(1);
+        Assert.Null(Wait(c, s => s.Battery.LevelPct == 70).HeldForecast);
     }
 
     [Fact]

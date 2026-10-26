@@ -38,6 +38,15 @@ def error(code: str, message: str, id=None, retryable: bool = False) -> bytes:
     return encode({"type": "error", "id": id, "code": code, "message": message, "retryable": retryable})
 
 
+def request_id(line: bytes):
+    """L'id di una richiesta anche quando non è valida, così l'app sa a quale richiesta va l'errore."""
+    try:
+        rid = json.loads(line).get("id")
+    except (ValueError, UnicodeDecodeError, AttributeError):
+        return None
+    return rid if isinstance(rid, int) and not isinstance(rid, bool) else None
+
+
 def parse_request(line: bytes) -> dict:
     """Valida una richiesta `forecast` e restituisce i campi con i valori predefiniti."""
     try:
@@ -63,7 +72,8 @@ def parse_request(line: bytes) -> dict:
             "reserve": float(req.get("reserve_pct", DEFAULT_RESERVE)),
             "horizon": int(req.get("horizon_steps", HORIZON_STEPS)),
             "scenario": req.get("scenario", "no_charge"),
-            "target": float(req.get("target_pct", 80)),
+            # l'app manda target_pct: null nello scenario di scarica
+            "target": float(80 if req.get("target_pct") is None else req["target_pct"]),
             "samples": [(s[0], s[1], s[2] if len(s) > 2 else None) for s in req.get("samples", [])],
         }
     except (KeyError, TypeError, ValueError, IndexError) as e:

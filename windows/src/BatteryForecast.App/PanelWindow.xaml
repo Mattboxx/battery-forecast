@@ -32,6 +32,8 @@
                 <TextBlock Text="{Binding PowerLine}" Style="{StaticResource Secondary}" FontSize="12" Margin="0,4,0,0"/>
                 <TextBlock Text="{Binding SaverLine}" Style="{StaticResource Secondary}" FontSize="12" Foreground="{DynamicResource Saving}"
                            Visibility="{Binding SaverLine, Converter={StaticResource Visible}}" Margin="0,2,0,0"/>
+                <TextBlock Text="{Binding HeldLine}" Style="{StaticResource Secondary}" FontSize="12"
+                           Visibility="{Binding HeldLine, Converter={StaticResource Visible}}" Margin="0,2,0,0"/>
             </StackPanel>
             <TextBlock Grid.Column="1" Text="{Binding Level}" FontSize="34" FontWeight="SemiBold" VerticalAlignment="Center"
                        FontFamily="{StaticResource DisplayFont}" Typography.NumeralAlignment="Tabular"

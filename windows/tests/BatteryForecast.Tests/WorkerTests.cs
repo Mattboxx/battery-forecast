@@ -126,6 +126,33 @@ public class ForecastWorkerTests
         Assert.False(e.Retryable);
     }
 
+    /// <summary>
+    /// Il vero motore Timestral come lo avvia l'app (venv del repository o pacchetto), con una settimana di storia
+    /// a passi di 5 minuti. Salta se i pesi non ci sono (CI senza modello).
+    /// </summary>
+    [Fact]
+    public async Task Real_engine_answers_a_week_of_history_like_the_app_sends_it()
+    {
+        if (EngineLocator.Find(AppContext.BaseDirectory) is not { } launch
+            || !File.Exists(Path.Combine(launch.Arguments[launch.Arguments.ToList().IndexOf("--model") + 1], "config.json")))
+            return;
+        await using var w = new ForecastWorker(launch, new WorkerOptions { LoadTimeout = TimeSpan.FromSeconds(90), RequestTimeout = TimeSpan.FromSeconds(30) });
+        var now = DateTimeOffset.UtcNow;
+        var start = now.ToUnixTimeSeconds() - 7 * 86400;
+        var history = Enumerable.Range(0, 7 * 288).Select(i =>
+        {
+            var plugged = i % 288 >= 150;
+            return new ModelSample(start + 300 * i, plugged ? 90 : Math.Max(5, 100 - (i % 288) * 0.5), plugged ? 1 : 0);
+        }).ToList();
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var r = await w.ForecastAsync(new ForecastRequest(now, 80, false, 5, history));
+        Assert.Equal("timestral", r.Source);
+        Assert.Equal(288, r.Curve.Count);
+        var held = await w.ForecastAsync(new ForecastRequest(now, 80, true, 5, history));      // collegato, carica ferma
+        Assert.Equal("no_charge", held.Scenario);
+        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(60), $"{watch.Elapsed}");
+    }
+
     [Fact]
     public async Task Missing_executable_is_not_found()
     {

@@ -13,6 +13,8 @@ public sealed record PanelModel
     public string Level { get; init; } = "";
     public string PowerLine { get; init; } = "";
     public string? SaverLine { get; init; }
+    /// <summary>Collegato ma con la carica ferma sotto il pieno: di solito un limite di carica del produttore.</summary>
+    public string? HeldLine { get; init; }
     public string? DemoLine { get; init; }
     public string SectionTitle { get; init; } = "";
     public string? UpdatedAt { get; init; }
@@ -73,6 +75,8 @@ public static class PanelPresenter
             case PowerPhase.Charging or PowerPhase.PluggedIn:
                 var full = b.LevelPct >= 100;
                 var head = full ? L.T("FullyCharged") : s.Phase == PowerPhase.Charging ? L.F("ChargingTo", Pct(b.LevelPct)) : L.T("PluggedIn");
+                if (s.Phase == PowerPhase.PluggedIn)
+                    return Held(m, s, level, full, zone);
                 if (s.Phase == PowerPhase.Charging && s.ChargeForecast is { Quality: not HistoryQuality.Insufficient } cf)
                     return ChargeFromModel(m, cf, s, level, zone);
                 if (s.Phase == PowerPhase.Charging && s.Charging is { } charge)
@@ -257,6 +261,36 @@ public static class PanelPresenter
                 return m with { Headline = L.F("ChargeBeyond", target), Note = L.T("ChargeUncertain"),
                     Tooltip = Tip($"Battery Forecast · {level}", L.F("ChargeBeyond", target)) };
         }
+    }
+
+    /// <summary>
+    /// Collegato con la carica ferma: la batteria non sale né scende, quindi si mostra quanto durerebbe staccando
+    /// adesso (scenario di scarica di Timestral dal livello attuale), con lo stesso grafico della scarica.
+    /// </summary>
+    static PanelModel Held(PanelModel m, DashboardState s, string level, bool full, TimeZoneInfo zone)
+    {
+        var heldLine = full || s.Battery.LevelPct is not double l || l >= 97 ? null : L.F("ChargeHeld", level);
+        m = m with { SectionTitle = L.T("IfUnplugNow"), HeldLine = heldLine, Busy = s.Updating, ShowEveningMarker = false };
+        if (s.HeldForecast is { Quality: not HistoryQuality.Insufficient } hf)
+        {
+            m = HabitHeadline(m with
+            {
+                UpdatedAt = L.F("UpdatedAt", Clock(hf.Generated, zone)),
+                Stale = !s.HeldForecastFresh,
+                Chart = hf,
+                ChartSummary = Summary(hf, s.Now),
+            }, hf, s, zone);
+            var tip = hf is { Crossing: CrossingStatus.WithinHorizon, Central: { } c } ? L.F("TipIfUnplugged", Duration(c - s.Now)) : L.T("TipPlugged");
+            return m with { Tooltip = Tip($"Battery Forecast · {level}", tip) };
+        }
+        var head = full ? L.T("FullyCharged") : L.T("PluggedIn");
+        return m with
+        {
+            Headline = head,
+            Detail = s.Updating ? L.T("HeldCalculating") : s.HeldForecast is not null ? L.T("HeldCollecting") : null,
+            Note = s.Updating || s.HeldForecast is not null ? null : L.T("ResumesOnUnplug"),
+            Tooltip = Tip($"Battery Forecast · {level}", L.T("TipPlugged")),
+        };
     }
 
     static PanelModel HabitHeadline(PanelModel m, ForecastView f, DashboardState s, TimeZoneInfo zone)

@@ -49,6 +49,19 @@ def test_protocol_accepts_charge_with_target():
         protocol.parse_request(json.dumps({**base, "scenario": "charge", "target_pct": 30}).encode())
 
 
+def test_protocol_accepts_discharge_exactly_as_the_app_sends_it():
+    # l'app (Protocol.EncodeRequest) manda sempre tutti i campi, con target_pct null fuori dalla carica
+    app = {"type": "forecast", "protocol_version": 1, "id": 7, "now_utc": NOW, "level": 80.0, "ac": 1, "reserve_pct": 5,
+           "horizon_steps": 288, "step_seconds": 300, "scenario": "no_charge", "target_pct": None, "samples": []}
+    r = protocol.parse_request(json.dumps(app).encode())
+    assert r["scenario"] == "no_charge" and r["target"] == 80 and r["ac"] == 1
+
+
+def test_errors_carry_the_request_id_when_readable():
+    assert protocol.request_id(b'{"id": 12, "level": "x"}') == 12
+    assert protocol.request_id(b"not json") is None and protocol.request_id(b'{"id": true}') is None
+
+
 def charging_history(days=7, now=NOW):
     """Ogni sera: a batteria dalle 9 alle 19 fino al 30% circa, poi in carica: ~40%/h fino all'80%, poi ~10%/h."""
     out, level = [], 100.0
