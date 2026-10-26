@@ -40,6 +40,9 @@ public class ManualRefreshTests
             var deadline = DateTime.UtcNow.AddSeconds(5);
             while (coordinator.State?.Updating == true && DateTime.UtcNow < deadline) await Task.Delay(10);
             Assert.False(coordinator.State!.Updating);
+            var saved = Assert.Single(store.ForecastSnapshots(clock.GetUtcNow().AddDays(-1), clock.GetUtcNow().AddDays(1)));
+            Assert.Equal(request.Now, saved.View.Generated);
+            Assert.Single(saved.Response.Curve);
             await Task.Delay(100);
             Assert.Equal(1, engine.Calls);
         }

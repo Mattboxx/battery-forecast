@@ -127,11 +127,9 @@ S = {
     'QuietEnd': ('Until (HH:mm)', 'Fino alle (HH:mm)'),
     'QuietHelp': ('All automatic battery alerts are paused in this local time interval. Equal times disable the interval.', 'Tutti gli avvisi automatici della batteria sono sospesi in questo intervallo locale. Orari uguali disattivano l’intervallo.'),
     'AlertMinutesCustom': ('Alert minutes (comma separated; empty = off)', 'Minuti degli avvisi (separati da virgola; vuoto = disattivato)'),
-    'CopySummary': ('Copy battery summary', 'Copia riepilogo batteria'),
     'Diagnostics': ('Export local diagnostics', 'Esporta diagnostica locale'),
     'DiagnosticsHelp': ('Creates a local ZIP with versions, preferences and the model card. It excludes battery history and logs and is never uploaded automatically.', 'Crea uno ZIP locale con versioni, preferenze e scheda modello. Esclude storico e log e non viene caricato automaticamente.'),
     'DiagnosticsSaved': ('Local diagnostics exported.', 'Diagnostica locale esportata.'),
-    'ClipboardCopied': ('Battery summary copied.', 'Riepilogo batteria copiato.'),
     "KeepOpen": ("Keep open", "Mantieni aperto"),
     "MinimizeToTray": ("Minimize", "Riduci"),
     "TrayHint": ("Still running in the notification area. Click the battery icon to reopen.", "Resta attivo nell’area di notifica. Clicca sull’icona della batteria per riaprire."),
@@ -337,6 +335,35 @@ S.update({
     "DisplayState_2": ("Dimmed", "Attenuato"),
     "ContextDisplayGraph": ("Display state", "Stato dello schermo"),
     "ContextDisplayHelp": ("Windows session display state. Gaps and mixed five-minute bins remain unknown; not a per-monitor measurement.", "Stato dello schermo della sessione Windows. Lacune e intervalli di cinque minuti con stati diversi restano sconosciuti; non è una misura per singolo monitor."),
+})
+
+S.update({"ChartGoalLegend": ("Time goal", "Obiettivo orario")})
+
+S.update({
+    "SecTrend": ("Battery trend", "Andamento"),
+    "TrendIntro": ("See how the battery actually behaved beside a forecast saved when it was issued.", "Confronta l’andamento reale della batteria con una previsione salvata quando è stata emessa."),
+    "TrendRefresh": ("Refresh chart", "Aggiorna grafico"),
+    "TrendSavedForecast": ("Saved forecast", "Previsione salvata"),
+    "TrendObserved": ("Observed battery", "Batteria osservata"),
+    "TrendPredicted": ("Saved forecast · indicative band", "Previsione salvata · fascia indicativa"),
+    "TrendWindow": ("Last 12 hours and next 12 hours · battery level (%)", "Ultime 12 ore e prossime 12 ore · livello batteria (%)"),
+    "TrendNoSaved": ("No forecast curve saved yet. New calculations will be saved here; old summary records cannot reconstruct past curves.", "Nessuna curva ancora salvata. I nuovi calcoli compariranno qui; i vecchi riepiloghi non permettono di ricostruire le curve passate."),
+    "TrendWaiting": ("Waiting for readings after this forecast was issued. The observed history remains visible.", "In attesa di letture successive all’emissione di questa previsione. Lo storico osservato resta visibile."),
+    "TrendCaution": ("This is an individual comparison, not a measured accuracy score. A change of charger or use can change the outcome. Gaps remain visible; the shaded band is not calibrated confidence.", "È un confronto puntuale, non una misura dell’accuratezza. Cambiare alimentazione o utilizzo può cambiare il risultato. Le lacune restano visibili; la fascia non è un intervallo di confidenza calibrato."),
+    "TrendChartHelp": ("Gold: observed readings. Purple: the selected forecast, kept unchanged. Hover to compare; click to pin a diamond, click outside to clear. Arrow keys explore the chart.", "Oro: letture osservate. Viola: la previsione selezionata, conservata senza modificarla. Passa il mouse per confrontare; clicca per fissare il rombo, clicca fuori per rimuoverlo. Le frecce esplorano il grafico."),
+    "TrendChoice": ("Issued {0} · {1}", "Emessa {0} · {1}"),
+    "TrendCharge": ("Charging", "Carica"),
+    "TrendDischarge": ("Discharging", "Scarica"),
+    "TrendSource": ("Reading {0} · {1} · {2}. Experimental estimate.", "Lettura del {0} · {1} · {2}. Stima sperimentale."),
+    "TrendChargeScenario": ("remain plugged in", "resto collegato"),
+    "TrendDischargeScenario": ("without plugging in", "senza collegare l’alimentatore"),
+    "TrendPoint": ("{0} · observed {1:0.#}% · predicted {2:0.#}% · difference {3:+0.#;-0.#;0} pp", "{0} · reale {1:0.#}% · previsto {2:0.#}% · scarto {3:+0.#;-0.#;0} punti"),
+    "TrendAcChanged": ("power scenario changed", "alimentazione diversa dallo scenario"),
+    "TrendInterrupted": ("interruption or data gap", "interruzione o lacuna nei dati"),
+    "TrendObservedPoint": ("{0} · observed {1:0.#}%", "{0} · reale {1:0.#}%"),
+    "TrendForecastPoint": ("{0} · forecast {1:0.#}%", "{0} · previsto {1:0.#}%"),
+    "TrendNoPoint": ("no observed reading", "nessuna lettura osservata"),
+    "TrendNow": ("Now", "Ora"),
 })
 
 RESX_HEAD = """<?xml version="1.0" encoding="utf-8"?>

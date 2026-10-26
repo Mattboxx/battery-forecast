@@ -40,6 +40,7 @@
   <data name="ChartExplore" xml:space="preserve"><value>Hover or focus the chart and use Left/Right arrows to explore time and battery level.</value></data>
   <data name="ChartExtrapolated" xml:space="preserve"><value>Extrapolated after the habitual plug-in time</value></data>
   <data name="ChartExtrapolatedCompact" xml:space="preserve"><value>extrapolated</value></data>
+  <data name="ChartGoalLegend" xml:space="preserve"><value>Time goal</value></data>
   <data name="ChartHoverCompact" xml:space="preserve"><value>{0} · {1}% · range {2}–{3}%</value></data>
   <data name="ChartName" xml:space="preserve"><value>Forecast for the next 24 hours</value></data>
   <data name="ChartPinned" xml:space="preserve"><value>Pinned point · click outside the chart to clear</value></data>
@@ -47,7 +48,6 @@
   <data name="ChartProbe" xml:space="preserve"><value>{0} · about {1}%
 Indicative range {2}–{3}%</value></data>
   <data name="ChartSummary" xml:space="preserve"><value>Now {0}%. Central estimate: {1}% in 3 hours, {2}% in 6 hours, {3}% in 12 hours. Shaded band: cautious to optimistic estimate.</value></data>
-  <data name="ClipboardCopied" xml:space="preserve"><value>Battery summary copied.</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>
   <data name="CollectContext" xml:space="preserve"><value>Collect local system context</value></data>
   <data name="Collecting" xml:space="preserve"><value>Collecting data</value></data>
@@ -78,7 +78,6 @@ Indicative range {2}–{3}%</value></data>
   <data name="ContextStored" xml:space="preserve"><value>{0} context samples stored in the last {1} hours.</value></data>
   <data name="ContextTools" xml:space="preserve"><value>Sensor check and observed history</value></data>
   <data name="ContextUsed" xml:space="preserve"><value>Historical sensors used: {0}</value></data>
-  <data name="CopySummary" xml:space="preserve"><value>Copy battery summary</value></data>
   <data name="Coverage" xml:space="preserve"><value>{0} days of history · {1} samples</value></data>
   <data name="CustomInvalid" xml:space="preserve"><value>Check HH:mm times, percentages and shortcut. No invalid changes were saved.</value></data>
   <data name="CustomSaved" xml:space="preserve"><value>Settings saved.</value></data>
@@ -234,6 +233,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="SecForecast" xml:space="preserve"><value>Forecast</value></data>
   <data name="SecGeneral" xml:space="preserve"><value>General</value></data>
   <data name="SecPanel" xml:space="preserve"><value>Panel and shortcut</value></data>
+  <data name="SecTrend" xml:space="preserve"><value>Battery trend</value></data>
   <data name="SegmentEnergy" xml:space="preserve"><value>{0} Wh</value></data>
   <data name="SegmentRate" xml:space="preserve"><value>{0}%/h</value></data>
   <data name="SegmentRow" xml:space="preserve"><value>{0}% → {1}% in {2}</value></data>
@@ -288,6 +288,29 @@ Indicative range {2}–{3}%</value></data>
   <data name="Tomorrow" xml:space="preserve"><value>tomorrow at {0}</value></data>
   <data name="TomorrowWord" xml:space="preserve"><value>tomorrow</value></data>
   <data name="TrayHint" xml:space="preserve"><value>Still running in the notification area. Click the battery icon to reopen.</value></data>
+  <data name="TrendAcChanged" xml:space="preserve"><value>power scenario changed</value></data>
+  <data name="TrendCaution" xml:space="preserve"><value>This is an individual comparison, not a measured accuracy score. A change of charger or use can change the outcome. Gaps remain visible; the shaded band is not calibrated confidence.</value></data>
+  <data name="TrendCharge" xml:space="preserve"><value>Charging</value></data>
+  <data name="TrendChargeScenario" xml:space="preserve"><value>remain plugged in</value></data>
+  <data name="TrendChartHelp" xml:space="preserve"><value>Gold: observed readings. Purple: the selected forecast, kept unchanged. Hover to compare; click to pin a diamond, click outside to clear. Arrow keys explore the chart.</value></data>
+  <data name="TrendChoice" xml:space="preserve"><value>Issued {0} · {1}</value></data>
+  <data name="TrendDischarge" xml:space="preserve"><value>Discharging</value></data>
+  <data name="TrendDischargeScenario" xml:space="preserve"><value>without plugging in</value></data>
+  <data name="TrendForecastPoint" xml:space="preserve"><value>{0} · forecast {1:0.#}%</value></data>
+  <data name="TrendInterrupted" xml:space="preserve"><value>interruption or data gap</value></data>
+  <data name="TrendIntro" xml:space="preserve"><value>See how the battery actually behaved beside a forecast saved when it was issued.</value></data>
+  <data name="TrendNoPoint" xml:space="preserve"><value>no observed reading</value></data>
+  <data name="TrendNoSaved" xml:space="preserve"><value>No forecast curve saved yet. New calculations will be saved here; old summary records cannot reconstruct past curves.</value></data>
+  <data name="TrendNow" xml:space="preserve"><value>Now</value></data>
+  <data name="TrendObserved" xml:space="preserve"><value>Observed battery</value></data>
+  <data name="TrendObservedPoint" xml:space="preserve"><value>{0} · observed {1:0.#}%</value></data>
+  <data name="TrendPoint" xml:space="preserve"><value>{0} · observed {1:0.#}% · predicted {2:0.#}% · difference {3:+0.#;-0.#;0} pp</value></data>
+  <data name="TrendPredicted" xml:space="preserve"><value>Saved forecast · indicative band</value></data>
+  <data name="TrendRefresh" xml:space="preserve"><value>Refresh chart</value></data>
+  <data name="TrendSavedForecast" xml:space="preserve"><value>Saved forecast</value></data>
+  <data name="TrendSource" xml:space="preserve"><value>Reading {0} · {1} · {2}. Experimental estimate.</value></data>
+  <data name="TrendWaiting" xml:space="preserve"><value>Waiting for readings after this forecast was issued. The observed history remains visible.</value></data>
+  <data name="TrendWindow" xml:space="preserve"><value>Last 12 hours and next 12 hours · battery level (%)</value></data>
   <data name="Unavailable" xml:space="preserve"><value>Forecast unavailable</value></data>
   <data name="Until" xml:space="preserve"><value>Until {0}</value></data>
   <data name="UntilDay" xml:space="preserve"><value>Until {0}</value></data>

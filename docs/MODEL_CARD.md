@@ -104,7 +104,7 @@ OpenHardwareMonitor/LibreHardwareMonitor WMI provider. ACPI thermal zones are a 
 are never labelled CPU or battery temperature. Missing, unsupported or access-denied data stays null.
 No kernel driver, elevated helper, process names, window titles or online telemetry are introduced.
 
-Sensor context is stored separately in SQLite schema 4, under the same retention/deletion settings.
+Sensor context is stored separately in SQLite schema 5, under the same retention/deletion settings.
 Five-minute means align to the battery grid; mixed power-profile/display bins are missing. Six observed bins
 and nonconstant values are required per channel. Numeric gaps up to ten minutes can interpolate when
 AC state is unchanged. Longer gaps stay missing. Profiles are categorical, with no interpolation.
@@ -167,3 +167,15 @@ over stored duplicates in recent-rate estimates.
 
 These are functional correctness changes checked with regression tests and the real inference engine.
 Scientific comparisons are postponed at the user's request; superiority and accuracy are unmeasured.
+
+### Original forecasts beside observed readings
+
+The first settings page displays saved responses without recalculating them from subsequent history.
+New accepted responses are archived locally and atomically with their run metadata, including issue
+and context timestamps, original quantile points, scenario and model revision. The archive follows
+history retention and deletion. Existing summary-only runs do not gain invented historical curves.
+
+A point difference is shown only against an observation after issue time and inside the saved horizon.
+Power-scenario changes and interruptions are flagged. The chart covers the previous/next 12 hours;
+its selector lists up to 100 recent responses from the last 24 hours. This is an exploratory individual
+comparison, not scientific validation, a calibrated error score or evidence of predictive superiority.

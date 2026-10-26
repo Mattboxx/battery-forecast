@@ -8,6 +8,9 @@ using System.Windows.Controls;
 using BatteryForecast.Core;
 using BatteryForecast.Core.Presentation;
 using BatteryForecast.Core.Updates;
+using BatteryForecast.Core.Storage;
+using BatteryForecast.Core.Battery;
+using BatteryForecast.Core.Forecasting;
 
 namespace BatteryForecast.App;
 
@@ -23,14 +26,15 @@ public partial class PreferencesWindow : Window
         InitializeComponent();
         PreviewMouseDown += (_, e) =>
         {
+            if (!new Rect(TrendChart.RenderSize).Contains(e.GetPosition(TrendChart))) TrendChart.ClearSelection();
             foreach (var chart in new[] { PowerHistory, CpuHistory, MemoryHistory, DisplayHistory })
                 if (!new Rect(chart.RenderSize).Contains(e.GetPosition(chart))) chart.ClearSelection();
         };
-        Deactivated += (_, _) => { PowerHistory.ClearSelection(); CpuHistory.ClearSelection(); MemoryHistory.ClearSelection(); DisplayHistory.ClearSelection(); };
+        Deactivated += (_, _) => { TrendChart.ClearSelection(); PowerHistory.ClearSelection(); CpuHistory.ClearSelection(); MemoryHistory.ClearSelection(); DisplayHistory.ClearSelection(); };
         MaxHeight = SystemParameters.WorkArea.Height - 40;     // il resto scorre
-        pages = [PageForecast, PagePanel, PageNotify, PageLook, PageData, PageGeneral];
+        pages = [PageTrend, PageForecast, PagePanel, PageNotify, PageLook, PageData, PageGeneral];
         Sections.SelectionChanged += (_, _) => ShowSection(Sections.SelectedIndex);
-        Sections.SelectedIndex = lastSection;
+        Sections.SelectedIndex = 0;
         var s = app.Settings;
         EveningEnabled.IsChecked = s.EveningTargetEnabled;
         Target.IsEnabled = ExtraTimes.IsEnabled = s.EveningTargetEnabled;
@@ -96,7 +100,8 @@ public partial class PreferencesWindow : Window
         foreach (var box in new[] { Reserve, Target, ExtraTimes, ChargeTarget, QuietStart, QuietEnd, AlertMinutes, NotifyLow, NotifyCharged })
             box.KeyDown += (_, e) => { if (e.Key == Key.Enter) { ApplyCustom(); e.Handled = true; } };
         loading = false;
-        Loaded += (_, _) => { if (Sections.SelectedIndex == 4) LoadContextHistory(); };
+        TrendForecasts.SelectionChanged += (_, _) => { if (!loadingTrend) ShowTrend(); };
+        Loaded += (_, _) => { if (Sections.SelectedIndex == 5) LoadContextHistory(); if (Sections.SelectedIndex == 0) LoadTrend(); };
         ContextInterval.KeyDown += (_, e) => { if (e.Key == Key.Enter) { SaveContext_Click(this, e); e.Handled = true; } };
         ContextHours.KeyDown += (_, e) => { if (e.Key == Key.Enter) { SaveContext_Click(this, e); e.Handled = true; } };
     }
@@ -104,10 +109,10 @@ public partial class PreferencesWindow : Window
     // MARK: sezioni
 
     readonly ScrollViewer[] pages;
-    static int lastSection;     // riaprendo le Preferenze si torna all'ultima sezione vista
+
 
     public int SectionCount => pages.Length;
-    public const int GeneralSection = 5;     // aggiornamenti e informazioni
+    public const int GeneralSection = 6;     // aggiornamenti e informazioni
 
     public void ShowSection(int index)
     {
@@ -115,8 +120,9 @@ public partial class PreferencesWindow : Window
         if (Sections.SelectedIndex != index) { Sections.SelectedIndex = index; return; }
         for (int i = 0; i < pages.Length; i++) pages[i].Visibility = i == index ? Visibility.Visible : Visibility.Collapsed;
         pages[index].ScrollToTop();
-        lastSection = index;
-        if (index == 4 && !loading) LoadContextHistory();
+        if (index == 0 && !loading) LoadTrend();
+
+        if (index == 5 && !loading) LoadContextHistory();
     }
 
     static void Fill(ComboBox box, IEnumerable<(string text, object value)> items, object current)
@@ -277,6 +283,63 @@ public partial class PreferencesWindow : Window
             Notifications = app.Settings.Notifications with { MinutesLeft = [.. minutes], LowPct = low, ChargedPct = charged },
         });
         CustomStatus.Text = NotifyCustomStatus.Text = L.T("CustomSaved");
+    }
+
+    sealed record TrendChoice(ForecastSnapshot Snapshot, string Label);
+    IReadOnlyList<BatterySample> trendSamples = [];
+    IReadOnlyList<DateTimeOffset> trendBreaks = [];
+    DateTimeOffset trendNow;
+    bool loadingTrend, trendWasUpdating;
+    DateTimeOffset? trendLoadedBattery;
+
+    public void DashboardChanged(DashboardState state)
+    {
+        if (!IsVisible || Sections.SelectedIndex != 0) return;
+        if (state.Updating) { trendWasUpdating = true; return; }
+        if (trendWasUpdating || trendLoadedBattery != state.Battery.TimestampUtc)
+        {
+            trendWasUpdating = false;
+            LoadTrend();
+        }
+    }
+
+    void RefreshTrend_Click(object sender, RoutedEventArgs e) => LoadTrend();
+
+    void LoadTrend()
+    {
+        if (app.Store is not { } store) return;
+        try
+        {
+            trendNow = DateTimeOffset.UtcNow;
+            trendLoadedBattery = app.CurrentBattery?.TimestampUtc;
+            var selectedId = (TrendForecasts.SelectedItem as TrendChoice)?.Snapshot.Id;
+            trendSamples = store.Samples(trendNow.AddHours(-36), trendNow);
+            trendBreaks = store.Discontinuities(trendNow.AddHours(-36));
+            var snapshots = store.ForecastSnapshots(trendNow.AddHours(-24), trendNow);
+            var choices = snapshots.Select(p => new TrendChoice(p,
+                L.F("TrendChoice", p.IssuedAt.ToLocalTime().ToString("dd/MM HH:mm", L.Culture),
+                    L.T(p.Response.Scenario == "charge" ? "TrendCharge" : "TrendDischarge")))).ToArray();
+            loadingTrend = true;
+            TrendForecasts.ItemsSource = choices;
+            TrendForecasts.SelectedItem = choices.FirstOrDefault(p => p.Snapshot.Id == selectedId)
+                ?? choices.FirstOrDefault(p => TrendComparison.Latest(p.Snapshot, trendSamples, trendBreaks) is not null)
+                ?? choices.FirstOrDefault();
+            loadingTrend = false;
+            ShowTrend();
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException) { loadingTrend = false; TrendStatus.Text = L.T("ContextReadFailed"); }
+    }
+
+    void ShowTrend()
+    {
+        var saved = (TrendForecasts.SelectedItem as TrendChoice)?.Snapshot;
+        TrendChart.SetData(saved, trendSamples, trendBreaks, trendNow);
+        TrendSource.Text = saved is null ? L.T("TrendNoSaved") : L.F("TrendSource",
+            saved.View.Generated.ToLocalTime().ToString("dd/MM HH:mm", L.Culture), saved.Response.ModelId ?? "Timestral",
+            L.T(saved.Response.Scenario == "charge" ? "TrendChargeScenario" : "TrendDischargeScenario"));
+        TrendStatus.Text = TrendComparison.Latest(saved, trendSamples, trendBreaks) is { } latest
+            ? TrendComparison.Describe(latest) : saved is null ? L.T("TrendNoSaved") : L.T("TrendWaiting");
+        if (app.Coordinator?.State?.Demo == true) TrendSource.Text = L.T("DemoContextWarning") + Environment.NewLine + TrendSource.Text;
     }
 
     void SaveContext_Click(object sender, RoutedEventArgs e)

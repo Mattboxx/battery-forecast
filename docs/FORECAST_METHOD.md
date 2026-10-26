@@ -63,3 +63,19 @@ superiority, calibrated coverage or energy-saving claim has been measured for th
 
 See [MODEL_CARD.md](MODEL_CARD.md) for thresholds, extrapolation details and model limitations;
 [UPSTREAM.md](UPSTREAM.md) and [LICENSE_AUDIT.md](LICENSE_AUDIT.md) for pinned sources and third-party terms.
+
+## Visible comparison with the original response
+
+Accepted responses now save their full curve and metadata locally, atomically with the existing run
+record. The new first settings page overlays gold observed readings and the selected purple original
+prediction, with the P10–P90 indicative band. Original curves remain unchanged when new calculations
+arrive. Points before issue time are not used for displayed differences. AC-scenario changes and data
+interruptions are identified; observations are not joined across known interruptions or gaps over
+three minutes. Isolated observations remain visible as dots. The page updates while visible when a
+new battery reading or model result arrives, without launching extra inference; a pinned reference
+survives updates of the same selected curve.
+
+Schema 5 adds the response archive without generating historical forecasts. Retention and wipe include
+it. Old summary rows are preserved, with no fabricated curves. The UI lists up to 100 forecasts issued
+in the last 24 hours and plots a 24-hour window from 12 hours ago to 12 hours ahead. This feature is an
+individual visual comparison requested by the user, separate from postponed scientific backtesting.

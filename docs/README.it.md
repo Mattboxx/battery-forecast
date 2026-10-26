@@ -190,7 +190,7 @@ nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
   La temperatura CPU richiede un provider compatibile già installato. Nessun driver, elevazione,
   nome di processo, telemetria online o valore futuro inventato.
 - **Personalizzazione e strumenti:** orario silenzioso, soglie avvisi manuali, grafico facoltativo,
-  mantenimento aperto, copia riepilogo, CSV batteria/contesto e diagnostica ZIP locale senza storico/log.
+  mantenimento aperto, CSV batteria/contesto e diagnostica ZIP locale senza storico/log.
 
 I test funzionali includono il modello reale, ma **non è stato misurato un aumento di accuratezza**.
 Ricarica e sensori sono sperimentali; raccolta e uso nel modello si disattivano separatamente.
@@ -205,3 +205,11 @@ canale. Le didascalie al passaggio del mouse occupano una riga esterna a ogni gr
 Le correzioni del calcolo, non ancora pubblicate, ancorano la curva all’istante reale della lettura,
 preservano gli stati di alimentazione sconosciuti e usano tratti recenti continui.
 [Dettagli del metodo](FORECAST_METHOD.md). I test funzionali non dimostrano una superiorità predittiva.
+
+La prima pagina delle impostazioni, **Andamento**, affianca le letture reali (oro) alla previsione
+originale salvata quando è stata emessa (viola e fascia indicativa). Puoi scegliere una previsione e
+vedere lo scarto puntuale, con avvisi per alimentazione diversa e interruzioni. Le nuove curve restano
+locali e seguono conservazione e cancellazione dello storico; i vecchi riepiloghi non permettono di
+ricostruire curve mancanti. Il pallino oro nel popup è associato esplicitamente all’**obiettivo orario**.
+Le interfacce usano l’icona vettoriale originale; rimosso il comando copia riepilogo. Queste novità sono
+in sviluppo e non sono presenti nell’installer 0.9.0 attualmente pubblicato.

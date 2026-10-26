@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Open settings on Battery trend: original issued forecasts beside observed readings, clear legends, individual differences and condition-change warnings. Save full responses locally with retention/deletion; never invent missing historical forecasts.
+- Render the unchanged brand artwork as a vector in window icons and headers for high-DPI clarity.
+- Remove the copy-battery-summary action and identify the popup's automatic gold marker as the time goal.
+
 - Correct the forecast time origin, bound every model input to the same reading, and isolate replaced-battery epochs.
 - Keep mixed/unknown AC bins missing; interpolate only within ten-minute endpoint gaps with a consistent known power state.
 - Count observed coverage before interpolation and require actual session durations; use robust contiguous recent slopes for declared extrapolation.

@@ -250,18 +250,6 @@ public partial class PanelWindow : Window
             Native.SWP_NOSIZE | Native.SWP_NOZORDER | Native.SWP_NOACTIVATE);
     }
 
-    void Copy_Click(object sender, RoutedEventArgs e)
-    {
-        try { Clipboard.SetText(app.BatterySummary()); }
-        catch (System.Runtime.InteropServices.COMException) { return; }
-        // pulsante a sola icona: un segno di spunta per un attimo conferma la copia
-        if (sender is not System.Windows.Controls.Button b) return;
-        var icon = b.Content;
-        b.Content = "";
-        var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.2) };
-        t.Tick += (_, _) => { t.Stop(); b.Content = icon; };
-        t.Start();
-    }
 
     void Recalculate_Click(object sender, RoutedEventArgs e) => app.Coordinator?.RecalculateNow();
 

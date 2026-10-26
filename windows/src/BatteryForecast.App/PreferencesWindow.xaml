@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:app="clr-namespace:BatteryForecast.App"
-        Title="{app:T PrefsTitle}" Width="880" Height="660" MinWidth="720" MinHeight="460"
+        Title="{app:T PrefsTitle}" Width="880" Height="780" MinWidth="720" MinHeight="460"
         WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindow}">
     <Window.Resources>
         <!-- una riga per impostazione, come nelle Impostazioni di Windows 11: icona, titolo, spiegazione, controllo -->
@@ -88,12 +88,13 @@
         <!-- navigazione -->
         <DockPanel Margin="0,0,16,0">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,4,0,18">
-                <Image Source="pack://application:,,,/BatteryForecast;component/app.ico" Width="28" Height="28" Margin="0,0,10,0"
+                <Image Source="{StaticResource AppBrandIcon}" Width="28" Height="28" Margin="0,0,10,0"
                        RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name=""/>
                 <TextBlock Text="Battery Forecast" Style="{StaticResource Strong}" VerticalAlignment="Center"/>
             </StackPanel>
             <ListBox x:Name="Sections" BorderThickness="0" Background="Transparent" ItemContainerStyle="{StaticResource Nav}"
                      AutomationProperties.Name="{app:T PrefsTitle}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBoxItem Tag="&#xE9D9;" Content="{app:T SecTrend}"/>
                 <ListBoxItem Tag="&#xE9D2;" Content="{app:T SecForecast}"/>
                 <ListBoxItem Tag="&#xE7C4;" Content="{app:T SecPanel}"/>
                 <ListBoxItem Tag="&#xEA8F;" Content="{app:T PrefNotifications}"/>
@@ -102,6 +103,40 @@
                 <ListBoxItem Tag="&#xE713;" Content="{app:T SecGeneral}"/>
             </ListBox>
         </DockPanel>
+
+        <ScrollViewer x:Name="PageTrend" Grid.Column="1" Style="{StaticResource Page}">
+            <StackPanel>
+                <TextBlock Text="{app:T SecTrend}" Style="{StaticResource PageTitle}"/>
+                <TextBlock Text="{app:T TrendIntro}" Style="{StaticResource Secondary}" Margin="0,0,0,14"/>
+                <Border Style="{StaticResource Row}"><StackPanel>
+                    <DockPanel Margin="0,0,0,12">
+                        <Button DockPanel.Dock="Right" Content="{app:T TrendRefresh}" Click="RefreshTrend_Click" Padding="12,6"/>
+                        <TextBlock Text="{app:T TrendSavedForecast}" Style="{StaticResource Strong}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <ComboBox x:Name="TrendForecasts" DisplayMemberPath="Label" AutomationProperties.Name="{app:T TrendSavedForecast}"/>
+                    <TextBlock x:Name="TrendSource" Style="{StaticResource RowHelp}" Margin="0,8,0,0"/>
+                </StackPanel></Border>
+                <Border Style="{StaticResource Row}"><StackPanel>
+                    <WrapPanel Margin="0,0,0,4">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
+                            <Border Background="{DynamicResource Accent}" Width="20" Height="3" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{app:T TrendObserved}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
+                            <Border Background="{DynamicResource Curve}" Width="20" Height="3" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{app:T TrendPredicted}"/>
+                        </StackPanel>
+                    </WrapPanel>
+                    <TextBlock Text="{app:T TrendWindow}" Style="{StaticResource RowHelp}"/>
+                    <TextBlock Text="{Binding HoverText, ElementName=TrendChart}" MinHeight="30" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondary}" Margin="0,6,0,0"/>
+                    <app:ComparisonChart x:Name="TrendChart" AutomationProperties.Name="{app:T SecTrend}"/>
+                    <TextBlock Text="{Binding PinnedText, ElementName=TrendChart}" MinHeight="30" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondary}"/>
+                    <TextBlock x:Name="TrendStatus" Style="{StaticResource Strong}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                    <TextBlock Text="{app:T TrendChartHelp}" Style="{StaticResource RowHelp}"/>
+                </StackPanel></Border>
+                <TextBlock Text="{app:T TrendCaution}" Style="{StaticResource Secondary}"/>
+            </StackPanel>
+        </ScrollViewer>
 
         <!-- 1. previsione -->
         <ScrollViewer x:Name="PageForecast" Grid.Column="1" Style="{StaticResource Page}">

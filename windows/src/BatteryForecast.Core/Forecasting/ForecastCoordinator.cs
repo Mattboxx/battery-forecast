@@ -274,7 +274,7 @@ public sealed class ForecastCoordinator : IDisposable
                 {
                     var source = mode switch { Mode.Charge => r.Source + ":charge", Mode.Held => r.Source + ":held", _ => r.Source };
                     store.RecordForecast(view.Generated, source, level, reserve, r.Crossing.Status, view.Central,
-                        view.Early, view.Late, r.Quality.State, r.ModelId, r.ModelRevision, r.ElapsedMs);
+                        view.Early, view.Late, r.Quality.State, r.ModelId, r.ModelRevision, r.ElapsedMs, snapshot: r, issuedAt: clock.GetUtcNow());
                 }
                 catch (Microsoft.Data.Sqlite.SqliteException) { }
             }

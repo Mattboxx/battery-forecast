@@ -40,6 +40,7 @@
   <data name="ChartExplore" xml:space="preserve"><value>Passa il mouse sul grafico o usa le frecce sinistra/destra con il grafico a fuoco per esplorare ora e livello.</value></data>
   <data name="ChartExtrapolated" xml:space="preserve"><value>Estrapolazione dopo l’orario abituale di ricarica</value></data>
   <data name="ChartExtrapolatedCompact" xml:space="preserve"><value>estrapolata</value></data>
+  <data name="ChartGoalLegend" xml:space="preserve"><value>Obiettivo orario</value></data>
   <data name="ChartHoverCompact" xml:space="preserve"><value>{0} · {1}% · fascia {2}–{3}%</value></data>
   <data name="ChartName" xml:space="preserve"><value>Previsione per le prossime 24 ore</value></data>
   <data name="ChartPinned" xml:space="preserve"><value>Punto fissato · clicca fuori dal grafico per rimuoverlo</value></data>
@@ -47,7 +48,6 @@
   <data name="ChartProbe" xml:space="preserve"><value>{0} · circa {1}%
 Fascia indicativa {2}–{3}%</value></data>
   <data name="ChartSummary" xml:space="preserve"><value>Ora {0}%. Stima centrale: {1}% fra 3 ore, {2}% fra 6 ore, {3}% fra 12 ore. Fascia: dalla stima prudente a quella ottimista.</value></data>
-  <data name="ClipboardCopied" xml:space="preserve"><value>Riepilogo batteria copiato.</value></data>
   <data name="Close" xml:space="preserve"><value>Chiudi</value></data>
   <data name="CollectContext" xml:space="preserve"><value>Raccogli contesto locale del sistema</value></data>
   <data name="Collecting" xml:space="preserve"><value>Raccolta dati in corso</value></data>
@@ -78,7 +78,6 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="ContextStored" xml:space="preserve"><value>{0} campioni di contesto salvati nelle ultime {1} ore.</value></data>
   <data name="ContextTools" xml:space="preserve"><value>Verifica sensori e storico osservato</value></data>
   <data name="ContextUsed" xml:space="preserve"><value>Sensori storici usati: {0}</value></data>
-  <data name="CopySummary" xml:space="preserve"><value>Copia riepilogo batteria</value></data>
   <data name="Coverage" xml:space="preserve"><value>{0} giorni di storico · {1} campioni</value></data>
   <data name="CustomInvalid" xml:space="preserve"><value>Controlla orari HH:mm, percentuali e scorciatoia. I valori non validi non sono stati salvati.</value></data>
   <data name="CustomSaved" xml:space="preserve"><value>Impostazioni salvate.</value></data>
@@ -234,6 +233,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="SecForecast" xml:space="preserve"><value>Previsione</value></data>
   <data name="SecGeneral" xml:space="preserve"><value>Generale</value></data>
   <data name="SecPanel" xml:space="preserve"><value>Pannello e scorciatoia</value></data>
+  <data name="SecTrend" xml:space="preserve"><value>Andamento</value></data>
   <data name="SegmentEnergy" xml:space="preserve"><value>{0} Wh</value></data>
   <data name="SegmentRate" xml:space="preserve"><value>{0}%/h</value></data>
   <data name="SegmentRow" xml:space="preserve"><value>{0}% → {1}% in {2}</value></data>
@@ -288,6 +288,29 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="Tomorrow" xml:space="preserve"><value>domani alle {0}</value></data>
   <data name="TomorrowWord" xml:space="preserve"><value>domani</value></data>
   <data name="TrayHint" xml:space="preserve"><value>Resta attivo nell’area di notifica. Clicca sull’icona della batteria per riaprire.</value></data>
+  <data name="TrendAcChanged" xml:space="preserve"><value>alimentazione diversa dallo scenario</value></data>
+  <data name="TrendCaution" xml:space="preserve"><value>È un confronto puntuale, non una misura dell’accuratezza. Cambiare alimentazione o utilizzo può cambiare il risultato. Le lacune restano visibili; la fascia non è un intervallo di confidenza calibrato.</value></data>
+  <data name="TrendCharge" xml:space="preserve"><value>Carica</value></data>
+  <data name="TrendChargeScenario" xml:space="preserve"><value>resto collegato</value></data>
+  <data name="TrendChartHelp" xml:space="preserve"><value>Oro: letture osservate. Viola: la previsione selezionata, conservata senza modificarla. Passa il mouse per confrontare; clicca per fissare il rombo, clicca fuori per rimuoverlo. Le frecce esplorano il grafico.</value></data>
+  <data name="TrendChoice" xml:space="preserve"><value>Emessa {0} · {1}</value></data>
+  <data name="TrendDischarge" xml:space="preserve"><value>Scarica</value></data>
+  <data name="TrendDischargeScenario" xml:space="preserve"><value>senza collegare l’alimentatore</value></data>
+  <data name="TrendForecastPoint" xml:space="preserve"><value>{0} · previsto {1:0.#}%</value></data>
+  <data name="TrendInterrupted" xml:space="preserve"><value>interruzione o lacuna nei dati</value></data>
+  <data name="TrendIntro" xml:space="preserve"><value>Confronta l’andamento reale della batteria con una previsione salvata quando è stata emessa.</value></data>
+  <data name="TrendNoPoint" xml:space="preserve"><value>nessuna lettura osservata</value></data>
+  <data name="TrendNoSaved" xml:space="preserve"><value>Nessuna curva ancora salvata. I nuovi calcoli compariranno qui; i vecchi riepiloghi non permettono di ricostruire le curve passate.</value></data>
+  <data name="TrendNow" xml:space="preserve"><value>Ora</value></data>
+  <data name="TrendObserved" xml:space="preserve"><value>Batteria osservata</value></data>
+  <data name="TrendObservedPoint" xml:space="preserve"><value>{0} · reale {1:0.#}%</value></data>
+  <data name="TrendPoint" xml:space="preserve"><value>{0} · reale {1:0.#}% · previsto {2:0.#}% · scarto {3:+0.#;-0.#;0} punti</value></data>
+  <data name="TrendPredicted" xml:space="preserve"><value>Previsione salvata · fascia indicativa</value></data>
+  <data name="TrendRefresh" xml:space="preserve"><value>Aggiorna grafico</value></data>
+  <data name="TrendSavedForecast" xml:space="preserve"><value>Previsione salvata</value></data>
+  <data name="TrendSource" xml:space="preserve"><value>Lettura del {0} · {1} · {2}. Stima sperimentale.</value></data>
+  <data name="TrendWaiting" xml:space="preserve"><value>In attesa di letture successive all’emissione di questa previsione. Lo storico osservato resta visibile.</value></data>
+  <data name="TrendWindow" xml:space="preserve"><value>Ultime 12 ore e prossime 12 ore · livello batteria (%)</value></data>
   <data name="Unavailable" xml:space="preserve"><value>Previsione non disponibile</value></data>
   <data name="Until" xml:space="preserve"><value>Fino alle {0}</value></data>
   <data name="UntilDay" xml:space="preserve"><value>Fino a {0}</value></data>

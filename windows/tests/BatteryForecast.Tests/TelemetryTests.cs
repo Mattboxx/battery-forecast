@@ -33,7 +33,7 @@ public class TelemetryTests
             using(var initial=new HistoryStore(path)) initial.Append(new(now,ChargeState.Discharging,80,false));
             using(var raw=new SqliteConnection($"Data Source={path};Pooling=False"))
             {
-                raw.Open();using var cmd=raw.CreateCommand();cmd.CommandText="DROP TABLE context_samples;PRAGMA user_version=2;";cmd.ExecuteNonQuery();
+                raw.Open();using var cmd=raw.CreateCommand();cmd.CommandText="DROP TABLE context_samples;DROP TABLE forecast_snapshots;PRAGMA user_version=2;";cmd.ExecuteNonQuery();
             }
             using(var store=new HistoryStore(path))
             {

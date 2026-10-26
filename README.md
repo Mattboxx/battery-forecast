@@ -218,7 +218,7 @@ to the original authors. Their copyright and attribution notices are preserved i
 If Battery Forecast is useful to you, you can support its development on **[Ko-fi](https://ko-fi.com/mattboxx)**.
 Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
-## More control and context
+## In development: more control and context
 
 - **Optional time goals:** switch off the evening goal and extra times without losing saved hours. The main
   forecast and chart remain available.
@@ -252,7 +252,7 @@ Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/batter
   unavailable. CPU temperature needs a compatible provider already installed; an ACPI zone is labelled separately.
   No driver, administrator helper, process names, online telemetry or future sensor values are introduced.
 - **Make it yours:** quiet notification hours, custom alert thresholds, chart visibility and a persistent
-  keep-open preference. Copy a battery summary, export battery/system-context CSV files, or create an
+  keep-open preference. Export battery/system-context CSV files, or create an
   explicit local diagnostic ZIP that excludes history and logs and is never uploaded automatically.
 
 Charging and extra sensor context are experimental. The functional tests exercise the real local model,
@@ -267,3 +267,11 @@ model-use switches apply to this channel too. Hover captions occupy a dedicated 
 The unreleased calculation corrections keep forecasts anchored to the actual reading time, preserve
 unknown power states and use contiguous recent trends. [Calculation details](docs/FORECAST_METHOD.md).
 Functional regression checks do not establish predictive superiority.
+
+The first settings page, **Battery trend**, overlays observed battery readings with a forecast saved
+when it was issued. Gold shows observations; purple shows the original prediction and indicative band.
+Choose a saved forecast to inspect individual differences, with warnings for changed power scenarios
+and interruptions. New curves are saved locally under the same retention/deletion controls; older
+summary-only records cannot reconstruct missing past curves. The popup's gold dot is labelled as the
+**time goal**. The interface uses the original vector app icon at every size; the copy-summary action
+has been removed. These changes are in development and are not in the current 0.9.0 installer.

@@ -13,9 +13,9 @@ public readonly record struct ModelCovariate(long Ts,double? Value);
 /// Storico locale in SQLite. L'app è l'unico processo che scrive; il motore riceve i dati nella richiesta.
 /// Orari in secondi UTC. Una connessione, protetta da un lock: le scritture sono brevi e rare (1 al minuto).
 /// </summary>
-public sealed class HistoryStore : IDisposable
+public sealed partial class HistoryStore : IDisposable
 {
-    public const int SchemaVersion = 4;
+    public const int SchemaVersion = 5;
     readonly SqliteConnection db;
     readonly Lock gate = new();
 
@@ -80,6 +80,17 @@ public sealed class HistoryStore : IDisposable
         {
             using var tx = db.BeginTransaction();
             Exec("ALTER TABLE context_samples ADD COLUMN display_state INTEGER NULL; PRAGMA user_version=4;", tx);
+            tx.Commit();
+        }
+        if (version < 5)
+        {
+            using var tx = db.BeginTransaction();
+            Exec("""
+                CREATE TABLE forecast_snapshots (id INTEGER PRIMARY KEY, ts INTEGER NOT NULL,
+                    origin INTEGER NOT NULL, source TEXT NOT NULL, json TEXT NOT NULL);
+                CREATE INDEX forecast_snapshots_ts ON forecast_snapshots(ts);
+                PRAGMA user_version=5;
+                """, tx);
             tx.Commit();
         }
     }
@@ -315,11 +326,14 @@ public sealed class HistoryStore : IDisposable
 
     public void RecordForecast(DateTimeOffset ts, string source, double level, double reserve, string status,
         DateTimeOffset? central, DateTimeOffset? early, DateTimeOffset? late, string? quality,
-        string? modelId, string? modelRevision, int? elapsedMs)
+        string? modelId, string? modelRevision, int? elapsedMs,
+        Forecasting.ForecastResponse? snapshot = null, DateTimeOffset? issuedAt = null)
     {
         lock (gate)
         {
+            using var tx = db.BeginTransaction();
             using var cmd = db.CreateCommand();
+            cmd.Transaction = tx;
             cmd.CommandText = """
                 INSERT INTO forecast_runs VALUES ($ts, $src, $level, $reserve, $status, $c, $e, $l, $q, $mid, $mrev, $ms)
                 """;
@@ -336,6 +350,8 @@ public sealed class HistoryStore : IDisposable
             cmd.Parameters.AddWithValue("$mrev", (object?)modelRevision ?? DBNull.Value);
             cmd.Parameters.AddWithValue("$ms", (object?)elapsedMs ?? DBNull.Value);
             cmd.ExecuteNonQuery();
+            if (snapshot is not null) InsertForecastSnapshot(snapshot, issuedAt ?? DateTimeOffset.UtcNow, source, tx);
+            tx.Commit();
         }
     }
 
@@ -349,7 +365,7 @@ public sealed class HistoryStore : IDisposable
         {
             using var tx = db.BeginTransaction();
             var n = 0;
-            foreach (var table in new[] { "battery_samples", "power_events", "forecast_runs", "notification_events", "context_samples" })
+            foreach (var table in new[] { "battery_samples", "power_events", "forecast_runs", "notification_events", "context_samples", "forecast_snapshots" })
             {
                 using var cmd = db.CreateCommand();
                 cmd.Transaction = tx;
@@ -367,7 +383,7 @@ public sealed class HistoryStore : IDisposable
     {
         lock (gate)
         {
-            Exec("DELETE FROM battery_samples; DELETE FROM power_events; DELETE FROM forecast_runs; DELETE FROM notification_events; DELETE FROM notification_state; DELETE FROM context_samples;");
+            Exec("DELETE FROM battery_samples; DELETE FROM power_events; DELETE FROM forecast_runs; DELETE FROM notification_events; DELETE FROM notification_state; DELETE FROM context_samples; DELETE FROM forecast_snapshots;");
             Exec("VACUUM;");
         }
     }

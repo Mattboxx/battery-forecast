@@ -43,7 +43,7 @@ public class DisplayStateTests
             {
                 db.Open();
                 using var cmd = db.CreateCommand();
-                cmd.CommandText = "ALTER TABLE context_samples DROP COLUMN display_state; PRAGMA user_version=3;";
+                cmd.CommandText = "ALTER TABLE context_samples DROP COLUMN display_state; DROP TABLE forecast_snapshots; PRAGMA user_version=3;";
                 cmd.ExecuteNonQuery();
             }
             using (var store = new HistoryStore(path))

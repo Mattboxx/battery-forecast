@@ -230,6 +230,7 @@ public partial class App : Application
         var m = PanelPresenter.Present(s);
         tray?.Set(s.Battery.LevelPct, s.Phase == PowerPhase.Charging, Settings.TrayText == TrayText.Percent, m.Tooltip);
         if (panel is { IsVisible: true }) panel.Update(m, s.Target.When);
+        prefs?.DashboardChanged(s);
         _ = EvaluateNoticesAsync(s);
     }
 
@@ -375,7 +376,7 @@ public partial class App : Application
 
     public void ShowPreferences() => ShowPreferences(null);
 
-    /// <summary>section: indice della sezione da mostrare (null = l'ultima vista).</summary>
+    /// <summary>section: indice della sezione da mostrare (null = Andamento).</summary>
     public void ShowPreferences(int? section)
     {
         if (prefs is null)
@@ -383,7 +384,7 @@ public partial class App : Application
             prefs = new PreferencesWindow(this);
             prefs.Closed += (_, _) => prefs = null;
         }
-        if (section is { } i) prefs.ShowSection(i);
+        prefs.ShowSection(section ?? 0);
         if (prefs.WindowState == WindowState.Minimized) prefs.WindowState = WindowState.Normal;
         prefs.Show();
         prefs.Activate();
@@ -408,14 +409,6 @@ public partial class App : Application
         if (hotkey is not null && !hotkey.Resume()) ShortcutError = "HotkeyConflict";
     }
 
-    public string BatterySummary()
-    {
-        if (last is null) return "Battery Forecast";
-        var m = PanelPresenter.Present(last);
-        return string.Join(Environment.NewLine, new[] { "Battery Forecast", m.Level, m.PowerLine,
-            m.Headline, m.Detail, m.Note, m.SourceLine, m.TargetLabel + " " + m.TargetValue,
-            m.ExtraTargets, m.DemoLine }.Where(t => !string.IsNullOrWhiteSpace(t)));
-    }
 
     public void ExportDiagnostics(string destination)
     {
