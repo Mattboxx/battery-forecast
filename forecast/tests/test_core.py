@@ -23,11 +23,11 @@ class TestSeries:
     def test_long_gap_stays_missing_and_short_gap_is_filled(self):
         a = samples(NOW - 10 * 3600, 60, 90, -0.1)                   # 1 ora
         b = samples(NOW - 6 * 3600, 60, 80, -0.1)                    # dopo 3 ore di sospensione
-        c = [x for x in samples(NOW - 3600, 60, 70, -0.1) if not 20 <= (x[0] - (NOW - 3600)) / 60 < 30]
+        c = [x for x in samples(NOW - 3600, 60, 70, -0.1) if not 20 <= (x[0] - (NOW - 3600)) / 60 < 25]
         s = series.build(a + b + c, NOW, 64.0, 0)
         assert np.isnan(s.level).sum() >= 30                          # la sospensione resta un buco
         tail = s.level[-12:]
-        assert not np.isnan(tail).any()                               # 10 minuti persi: interpolati
+        assert not np.isnan(tail).any()                               # estremi distanti 10 minuti: interpolati
         assert s.coverage < 1
 
     def test_gap_across_charge_is_not_interpolated(self):
@@ -45,9 +45,9 @@ class TestSeries:
         s = series.build([(NOW - 600, 255.0, 0), (NOW - 300, -1.0, 0), (NOW + 600, 10.0, 0)], NOW, 50.0, 0)
         assert np.isnan(s.level[:-1]).all() and s.level[-1] == 50.0
 
-    def test_duplicates_are_averaged_and_last_ac_wins(self):
+    def test_duplicates_are_averaged_but_mixed_ac_is_unknown(self):
         s = series.build([(NOW - 300, 50.0, 0), (NOW - 300, 52.0, 1)], NOW, 50.0, 1)
-        assert s.level[-2] == 51.0 and s.ac[-2] == 1.0
+        assert s.level[-2] == 51.0 and np.isnan(s.ac[-2])
 
     def test_sessions_and_days(self):
         day1 = samples(NOW - 86400 - 7200, 120, 100, -0.2)

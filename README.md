@@ -263,3 +263,7 @@ The tray tooltip is hidden while its panel is visible. Data and privacy also rec
 **display on/off/dimmed state**, with an observed-state chart. Unknown or mixed five-minute states stay
 missing. This is not a per-monitor measurement, and it does not reconstruct old history. Recording and
 model-use switches apply to this channel too. Hover captions occupy a dedicated line outside each chart.
+
+The unreleased calculation corrections keep forecasts anchored to the actual reading time, preserve
+unknown power states and use contiguous recent trends. [Calculation details](docs/FORECAST_METHOD.md).
+Functional regression checks do not establish predictive superiority.

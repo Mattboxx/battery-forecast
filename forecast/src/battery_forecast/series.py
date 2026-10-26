@@ -26,6 +26,8 @@ class Series:
     observed_days: float         # dal primo all'ultimo passo osservato
     coverage: float              # frazione di passi osservati in quell'intervallo
     discharge_sessions: int      # tratti continui a batteria lunghi almeno 30 minuti
+    observed_hours: float = 0.0   # actual observed grid points, before interpolation
+    origin: float | None = None
     charge_sessions: int = 0     # tratti continui con alimentatore, almeno 30 minuti e 2 punti di carica guadagnati
 
     @property
@@ -59,17 +61,23 @@ def build(samples, now: float, level_now: float, ac_now: int | None,
     level = np.full(n, np.nan)
     np.divide(sums, counts, out=level, where=counts > 0)
     acs = np.full(n, np.nan)
+    ac_min, ac_max = np.full(n, np.inf), np.full(n, -np.inf)
     valid_ac = np.isfinite(ac)
-    acs[bins[valid_ac]] = ac[valid_ac]        # con indici ripetuti vince l'ultimo, cioè il più recente
+    np.minimum.at(ac_min, bins[valid_ac], ac[valid_ac])
+    np.maximum.at(ac_max, bins[valid_ac], ac[valid_ac])
+    ac_count = np.bincount(bins, weights=valid_ac, minlength=n)
+    all_count = np.bincount(bins, minlength=n)
+    same = (all_count > 0) & (ac_count == all_count) & (ac_min == ac_max)
+    acs[same] = ac_min[same]       # mixed/unknown states are not a single observed scenario
 
     level[-1] = level_now
-    if ac_now is not None:
-        acs[-1] = float(ac_now)
+    acs[-1] = float(ac_now) if ac_now in (0, 1) else np.nan
+    observed = np.isfinite(level)
 
-    level = _fill_short_gaps(level, acs, max_gap)
     acs = _fill_short_gaps_ac(acs, level, max_gap)
+    level = _fill_short_gaps(level, acs, max_gap)
 
-    obs = np.flatnonzero(np.isfinite(level))
+    obs = np.flatnonzero(observed)
     span = (obs[-1] - obs[0]) if len(obs) else 0
     return Series(
         start=float((first_bin) * step),
@@ -78,6 +86,8 @@ def build(samples, now: float, level_now: float, ac_now: int | None,
         observed_days=round(span * step / 86400, 2),
         coverage=round(len(obs) / (span + 1), 3) if len(obs) else 0.0,
         discharge_sessions=_count_sessions(level, acs, min_steps=max(1, 1800 // step)),
+        observed_hours=max(0, len(obs) - 1) * step / 3600,
+        origin=now,
         charge_sessions=_count_charge_sessions(level, acs, min_steps=max(1, 1800 // step)),
     )
 
@@ -95,9 +105,9 @@ def _fill_short_gaps(level: np.ndarray, ac: np.ndarray, max_gap: int) -> np.ndar
     """Interpolazione lineare dei buchi brevi, se l'alimentazione ai due lati è la stessa."""
     out = level.copy()
     for a, b in _runs_of_nan(level):
-        if b - a > max_gap:
+        if b - a + 1 > max_gap:
             continue
-        if not (ac[a - 1] == ac[b] or (np.isnan(ac[a - 1]) and np.isnan(ac[b]))):
+        if not (np.isfinite(ac[a - 1]) and np.all(ac[a - 1:b + 1] == ac[a - 1])):
             continue                                            # in mezzo c'è stata una ricarica
         out[a:b] = np.interp(np.arange(a, b), [a - 1, b], [level[a - 1], level[b]])
     return out
@@ -107,7 +117,7 @@ def _fill_short_gaps_ac(ac: np.ndarray, level: np.ndarray, max_gap: int) -> np.n
     """Lo stato dell'alimentatore si propaga solo dentro i buchi brevi con lo stesso stato ai lati."""
     out = ac.copy()
     for a, b in _runs_of_nan(ac):
-        if b - a <= max_gap and ac[a - 1] == ac[b]:
+        if b - a + 1 <= max_gap and ac[a - 1] == ac[b] and not np.isfinite(level[a:b]).any():
             out[a:b] = ac[b]
     return out
 
@@ -118,7 +128,7 @@ def _count_charge_sessions(level: np.ndarray, ac: np.ndarray, min_steps: int) ->
     edges = np.diff(np.concatenate([[0], plugged.astype(np.int8), [0]]))
     n = 0
     for a, b in zip(np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)):
-        if b - a >= min_steps and np.nanmax(level[a:b]) - level[a] >= 2:
+        if b - a - 1 >= min_steps and np.nanmax(level[a:b]) - level[a] >= 2:
             n += 1
     return n
 
@@ -127,7 +137,7 @@ def _count_sessions(level: np.ndarray, ac: np.ndarray, min_steps: int) -> int:
     on_battery = (ac == 0) & np.isfinite(level)
     edges = np.diff(np.concatenate([[0], on_battery.astype(np.int8), [0]]))
     lengths = np.flatnonzero(edges == -1) - np.flatnonzero(edges == 1)
-    return int((lengths >= min_steps).sum())
+    return int((lengths - 1 >= min_steps).sum())
 
 
 CONTEXT_RANGES = {
@@ -158,7 +168,7 @@ def past_covariates(data: dict, context: Series):
         if not len(arr):
             continue
         bins = np.floor((arr[:, 0] - context.start) / STEP_SECONDS).astype(np.int64)
-        keep = (bins >= 0) & (bins < n) & (arr[:, 0] <= context.end)
+        keep = (bins >= 0) & (bins < n) & (arr[:, 0] <= (context.origin if context.origin is not None else context.end))
         bins, values = bins[keep], arr[:, 1][keep]
         if name in {"power_profile", "display_state"}:
             keep = values == np.floor(values)
@@ -169,10 +179,10 @@ def past_covariates(data: dict, context: Series):
         np.divide(sums, counts, out=channel, where=counts > 0)
         if name in {"power_profile", "display_state"}:
             # Never average categorical states when a caller supplies raw observations.
-            for idx in np.unique(bins):
-                group = values[bins == idx]
-                if np.min(group) != np.max(group):
-                    channel[idx] = np.nan
+            minimum, maximum = np.full(n, np.inf), np.full(n, -np.inf)
+            np.minimum.at(minimum, bins, values)
+            np.maximum.at(maximum, bins, values)
+            channel[minimum != maximum] = np.nan
         observed = np.isfinite(channel)
         if observed.sum() < 6 or np.nanstd(channel) < 1e-5:
             continue

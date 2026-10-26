@@ -9,8 +9,8 @@ Status: **experimental**. No accuracy figures are claimed until `docs/VALIDATION
   Timestral-5M is kept for comparison.
 - **Context**: up to 110 days of this PC's own history, recorded by the app (one sample per minute,
   aggregated to 5-minute steps). Gaps longer than 10 minutes stay missing (NaN), never interpolated.
-- **Covariate**: power adapter connected (1) / on battery (0) / unknown (NaN). In the future the scenario
-  sets it to 0.
+- **Covariate**: power adapter connected (1) / on battery (0) / unknown (NaN). In the future the discharge scenario
+  sets it to 0; the charging scenario sets it to 1.
 - **Scenario**: "usual use, without plugging in the adapter from now on".
 - **Output**: 10th, 50th and 90th percentile of the level at each step; the first time each one reaches the
   reserve threshold (default 5%).
@@ -51,7 +51,7 @@ Status: **experimental**. No accuracy figures are claimed until `docs/VALIDATION
 
 ## Known limitations
 
-- Habits need days of data; with less than 2 hours of history or no discharge session the habit forecast
+- Habits need days of data; with less than 2 hours of observed grid data or no discharge session the habit forecast
   is marked insufficient and the recent-use estimate is shown instead.
 - Data is recorded only while the app runs; sleep and shutdown are gaps, not observations.
 - Validation so far: synthetic data only (functional checks). Validation on real sessions is in progress during the preview.
@@ -75,7 +75,7 @@ historical context as the discharge forecast, with the adapter covariate set to 
   curve approaches 100% exponentially, starting at the average charging rate forecast until then (or the
   rate observed in the last hour), ±25%, so it slows down near full instead of assuming a constant rate.
   The UI draws that part dashed and says so.
-- **Quality**: insufficient with less than 2 hours of history or no observed charging session (at least
+- **Quality**: insufficient with less than 2 hours of observed grid data or no observed charging session (at least
   30 minutes plugged in with 2 points gained); then the observed-data estimator below is shown instead.
 - First check with synthetic histories (2026-10-26): 50%→80% forecast in about 58 minutes against an ideal
   45; the cautious end of the range was very wide. Functional check only, not accuracy.
@@ -105,12 +105,12 @@ are never labelled CPU or battery temperature. Missing, unsupported or access-de
 No kernel driver, elevated helper, process names, window titles or online telemetry are introduced.
 
 Sensor context is stored separately in SQLite schema 4, under the same retention/deletion settings.
-Five-minute means align to the battery grid; mixed power-profile bins are missing. Six observed bins
+Five-minute means align to the battery grid; mixed power-profile/display bins are missing. Six observed bins
 and nonconstant values are required per channel. Numeric gaps up to ten minutes can interpolate when
 AC state is unchanged. Longer gaps stay missing. Profiles are categorical, with no interpolation.
 The fixed Timestral API receives numeric `past_covariates` and categorical
 `categorical_past_covariates`; their lengths cover **history only**. CPU load, power, brightness and
-temperatures are not assumed known in the future. Only the no-charge adapter scenario remains a known
+temperatures are not assumed known in the future. Only the chosen adapter scenario remains a known
 future covariate. `context_features` in each response/cache identifies channels actually passed to the
 model. Collection and model use can be switched off separately in Preferences.
 
@@ -152,3 +152,18 @@ no future display states are invented. Display state is session-wide, not indivi
 See [Microsoft's power-setting definitions](https://learn.microsoft.com/en-us/windows/win32/power/power-setting-guids)
 and [registration API](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerpowersettingnotification).
 The physical screen-off/on cycle has not yet been manually verified on this machine.
+
+### Operational trend corrections (unreleased)
+
+See [the calculation method](FORECAST_METHOD.md) for the current pipeline. Forecast points now begin
+exactly five minutes after the request timestamp, through 24 hours; historical bins remain on their UTC
+grid. Battery history and sensor input are bounded at that same timestamp and the forecast uses the
+current recorded battery epoch. Historical views and exports retain older batteries' observations.
+Mixed/unknown AC bins stay unknown. Interpolation requires consistent known AC across the gap and
+at most ten minutes **between endpoints**. Coverage and observed hours exclude interpolated points;
+a qualifying 30-minute session must actually span 30 minutes. Fallback extrapolation uses a robust
+slope from the latest contiguous phase, without joining separate AC visits. Immediate readings win
+over stored duplicates in recent-rate estimates.
+
+These are functional correctness changes checked with regression tests and the real inference engine.
+Scientific comparisons are postponed at the user's request; superiority and accuracy are unmeasured.

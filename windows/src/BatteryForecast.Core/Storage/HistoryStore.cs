@@ -101,14 +101,15 @@ public sealed class HistoryStore : IDisposable
         }
     }
 
-    public Dictionary<string,IReadOnlyList<ModelCovariate>> ModelCovariates(DateTimeOffset since, DateTimeOffset until)
+    public Dictionary<string,IReadOnlyList<ModelCovariate>> ModelCovariates(DateTimeOffset since, DateTimeOffset until, bool currentBatteryOnly = false)
     {
         lock(gate)
         {
             using var cmd=db.CreateCommand();
-            cmd.CommandText=$"SELECT (ts/300)*300, {string.Join(',',ContextColumns.Select(c=>c is "power_profile" or "display_state" ? $"CASE WHEN COUNT({c})=COUNT(*) AND MIN({c})=MAX({c}) THEN MAX({c}) ELSE NULL END":$"AVG({c})"))} FROM context_samples WHERE ts >= $since AND ts <= $until GROUP BY ts/300 ORDER BY ts/300";
+            cmd.CommandText=$"SELECT (ts/300)*300, {string.Join(',',ContextColumns.Select(c=>c is "power_profile" or "display_state" ? $"CASE WHEN COUNT({c})=COUNT(*) AND MIN({c})=MAX({c}) THEN MAX({c}) ELSE NULL END":$"AVG({c})"))} FROM context_samples WHERE ts >= $since AND ts <= $until AND ($current=0 OR ts >= COALESCE((SELECT MIN(ts) FROM battery_samples WHERE battery_epoch>0 AND battery_epoch=(SELECT battery_epoch FROM battery_samples WHERE ts <= $until ORDER BY ts DESC LIMIT 1)), $since)) GROUP BY ts/300 ORDER BY ts/300";
             cmd.Parameters.AddWithValue("$since",since.ToUnixTimeSeconds());
             cmd.Parameters.AddWithValue("$until",until.ToUnixTimeSeconds());
+            cmd.Parameters.AddWithValue("$current",currentBatteryOnly ? 1 : 0);
             using var reader=cmd.ExecuteReader();
             var rows=ContextColumns.ToDictionary(c=>c,_=>new List<ModelCovariate>());
             while(reader.Read())
@@ -241,16 +242,20 @@ public sealed class HistoryStore : IDisposable
     }
 
     /// <summary>Storico aggregato a 5 minuti per il motore, dal più vecchio.</summary>
-    public List<ModelSample> ModelSamples(DateTimeOffset since)
+    public List<ModelSample> ModelSamples(DateTimeOffset since, DateTimeOffset? until = null)
     {
         lock (gate)
         {
             using var cmd = db.CreateCommand();
             cmd.CommandText = """
-                SELECT (ts / 300) * 300 AS bin, AVG(level), MAX(on_ac)
-                FROM battery_samples WHERE ts >= $since GROUP BY bin ORDER BY bin
+                SELECT (ts / 300) * 300 AS bin, AVG(level),
+                    CASE WHEN COUNT(on_ac)=COUNT(*) AND MIN(on_ac)=MAX(on_ac) THEN MAX(on_ac) ELSE NULL END
+                FROM battery_samples WHERE ts >= $since AND ts <= $until
+                    AND battery_epoch=(SELECT battery_epoch FROM battery_samples WHERE ts <= $until ORDER BY ts DESC LIMIT 1)
+                GROUP BY bin ORDER BY bin
                 """;
             cmd.Parameters.AddWithValue("$since", since.ToUnixTimeSeconds());
+            cmd.Parameters.AddWithValue("$until", (until ?? DateTimeOffset.MaxValue).ToUnixTimeSeconds());
             using var r = cmd.ExecuteReader();
             var list = new List<ModelSample>();
             while (r.Read())

@@ -242,13 +242,15 @@ public sealed class ForecastCoordinator : IDisposable
     async Task RunAsync(BatterySample s, double level, DateTimeOffset started, Mode mode)
     {
         var charge = mode == Mode.Charge;
-        var reserve = charge ? settings().ChargeTargetPct : settings().ReservePct;
+        var options = settings();
+        var origin = s.TimestampUtc;
+        var reserve = charge ? options.ChargeTargetPct : options.ReservePct;
         try
         {
             if (!engine!.IsWarm) SetEngine(EngineState.Loading, null);
-            var history = store.ModelSamples(started - HistoryDays);
+            var history = store.ModelSamples(origin - HistoryDays, origin);
             var r = await engine.ForecastAsync(new ForecastRequest(s.TimestampUtc, level, s.OnAc, reserve, history,
-                settings().UseSystemContext && settings().CollectSystemContext ? store.ModelCovariates(started-HistoryDays,started) : null,
+                options.UseSystemContext && options.CollectSystemContext ? store.ModelCovariates(origin-HistoryDays,origin, currentBatteryOnly: true) : null,
                 Charge: charge, TargetPct: reserve)).ConfigureAwait(false);
             var view = ForecastView.From(r);
             lock (gate)

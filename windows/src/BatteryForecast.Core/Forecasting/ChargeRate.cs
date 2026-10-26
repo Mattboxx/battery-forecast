@@ -14,7 +14,8 @@ public static class ChargeRate
         if (current.OnAc != true || current.State != ChargeState.Charging || current.LevelPct is not double level ||
             !double.IsFinite(level) || level is < 0 or > 100 || target is < 50 or > 100) return pending;
         if (level >= target) return new(ChargeEstimateKind.AlreadyReached, target);
-        var points = history.Append(current).DistinctBy(s => s.TimestampUtc).OrderBy(s => s.TimestampUtc).ToArray();
+        var points = history.Append(current).Where(s => s.TimestampUtc <= current.TimestampUtc)
+            .GroupBy(s => s.TimestampUtc).Select(g => g.Last()).OrderBy(s => s.TimestampUtc).ToArray();
         var tail = new List<BatterySample>();
         foreach (var s in points.Reverse())
         {

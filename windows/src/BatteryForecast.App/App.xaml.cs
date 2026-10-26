@@ -186,9 +186,12 @@ public partial class App : Application
     void CreateMessageWindow()
     {
         messages = new HwndSource(new HwndSourceParameters("Battery Forecast") { Width = 0, Height = 0, WindowStyle = 0 });
-        displayNotification = new DisplayPowerNotification(messages.Handle, displayState, state =>
+        displayNotification = new DisplayPowerNotification(displayState, state =>
         {
             if (!demo) _ = Task.Run(() => collector?.OnDisplayStateChanged(state));
+#if DEBUG
+            if (UiTest) Dispatcher.BeginInvoke(() => log?.Write("ui-test Windows display state=" + state));
+#endif
         });
         messages.AddHook((IntPtr hwnd, int msg, IntPtr w, IntPtr l, ref bool handled) =>
         {
@@ -211,6 +214,13 @@ public partial class App : Application
             }
             return IntPtr.Zero;
         });
+        // Install the hook before registering: Windows can report its initial state immediately.
+        displayNotification.Start(messages.Handle);
+        if (!displayNotification.IsRegistered)
+            Dispatcher.BeginInvoke(() => log?.Write("display notification registration failed: " + displayNotification.RegistrationError));
+#if DEBUG
+        else if (UiTest) Dispatcher.BeginInvoke(() => log?.Write("ui-test Windows display notification registered"));
+#endif
     }
 
     void Render(DashboardState s)

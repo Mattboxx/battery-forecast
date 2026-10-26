@@ -103,9 +103,19 @@ def test_real_model_receives_historical_context_separately(engine, monkeypatch):
     req["past_covariates"] = {
         "cpu_pct": [[NOW-i*300,20+(i%5)*10] for i in range(30,-1,-1)],
         "discharge_w": [[NOW-i*300,8+(i%5)*2] for i in range(30,-1,-1)],
+        "display_state": [[NOW-i*300,i%2] for i in range(30,-1,-1)],
     }
     result=engine.predict(protocol.parse_request(json.dumps(req).encode()))
-    assert set(result["context_features"])=={"cpu_pct","discharge_w"}
+    assert set(result["context_features"])=={"cpu_pct","discharge_w","display_state"}
     assert seen["past_covariates"].shape[1]==2
+    assert seen["categorical_past_covariates"].shape==(1,1,seen["past_covariates"].shape[-1])
     assert seen["known_covariates"].shape[-1]==seen["past_covariates"].shape[-1]+288
     assert len(result["curve"])==288
+
+
+def test_forecast_steps_start_five_minutes_after_actual_request_not_bin_boundary(engine):
+    from battery_forecast import protocol
+    result = engine.predict(protocol.parse_request(json.dumps(request(now_utc=NOW+299)).encode()))
+    assert result["curve"][0]["t"] == NOW+299+300
+    assert result["curve"][-1]["t"] == NOW+299+86400
+    assert result["context_end_utc"] == NOW+299

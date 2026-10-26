@@ -18,27 +18,37 @@ MIN_DAYS_LEARNING = 3.0
 MIN_HOURS_USABLE = 2.0
 
 
-def observed_rate(s: series.Series, steps: int = 12) -> float | None:
-    """%/h di scarica nell'ultima ora osservata a batteria, se ci sono abbastanza passi."""
+def _continuous_rate(s: series.Series, ac_state: int, steps: int) -> float | None:
+    """Robust slope of the current contiguous power phase, not separate visits in the last hour."""
     lv, ac = s.level[-steps:], s.ac[-steps:]
-    ok = np.flatnonzero(np.isfinite(lv) & (ac == 0))
-    if len(ok) < steps // 2 or ok[-1] == ok[0]:
+    valid = np.isfinite(lv) & (ac == ac_state)
+    if not len(valid) or not valid[-1]:
         return None
-    return float((lv[ok[0]] - lv[ok[-1]]) / ((ok[-1] - ok[0]) * STEP_SECONDS / 3600))
+    stop = np.flatnonzero(~valid)
+    start = int(stop[-1]) + 1 if len(stop) else 0
+    lv = lv[start:]
+    if len(lv) < max(3, steps // 2):
+        return None
+    # Pairwise slopes suppress a single rounded or noisy endpoint. No future sensor assumptions.
+    slopes = [(float(lv[j]) - float(lv[i])) / ((j-i)*STEP_SECONDS/3600)
+              for i in range(len(lv)) for j in range(i+2, len(lv))]
+    if not slopes:
+        return None
+    slope = float(np.median(slopes))
+    return slope if ac_state == 1 else -slope
+
+
+def observed_rate(s: series.Series, steps: int = 12) -> float | None:
+    return _continuous_rate(s, 0, steps)
 
 
 def observed_charge_rate(s: series.Series, steps: int = 12) -> float | None:
-    """%/h di carica nell'ultima ora osservata con alimentatore, se ci sono abbastanza passi."""
-    lv, ac = s.level[-steps:], s.ac[-steps:]
-    ok = np.flatnonzero(np.isfinite(lv) & (ac == 1))
-    if len(ok) < steps // 2 or ok[-1] == ok[0]:
-        return None
-    return float((lv[ok[-1]] - lv[ok[0]]) / ((ok[-1] - ok[0]) * STEP_SECONDS / 3600))
+    return _continuous_rate(s, 1, steps)
 
 
 def quality_state(s: series.Series, scenario: str = "no_charge") -> str:
     sessions = s.charge_sessions if scenario == "charge" else s.discharge_sessions
-    if s.observed_days * 24 < MIN_HOURS_USABLE or sessions == 0:
+    if s.observed_hours < MIN_HOURS_USABLE or sessions == 0:
         return "insufficient"
     return "learning" if s.observed_days < MIN_DAYS_LEARNING else "ok"
 
@@ -116,7 +126,8 @@ class Engine:
             q = self.fc.forecast(s.level[None, None], prediction_length=h,
                                  known_covariates=known[None, None], past_covariates=past,
                                  categorical_past_covariates=categories).quantiles[0, 0].numpy()
-        times = s.end + STEP_SECONDS * np.arange(1, h + 1, dtype=np.float64)
+        # The current anchor is the request time, not the beginning of its historical bin.
+        times = req["now"] + STEP_SECONDS * np.arange(1, h + 1, dtype=np.float64)
         if charge:
             q, change, rate = self._charge(q[:, self.qi], req["level"], s)
             threshold = req["target"]
@@ -145,6 +156,7 @@ class Engine:
             "quality": {
                 "state": quality_state(s, req["scenario"]),
                 "observed_days": s.observed_days,
+                "observed_hours": s.observed_hours,
                 "coverage": s.coverage,
                 "discharge_sessions": s.discharge_sessions,
                 "charge_sessions": s.charge_sessions,

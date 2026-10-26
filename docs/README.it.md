@@ -201,3 +201,7 @@ La didascalia dell’icona viene nascosta mentre il pannello è visibile. Dati e
 o diversi nello stesso intervallo di cinque minuti restano mancanti. Non è una misura per monitor e non
 ricostruisce lo storico precedente. Gli interruttori di raccolta e uso nel modello valgono anche per questo
 canale. Le didascalie al passaggio del mouse occupano una riga esterna a ogni grafico.
+
+Le correzioni del calcolo, non ancora pubblicate, ancorano la curva all’istante reale della lettura,
+preservano gli stati di alimentazione sconosciuti e usano tratti recenti continui.
+[Dettagli del metodo](FORECAST_METHOD.md). I test funzionali non dimostrano una superiorità predittiva.

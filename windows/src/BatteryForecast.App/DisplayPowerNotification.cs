@@ -8,13 +8,20 @@ sealed class DisplayPowerNotification : IDisposable
 {
     readonly DisplayStateTracker tracker;
     readonly Action<int> changed;
-    readonly IntPtr registration;
-    public DisplayPowerNotification(IntPtr window, DisplayStateTracker tracker, Action<int> changed)
+    IntPtr registration;
+    public bool IsRegistered => registration != IntPtr.Zero;
+    public int RegistrationError { get; private set; }
+    public DisplayPowerNotification(DisplayStateTracker tracker, Action<int> changed)
     {
         this.tracker = tracker;
         this.changed = changed;
+    }
+    public void Start(IntPtr window)
+    {
+        if (registration != IntPtr.Zero) return;
         var setting = DisplayStateTracker.Setting;
         registration = RegisterPowerSettingNotification(window, ref setting, 0);
+        if (registration == IntPtr.Zero) RegistrationError = Marshal.GetLastWin32Error();
     }
     public void OnMessage(IntPtr data)
     {

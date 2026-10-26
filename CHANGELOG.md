@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Correct the forecast time origin, bound every model input to the same reading, and isolate replaced-battery epochs.
+- Keep mixed/unknown AC bins missing; interpolate only within ten-minute endpoint gaps with a consistent known power state.
+- Count observed coverage before interpolation and require actual session durations; use robust contiguous recent slopes for declared extrapolation.
+- Prefer immediate readings over duplicates and exclude future charging samples. These are functional fixes; predictive superiority remains unmeasured.
+
 - Suppress the tray tooltip while the forecast panel is visible; restore its latest text on close.
 - Record Windows session display on/off/dimmed events and expose an observed-state chart in Data and privacy.
   Preserve old history as unknown; pass display state as historical categorical context, never future data.

@@ -35,11 +35,14 @@ public static class RecentRate
     /// <summary>Ultimo tratto continuo a batteria: si ferma a un alimentatore, a una lacuna o a una risalita.</summary>
     internal static List<BatterySample> CurrentDischargeTail(IReadOnlyList<BatterySample> samples)
     {
+        // The immediate reading wins over a stored sample with the same second.
+        samples = samples.GroupBy(s => s.TimestampUtc).Select(g => g.Last()).OrderBy(s => s.TimestampUtc).ToArray();
         var tail = new List<BatterySample>();
         for (var i = samples.Count - 1; i >= 0; i--)
         {
             var s = samples[i];
             if (!s.IsDischarging) break;
+            if (samples[^1].DesignMWh is int currentDesign && s.DesignMWh is int design && design != currentDesign) break;
             if (i > 0 && i < samples.Count - 1 && IsSpike(samples[i - 1], s, samples[i + 1])) continue;
             if (tail.Count > 0)
             {

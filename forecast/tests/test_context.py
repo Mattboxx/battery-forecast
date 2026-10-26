@@ -10,7 +10,7 @@ def context():
 
 def test_sensor_grid_interpolates_short_gaps_but_not_long_gaps():
     s=context()
-    data={"cpu_pct":[[i*300,float(i*5)] for i in [0,1,2,5,6,7,8,9]]}
+    data={"cpu_pct":[[i*300,float(i*5)] for i in [0,1,2,4,5,6,7,8,9]]}
     numeric,categories,names=series.past_covariates(data,s)
     assert numeric.shape==(1,1,10) and categories is None and names==["cpu_pct"]
     assert numeric[0,0,3]==15 and numeric[0,0,4]==20
