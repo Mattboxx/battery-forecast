@@ -19,6 +19,14 @@
 
 <p align="center">
   <picture>
+    <source srcset="images/it-panel-dark.png" media="(prefers-color-scheme: dark)">
+    <img src="images/it-panel-light.png" width="384" alt="Interfaccia di Battery Forecast con autonomia stimata, fascia indicativa e grafico delle 24 ore">
+  </picture>
+</p>
+<p align="center"><sub>Interfaccia demo · storico sintetico; previsioni calcolate dal vero modello locale.</sub></p>
+
+<p align="center">
+  <picture>
     <source srcset="images/it-hover-open-dark.gif" media="(prefers-color-scheme: dark)">
     <img src="images/it-hover-open-light.gif" width="420" alt="Il puntatore si ferma sull'icona della batteria vicino all'orologio e il pannello di Battery Forecast si apre; quando si allontana si richiude">
   </picture>

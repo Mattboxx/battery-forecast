@@ -27,6 +27,14 @@
 
 <p align="center">
   <picture>
+    <source srcset="docs/images/panel-dark.png" media="(prefers-color-scheme: dark)">
+    <img src="docs/images/panel-light.png" width="384" alt="Battery Forecast interface with estimated battery life, indicative range and the 24-hour chart">
+  </picture>
+</p>
+<p align="center"><sub>Demo interface · synthetic history; forecasts computed by the real local model.</sub></p>
+
+<p align="center">
+  <picture>
     <source srcset="docs/images/hover-open-dark.gif" media="(prefers-color-scheme: dark)">
     <img src="docs/images/hover-open-light.gif" width="420" alt="The pointer rests on the battery icon next to the clock and the Battery Forecast panel opens; when the pointer moves away it closes">
   </picture>
