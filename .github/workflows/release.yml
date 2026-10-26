@@ -80,12 +80,6 @@ jobs:
         run: |
           forecast/.venv/Scripts/python.exe tools/smoke_package.py artifacts/BatteryForecast --arch ${{ matrix.arch }} --report artifacts/package-smoke-${{ matrix.arch }}.json
           if ($LASTEXITCODE) { throw "Frozen package smoke test failed" }
-      - name: Install, verify, update and uninstall on disposable runner
-        timeout-minutes: 20
-        shell: pwsh
-        run: |
-          $setup = (Get-ChildItem artifacts/BatteryForecast-Setup-*-${{ matrix.arch }}.exe | Select-Object -First 1).FullName
-          ./tools/test_installer.ps1 -Installer $setup -Arch ${{ matrix.arch }}
       - uses: actions/upload-artifact@v4
         with:
           name: installer-${{ matrix.arch }}
@@ -95,15 +89,53 @@ jobs:
             artifacts/*smoke-*.json
             artifacts/BatteryForecast/licenses/inventory.json
 
+  # Installazione reale su un runner usa e getta, in un job a parte: il runner Windows ARM di GitHub a volte si
+  # blocca del tutto in questo passo (ignora anche i timeout) e non deve tenere ferma la pubblicazione.
+  # x64 resta obbligatorio per pubblicare; ARM64 viene verificato e riportato ma non blocca la release.
+  install-x64:
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/download-artifact@v4
+        with: { name: installer-x64, path: artifacts }
+      - name: Install, verify, update and uninstall on disposable runner
+        timeout-minutes: 20
+        shell: pwsh
+        run: |
+          $setup = (Get-ChildItem artifacts/BatteryForecast-Setup-*-x64.exe | Select-Object -First 1).FullName
+          ./tools/test_installer.ps1 -Installer $setup -Arch x64 -Python python
+
+  install-arm64:
+    needs: build
+    runs-on: windows-11-arm
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", architecture: arm64 }
+      - uses: actions/download-artifact@v4
+        with: { name: installer-arm64, path: artifacts }
+      - name: Install, verify, update and uninstall on disposable runner
+        timeout-minutes: 20
+        shell: pwsh
+        run: |
+          $setup = (Get-ChildItem artifacts/BatteryForecast-Setup-*-arm64.exe | Select-Object -First 1).FullName
+          ./tools/test_installer.ps1 -Installer $setup -Arch arm64 -Python python
+
   release:
     if: github.event_name == 'push'
-    needs: build
+    needs: [build, install-x64]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           path: dist
+          pattern: installer-*
           merge-multiple: true
       - name: Create release
         env:

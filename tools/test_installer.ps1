@@ -1,5 +1,6 @@
 # For a disposable GitHub-hosted runner only. Never run over the user's installation.
-param([Parameter(Mandatory=$true)][string]$Installer, [ValidateSet('x64','arm64')][string]$Arch='x64')
+param([Parameter(Mandatory=$true)][string]$Installer, [ValidateSet('x64','arm64')][string]$Arch='x64',
+      [string]$Python='forecast/.venv/Scripts/python.exe')   # basta la libreria standard
 $ErrorActionPreference='Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or -not $env:RUNNER_TEMP) { throw 'Installer smoke test requires a disposable CI runner' }
 $smokeRoot = Join-Path $env:RUNNER_TEMP 'BatteryForecast-installed-smoke'
@@ -28,13 +29,13 @@ function Run($file, [string[]]$arguments, [int]$seconds = 300) {
 try {
     if ((Run $installerPath $installArgs) -ne 0) { throw 'Installer failed' }
     Step 'smoke test of the installed package'
-    & forecast/.venv/Scripts/python.exe tools/smoke_package.py $smokeRoot --arch $Arch --report "artifacts/installed-smoke-$Arch.json"
+    & $Python tools/smoke_package.py $smokeRoot --arch $Arch --report "artifacts/installed-smoke-$Arch.json"
     if ($LASTEXITCODE) { throw 'Installed package smoke test failed' }
     if ((Run (Join-Path $smokeRoot 'BatteryForecast.exe') @('--quit') 60) -ne 0) { throw 'Installed app did not close cleanly' }
     # Reinstall over the same directory and ensure notices are still present and intact.
     if ((Run $installerPath $installArgs) -ne 0) { throw 'In-place reinstall failed' }
     Step 'legal files after reinstall'
-    & forecast/.venv/Scripts/python.exe tools/licenses.py (Join-Path $smokeRoot 'licenses') --verify
+    & $Python tools/licenses.py (Join-Path $smokeRoot 'licenses') --verify
     if ($LASTEXITCODE) { throw 'Updated installation lost legal files' }
 }
 finally {
