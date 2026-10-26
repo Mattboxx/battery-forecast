@@ -66,5 +66,72 @@
     "file": "vendor/CsWinRT-LICENSE.txt",
     "url": "https://raw.githubusercontent.com/microsoft/CsWinRT/8649ee3eeb2445ca2a36d80d878ef60b96a6c65d/LICENSE",
     "sha256": "9906940f61b1f0b533fa7d99baf55178b2808fbe113ea51dfbfad8572ccd5f2b"
+  },
+  {
+    "file": "vendor/Intel-OpenMP-EULA.txt",
+    "url": "https://files.pythonhosted.org/packages/d2/0c/7303ee63001ee8155b056eb3a3e2e692e257f505d96efabe0cff69f4d85f/intel_openmp-2026.1.1-py2.py3-none-win_amd64.whl",
+    "wheel_sha256": "6d2a4e8de14a59ad630069cd5e9d28a5d914ad9a2a43b9fb38aeba31dec69c8a",
+    "archive_member": "intel_openmp-2026.1.1.dist-info/LICENSE.txt",
+    "sha256": "febfb69a5b058f55892dc7f341108a9ca29d50e9fe85723a57eebbb826436958"
+  },
+  {
+    "file": "vendor/Intel-OpenMP-NOTICES.txt",
+    "url": "https://files.pythonhosted.org/packages/d2/0c/7303ee63001ee8155b056eb3a3e2e692e257f505d96efabe0cff69f4d85f/intel_openmp-2026.1.1-py2.py3-none-win_amd64.whl",
+    "wheel_sha256": "6d2a4e8de14a59ad630069cd5e9d28a5d914ad9a2a43b9fb38aeba31dec69c8a",
+    "archive_member": "intel_openmp-2026.1.1.data/data/share/doc/compiler/licensing/openmp/third-party-programs.txt",
+    "sha256": "f8ce918fe7311ce279e68380a2e233f8a42b1cd3dda8f4c48d6de97a0255c1d7"
+  },
+  {
+    "file": "vendor/ArmPL-24.10-LICENSE.txt",
+    "url": "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version_24.10/arm-performance-libraries_24.10_Windows.msi",
+    "installer_sha256": "69fcf2431f1639dc621b304aac163aeaa5bd515eb7460bf44b1b74f6425b9335",
+    "archive_member": "license_agreement.txt",
+    "retrieval": "Read MSI File/Media/_Streams tables without installing; expand embedded cabinet",
+    "sha256": "736a52330d4ebea0fc70bf03917c521ad8f59326eb29de8b82352f4a3ef46259"
+  },
+  {
+    "file": "vendor/ArmPL-24.10-NOTICES.txt",
+    "url": "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version_24.10/arm-performance-libraries_24.10_Windows.msi",
+    "installer_sha256": "69fcf2431f1639dc621b304aac163aeaa5bd515eb7460bf44b1b74f6425b9335",
+    "archive_member": "third_party_licenses.txt",
+    "retrieval": "Read MSI File/Media/_Streams tables without installing; expand embedded cabinet",
+    "sha256": "e7aa4693bd112275829c136e714e79c1558b771e661ae2ab0fb046b83be51de3"
+  },
+  {
+    "file": "vendor/MSVC-2022-LICENSE.docx",
+    "url": "https://visualstudio.microsoft.com/wp-content/uploads/2021/09/Visual-C-Runtime-2015-2022-License-1.docx",
+    "sha256": "f1e3d56ceb2ad68aae0711b910375009e651ac5530fa0760f0dea6e81e54fae1"
+  },
+  {
+    "file": "vendor/MSVC-2022-LICENSE.txt",
+    "url": "https://visualstudio.microsoft.com/wp-content/uploads/2021/09/Visual-C-Runtime-2015-2022-License-1.docx",
+    "derived_from": "MSVC-2022-LICENSE.docx",
+    "transformation": "Text of word/document.xml paragraphs, no paraphrasing",
+    "sha256": "2dd434a15fb5f9d28c33211a5af471eb719acba5db65e5103e0db95e7869a2fb"
+  },
+  {
+    "file": "vendor/MSVC-2026-LICENSE.docx",
+    "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual-C-V14-License-Redistributable_and_Runtime_ENU.docx",
+    "sha256": "08651651a7602fc7c0e2763de0fde1ff9f868df2780597cd1775ee9d6441c783"
+  },
+  {
+    "file": "vendor/MSVC-2026-LICENSE.txt",
+    "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual-C-V14-License-Redistributable_and_Runtime_ENU.docx",
+    "derived_from": "MSVC-2026-LICENSE.docx",
+    "transformation": "Text of word/document.xml paragraphs, no paraphrasing",
+    "sha256": "c15f0776c632b97bc3b01dbc3090ae347bb406235ae7132601bbaba91624e4fc"
+  },
+  {
+    "file": "vendor/Intel-oneMKL-2026.1-LICENSE.txt",
+    "url": "https://files.pythonhosted.org/packages/13/de/947be8379312d458a2c78c3895b3e70461db1c8e5bf0c8d37fba0e756f22/mkl_static-2026.1.0-py2.py3-none-win_amd64.whl",
+    "wheel_sha256": "32e4c5bd3ae98372dd75cc196ea46f0f5ca0fe1217220bc91001eb12f33a3e88",
+    "archive_member": "mkl_static-2026.1.0.dist-info/LICENSE.txt",
+    "sha256": "7721633d0ddff43fae25ebfd405f8166a0ce730cbcec44f2f3ad9d5eb8ac9a6f"
+  },
+  {
+    "file": "vendor/Intel-oneMKL-2026-NOTICES.html",
+    "url": "https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-c/2026-0/notices-and-disclaimers.html",
+    "scope": "Supplementary original 2026 documentation notices; exact static library license is from mkl_static2026.1.0",
+    "sha256": "ce1b2f6545ab55c95af6ee993cf165775aa72ef72d3a68ebb3d08ed27ae1040a"
   }
 ]

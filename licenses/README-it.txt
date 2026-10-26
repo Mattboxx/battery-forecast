@@ -29,3 +29,9 @@ Percorsi all'interno dell'installazione Windows:
 
 Non tutti i componenti sono MIT. La presenza di un nome di licenza o di un URL non sostituisce
 la copia dei testi e degli avvisi richiesti. La build verifica la loro presenza prima dell'installer.
+
+Runtime nativi: Intel OpenMP (x64), ArmPL (ARM64) e Microsoft Visual C++ hanno termini propri,
+anche proprietari, riprodotti in vendor/. inventory.json associa ogni DLL/PYD del motore ai documenti.
+INSTALLER-TERMS-it.txt e INSTALLER-TERMS-en.txt riportano l’introduzione e gli originali pertinenti.
+L’installer mostra la pagina dei termini; i vecchi aggiornamenti silenziosi aprono il wizard visibile.
+Le installazioni non interattive richiedono /ACCEPTCOMPONENTTERMS dopo lettura delle condizioni.

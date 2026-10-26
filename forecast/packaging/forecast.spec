@@ -16,6 +16,9 @@ a = Analysis(
               "torchvision", "torchaudio", "tensorboard"],
     noarchive=False,
 )
+# Windows 10+ supplies UCRT and API-set contracts. Do not redistribute SDK/System32 copies.
+a.binaries = [row for row in a.binaries if Path(row[0]).name.lower() != "ucrtbase.dll"
+              and not Path(row[0]).name.lower().startswith("api-ms-win-")]
 pyz = PYZ(a.pure)
 exe = EXE(
     pyz,

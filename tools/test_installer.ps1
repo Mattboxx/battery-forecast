@@ -5,7 +5,7 @@ $ErrorActionPreference='Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or -not $env:RUNNER_TEMP) { throw 'Installer smoke test requires a disposable CI runner' }
 $smokeRoot = Join-Path $env:RUNNER_TEMP 'BatteryForecast-installed-smoke'
 $installerPath = (Resolve-Path -LiteralPath $Installer).Path
-$installArgs = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-', '/TASKS=', "/DIR=`"$smokeRoot`"",
+$installArgs = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-', '/ACCEPTCOMPONENTTERMS', '/TASKS=', "/DIR=`"$smokeRoot`"",
                  "/LOG=`"$(Join-Path $env:RUNNER_TEMP "inno-$Arch.log")`"")
 
 function Step($text) { Write-Host "[$((Get-Date).ToString('HH:mm:ss'))] $text" }
@@ -27,6 +27,10 @@ function Run($file, [string[]]$arguments, [int]$seconds = 300) {
 }
 
 try {
+    Step 'silent installation without component-term acceptance must be rejected'
+    $rejectedArgs = $installArgs | Where-Object { $_ -ne '/ACCEPTCOMPONENTTERMS' }
+    if ((Run $installerPath $rejectedArgs) -eq 0) { throw 'Installer silently accepted missing component-term consent' }
+    if (Test-Path -LiteralPath (Join-Path $smokeRoot 'BatteryForecast.exe')) { throw 'Rejected setup wrote an application' }
     if ((Run $installerPath $installArgs) -ne 0) { throw 'Installer failed' }
     Step 'smoke test of the installed package'
     & $Python tools/smoke_package.py $smokeRoot --arch $Arch --report "artifacts/installed-smoke-$Arch.json"

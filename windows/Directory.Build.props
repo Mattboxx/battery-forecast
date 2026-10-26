@@ -11,7 +11,9 @@
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Version>0.1.0</Version>
-    <Authors>Battery Forecast contributors; original Till Dusk by Matteo Bonfanti</Authors>
+    <Authors>Mattboxx</Authors>
+    <Company>Mattboxx</Company>
+    <Copyright>Copyright (c) 2026 Matteo Bonfanti (Till Dusk); Copyright (c) 2026 Mattboxx (Battery Forecast)</Copyright>
     <Product>Battery Forecast</Product>
   </PropertyGroup>
 </Project>

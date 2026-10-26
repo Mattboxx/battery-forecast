@@ -25,7 +25,7 @@
 </p>
 <p align="center"><sub>Interfaccia demo · storico sintetico; previsioni calcolate dal vero modello locale.</sub></p>
 
-> **Anteprima.** Battery Forecast funziona ed è in prova su portatili reali. La sua accuratezza non è ancora stata
+> **Accuratezza delle previsioni.** Battery Forecast funziona ed è in prova su portatili reali. La sua accuratezza non è ancora stata
 > misurata, quindi non ne dichiara: mostra una fascia e dice da dove viene ogni numero.
 
 ## Due previsioni, un pannello
@@ -126,7 +126,7 @@ giornaliero facoltativo degli aggiornamenti su `api.github.com`.
 1. Scarica `BatteryForecast-Setup-<versione>-x64.exe` (Intel/AMD) oppure `-arm64.exe` (PC ARM) dalle
    [Release](https://github.com/Mattboxx/battery-forecast/releases).
 2. Facoltativo: confronta il file con il suo `.sha256` usando `Get-FileHash .\BatteryForecast-Setup-*.exe`.
-3. Avvialo: si installa solo per il tuo utente, senza privilegi di amministratore. L'anteprima **non è firmata**,
+3. Avvialo: si installa solo per il tuo utente, senza privilegi di amministratore. L'installer **non è firmato**,
    quindi SmartScreen può avvisarti: scegli *Ulteriori informazioni → Esegui comunque*.
 4. L'icona della batteria compare vicino all'orologio; se Windows la nasconde, trascinala fuori dall'area `^`.
 
@@ -137,16 +137,29 @@ Requisiti: Windows 10 2004 o Windows 11, x64 o ARM64, circa 280 MB da scaricare.
 - Battery Forecast è un fork di **[Till Dusk](https://github.com/mattBonfanti/till-dusk) di Matteo Bonfanti**
   (licenza MIT), l'app originale per la barra dei menu di macOS.
 - **[Timestral](https://github.com/mistralai/timestral)** di Mistral AI: codice Apache 2.0, pesi Timestral-28M
-  sotto licenza MIT modificata (testo esatto in [`licenses/`](../licenses), con una condizione per le aziende
-  sopra una soglia di fatturato mensile). Battery Forecast non è affiliato a Mistral AI.
+  sotto licenza MIT modificata (testo esatto in [`licenses/`](../licenses), con la condizione su azienda e
+  datore di lavoro descritta sotto). Battery Forecast non è affiliato a Mistral AI.
 - Il codice di Battery Forecast è MIT, vedi [LICENSE](../LICENSE).
+- Runtime nativi Intel OpenMP/oneMKL (x64), ArmPL (ARM64) e Microsoft Visual C++ hanno condizioni proprie.
+  I nuovi installer mostrano gli accordi applicabili e conservano originali e avvisi offline in `licenses`.
+
+La MIT copre il codice del progetto per cui i contributori hanno i relativi diritti. Il pacchetto
+contiene dipendenze con termini propri. I pesi Timestral hanno una **Modified MIT**, non MIT standard:
+la clausola riguarda il fatturato globale consolidato mensile dell’azienda **o del datore di lavoro**,
+oltre 20 milioni di dollari (o equivalente) **nel mese precedente**, e menziona anche derivati e opere
+combinate. Leggi i [termini originali completi](../licenses/vendor/Timestral-28M-LICENSE.txt) e
+l’[audit di distribuzione](LICENSE_AUDIT.md). Nessuna certificazione generale di conformità è dichiarata.
+
+Battery Forecast è un adattamento indipendente, non un prodotto ufficiale o approvato da Matteo
+Bonfanti o Mistral AI. Le donazioni Ko-fi a Mattboxx sostengono il porting Windows, non gli autori
+originali. Copyright e attribuzioni sono conservati nel pacchetto.
 
 ## Sostegno
 
 Se Battery Forecast ti è utile puoi sostenerlo su **[Ko-fi](https://ko-fi.com/mattboxx)**. Segnalazioni e idee
 nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
-## Novità della preview alpha.2
+## Più controllo e contesto
 
 - **Grafico esplorabile:** passa il mouse per spostare il pallino e leggere data/ora, percentuale e fascia
   indicativa. Da tastiera usa frecce, Home e Fine. Il tooltip distingue la parte estrapolata.
@@ -158,7 +171,6 @@ nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 - **Apertura al passaggio (facoltativa):** lascia il puntatore sull'icona e il pannello si apre senza clic, senza
   rubare il focus, e si richiude quando il puntatore si allontana; un clic lo tiene aperto.
 - **Dimensione a piacere:** scala (80–160%) e larghezza del pannello, applicate mentre muovi i cursori.
-  Se è già occupata, resta quella precedente. Supportati Ctrl o Alt con lettere/cifre/tasti F tranne F12.
 - **Previsione anche in carica:** obiettivo 50–100%, inizialmente 80%. Mentre carichi, Timestral impara dalle
   tue ricariche e prevede quando arriverai all'obiettivo, con fascia, grafico e lo stesso rigore della scarica,
   compreso il rallentamento vicino al pieno. Il ritmo di carica attuale è mostrato accanto come confronto e usato
@@ -174,14 +186,3 @@ nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 I test funzionali includono il modello reale, ma **non è stato misurato un aumento di accuratezza**.
 Ricarica e sensori sono sperimentali; raccolta e uso nel modello si disattivano separatamente.
 Vedi [scheda modello](MODEL_CARD.md).
-
-La MIT copre il codice del progetto per cui i contributori hanno i relativi diritti. Il pacchetto
-contiene dipendenze con termini propri. I pesi Timestral hanno una **Modified MIT**, non MIT standard:
-la clausola riguarda il fatturato globale consolidato mensile dell’azienda **o del datore di lavoro**,
-oltre 20 milioni di dollari (o equivalente) **nel mese precedente**, e menziona anche derivati e opere
-combinate. Leggi i [termini originali completi](../licenses/vendor/Timestral-28M-LICENSE.txt) e
-l’[audit di distribuzione](LICENSE_AUDIT.md). Nessuna certificazione generale di conformità è dichiarata.
-
-Battery Forecast è un adattamento indipendente, non un prodotto ufficiale o approvato da Matteo
-Bonfanti o Mistral AI. Le donazioni Ko-fi a Mattboxx sostengono il porting Windows, non gli autori
-originali. Copyright e attribuzioni sono conservati nel pacchetto.

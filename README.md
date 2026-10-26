@@ -33,7 +33,7 @@
 </p>
 <p align="center"><sub>Demo interface · synthetic history; forecasts computed by the real local model.</sub></p>
 
-> **Preview.** Battery Forecast works and is being tested on real laptops. Its accuracy has not been measured
+> **Forecast accuracy.** Battery Forecast works and is being tested on real laptops. Its accuracy has not been measured
 > yet, so it does not claim any: it shows a range and tells you where each number comes from.
 
 ## Two forecasts, one panel
@@ -149,7 +149,7 @@ The AI is not a background service. It starts, computes, and closes.
    ```powershell
    Get-FileHash .\BatteryForecast-Setup-*.exe
    ```
-3. Run it. It installs for your user only, without administrator rights. The preview is **not digitally signed**,
+3. Run it. It installs for your user only, without administrator rights. The installer is **not digitally signed**,
    so SmartScreen may warn you: choose *More info → Run anyway*.
 4. The battery icon appears next to the clock. If Windows hides it, drag it out of the `^` overflow area.
 
@@ -175,7 +175,7 @@ forecast\.venv\Scripts\python -m pytest -q forecast
 dotnet run --project windows\src\BatteryForecast.App -- --demo
 
 # full offline package and installer in artifacts\
-powershell -NoProfile -File tools\package.ps1 -Version 0.9.0-alpha.2
+powershell -NoProfile -File tools\package.ps1 -Version 0.9.0
 ```
 
 ARM64 installers are built natively on Windows ARM by the [release workflow](.github/workflows/release.yml),
@@ -196,17 +196,29 @@ because PyInstaller packages the Python it runs on.
   wording of many messages come from it.
 - **[Timestral](https://github.com/mistralai/timestral)** by Mistral AI: code under Apache 2.0, Timestral-28M weights
   under a modified MIT license (its exact text is in [`licenses/`](licenses) and inside the installer; it includes a
-  condition for companies above a monthly revenue threshold). Battery Forecast is not affiliated with Mistral AI.
+  company/employer revenue condition detailed below). Battery Forecast is not affiliated with Mistral AI.
 - Python, PyTorch, NumPy, .NET and the other bundled components keep their own licenses; the installer ships every
-  text in its `licenses` folder.
+  original legal files in its `licenses` folder. Native Intel OpenMP/oneMKL (x64), ArmPL (ARM64) and Microsoft
+  Visual C++ runtimes have separate supplier terms; new installers display the applicable component agreements.
 - Battery Forecast's own code is MIT, see [LICENSE](LICENSE).
+
+The Windows package contains third-party components under their own terms. In particular, the Timestral
+weights' Modified MIT license restricts exercising its rights when the global consolidated monthly
+revenue of your company **or employer** exceeds USD 20 million (or equivalent) **for the preceding month**;
+the full original text also addresses derivatives and combined works. This is not standard MIT.
+Read the [original terms](licenses/vendor/Timestral-28M-LICENSE.txt) and [distribution audit](docs/LICENSE_AUDIT.md).
+The MIT license applies to project code for which the contributors hold the relevant rights.
+
+Battery Forecast is an independent adaptation and is not an official or endorsed product of Matteo
+Bonfanti or Mistral AI. Donations to Mattboxx on Ko-fi fund this Windows port; they are not donations
+to the original authors. Their copyright and attribution notices are preserved in every package.
 
 ## Support
 
 If Battery Forecast is useful to you, you can support its development on **[Ko-fi](https://ko-fi.com/mattboxx)**.
 Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
-## Preview alpha.2: more control and context
+## More control and context
 
 - **Explore the chart:** hover to move the dot along the forecast; read the local date/time, expected
   battery percentage and indicative range. Focus it and use Left/Right, Home or End from the keyboard.
@@ -236,14 +248,3 @@ Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/batter
 Charging and extra sensor context are experimental. The functional tests exercise the real local model,
 but **an accuracy improvement has not been measured**. See [MODEL_CARD](docs/MODEL_CARD.md) for methodology
 and limitations. Collection/model use can be disabled independently in Preferences.
-
-The Windows package contains third-party components under their own terms. In particular, the Timestral
-weights' Modified MIT license restricts exercising its rights when the global consolidated monthly
-revenue of your company **or employer** exceeds USD 20 million (or equivalent) **for the preceding month**;
-the full original text also addresses derivatives and combined works. This is not standard MIT.
-Read the [original terms](licenses/vendor/Timestral-28M-LICENSE.txt) and [distribution audit](docs/LICENSE_AUDIT.md).
-The MIT license applies to project code for which the contributors hold the relevant rights.
-
-Battery Forecast is an independent adaptation and is not an official or endorsed product of Matteo
-Bonfanti or Mistral AI. Donations to Mattboxx on Ko-fi fund this Windows port; they are not donations
-to the original authors. Their copyright and attribution notices are preserved in every package.

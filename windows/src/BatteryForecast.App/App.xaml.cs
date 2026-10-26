@@ -274,7 +274,7 @@ public partial class App : Application
     /// <summary>Avvia l'installer scaricato e verificato, in modalità con avanzamento visibile, poi esce.</summary>
     public void InstallUpdate(string installer)
     {
-        Process.Start(new ProcessStartInfo(installer, "/SILENT /SP- /NOCANCEL /NORESTART /RELAUNCH") { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo(installer, "/SP- /NORESTART /RELAUNCH") { UseShellExecute = true });
         Quit();
     }
 

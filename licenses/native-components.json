@@ -1,0 +1,44 @@
+{
+  "libiomp5md.dll": {
+    "sha256": "de6d18b2dec5811f7932950282a4c8218c5f287db04ff320dcbaa74733d6fcce",
+    "component": "Intel OpenMP 2026.1.1",
+    "licenses": [
+      "vendor/Intel-OpenMP-EULA.txt",
+      "vendor/Intel-OpenMP-NOTICES.txt"
+    ]
+  },
+  "libiompstubs5md.dll": {
+    "sha256": "c477314c1b489c75455b9738452760cd275a254822762079e001e27f79eb25cb",
+    "component": "Intel OpenMP 2026.1.1",
+    "licenses": [
+      "vendor/Intel-OpenMP-EULA.txt",
+      "vendor/Intel-OpenMP-NOTICES.txt"
+    ]
+  },
+  "armpl_lp64.dll": {
+    "sha256": "2913a6f3b11d43695f4a4cfe501e67e3d67ce14f652e0b99bdbe38d0564ba665",
+    "component": "Arm Performance Libraries 24.10.0",
+    "licenses": [
+      "vendor/ArmPL-24.10-LICENSE.txt",
+      "vendor/ArmPL-24.10-NOTICES.txt"
+    ]
+  },
+  "torch_cpu.dll": {
+    "variants": {
+      "420caca3c1b198126dc74487a5525356c789b473749f5079e8f14c142a3a53da": {
+        "component": "PyTorch 2.14.1+cpu; statically linked Intel oneMKL 2026.1 (build 20260612)",
+        "licenses": [
+          "python/torch-2.14.1+cpu-licenses.zip",
+          "vendor/Intel-oneMKL-2026.1-LICENSE.txt",
+          "vendor/Intel-oneMKL-2026-NOTICES.html"
+        ]
+      },
+      "362a0ff17b3a344408d17940fae2f3464db0a4507cf071ee6c782e464245ab65": {
+        "component": "PyTorch 2.14.1+cpu (ARM64; ArmPL backend separately mapped)",
+        "licenses": [
+          "python/torch-2.14.1+cpu-licenses.zip"
+        ]
+      }
+    }
+  }
+}

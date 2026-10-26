@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.9.0
+
+- Preserve complete offline Intel OpenMP and ArmPL agreements/notices, verified against the exact bundled DLLs.
+- Include version-specific Microsoft Visual C++ runtime original terms, with pinned provenance and file hashes.
+- Show the applicable component terms in the Italian/English installer; updates open a visible wizard, including updates launched from alpha.2. Unattended installs require explicit component-term acceptance.
+- Map every frozen engine DLL/PYD to legal documents; reject unknown native components, changed vendor binaries and missing installer terms.
+- Omit OS-supplied UCRT/API-set copies on supported Windows versions; retain the bundled Python, .NET and model.
+- Identify Mattboxx as the Windows publisher while retaining Matteo Bonfanti’s original copyright and Mistral AI attribution.
+- Present a static interface screenshot first, with the hover animation in its own feature section on the website and both READMEs.
+- No prediction/model changes or measured accuracy claim in this update.
+
 ## 0.9.0-alpha.2
 
 - Manual target times and four extra targets, quiet hours and custom alerts.

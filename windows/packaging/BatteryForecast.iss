@@ -18,10 +18,10 @@ AppId={{868AE5C4-C079-4FE5-972C-C28E6A348E2D}
 AppName=Battery Forecast
 AppVersion={#AppVersion}
 AppVerName=Battery Forecast {#AppVersion}
-AppPublisher=Battery Forecast contributors
+AppPublisher=Mattboxx
 AppPublisherURL=https://github.com/Mattboxx/battery-forecast
 AppSupportURL=https://github.com/Mattboxx/battery-forecast/issues
-AppCopyright=Till Dusk by Matteo Bonfanti (MIT); Windows port contributors
+AppCopyright=Copyright (c) 2026 Matteo Bonfanti (Till Dusk); Copyright (c) 2026 Mattboxx (Battery Forecast)
 PrivilegesRequired=lowest
 DefaultDirName={autopf}\Battery Forecast
 ; stesso AppId dell'alpha "Till Dusk": la sostituisce, ma in una cartella con il nuovo nome
@@ -49,8 +49,8 @@ CloseApplications=yes
 RestartApplications=no
 
 [Languages]
-Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
-Name: "en"; MessagesFile: "compiler:Default.isl"
+Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"; LicenseFile: "{#Dist}\licenses\INSTALLER-TERMS-it.txt"
+Name: "en"; MessagesFile: "compiler:Default.isl"; LicenseFile: "{#Dist}\licenses\INSTALLER-TERMS-en.txt"
 
 [CustomMessages]
 it.StartupTask=Avvia Battery Forecast all'accesso a Windows (lo storico si registra solo mentre l'app è aperta)
@@ -96,6 +96,42 @@ Filename: "{app}\BatteryForecast.exe"; Parameters: "--background"; Flags: nowait
 Filename: "{app}\BatteryForecast.exe"; Parameters: "--quit"; RunOnceId: "QuitBatteryForecast"; Flags: runhidden waituntilterminated skipifdoesntexist
 
 [Code]
+function InitializeSetup: Boolean;
+var
+  I, Code: Integer;
+  Accepted, FromOldUpdater: Boolean;
+  Arg, InteractiveArgs: String;
+begin
+  Accepted := False;
+  FromOldUpdater := False;
+  InteractiveArgs := '';
+  for I := 1 to ParamCount do
+  begin
+    Arg := ParamStr(I);
+    if CompareText(Arg, '/ACCEPTCOMPONENTTERMS') = 0 then Accepted := True;
+    if CompareText(Arg, '/RELAUNCH') = 0 then FromOldUpdater := True;
+    if (CompareText(Arg, '/SILENT') <> 0) and
+       (CompareText(Arg, '/VERYSILENT') <> 0) and
+       (CompareText(Arg, '/SUPPRESSMSGBOXES') <> 0) and
+       (CompareText(Arg, '/NOCANCEL') <> 0) then
+      InteractiveArgs := InteractiveArgs + ' ' + AddQuotes(Arg);
+  end;
+  Result := (not WizardSilent) or Accepted;
+  if not Result then
+  begin
+    // Alpha.2's updater passes /SILENT /RELAUNCH. Start a visible wizard so that
+    // existing users can read and accept terms instead of receiving a silent failure.
+    if FromOldUpdater then
+    begin
+      Log('Legacy updater: opening the interactive component-terms wizard.');
+      if not Exec(ExpandConstant('{srcexe}'), Trim(InteractiveArgs), '', SW_SHOWNORMAL, ewNoWait, Code) then
+        Log('Could not start the interactive installer; run the downloaded setup manually.');
+    end
+    else
+      Log('Silent installation requires explicit /ACCEPTCOMPONENTTERMS acceptance of the bundled component terms.');
+  end;
+end;
+
 function Relaunch: Boolean;
 var
   I: Integer;

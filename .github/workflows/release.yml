@@ -7,7 +7,7 @@ on:
       version:
         description: 'Build and verify installers without publishing'
         required: true
-        default: '0.9.0-alpha.2'
+        default: '0.9.0'
   push:
     tags: ["v*"]
 
@@ -91,7 +91,7 @@ jobs:
 
   # Installazione reale su un runner usa e getta, in un job a parte: il runner Windows ARM di GitHub a volte si
   # blocca del tutto in questo passo (ignora anche i timeout) e non deve tenere ferma la pubblicazione.
-  # x64 resta obbligatorio per pubblicare; ARM64 viene verificato e riportato ma non blocca la release.
+  # Dopo l’audit nativo, entrambi gli installer devono superare la verifica prima della pubblicazione.
   install-x64:
     needs: build
     runs-on: windows-latest
@@ -128,7 +128,7 @@ jobs:
 
   release:
     if: github.event_name == 'push'
-    needs: [build, install-x64]
+    needs: [build, install-x64, install-arm64]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -29,7 +29,7 @@
 
   <main id="top">
     <header class="hero wrap">
-      <a class="chip" href="https://github.com/Mattboxx/battery-forecast/releases"><i></i>Preview · Windows 10 and 11 · x64 and ARM64 →</a>
+      <a class="chip" href="https://github.com/Mattboxx/battery-forecast/releases"><i></i>Windows 10 and 11 · x64 and ARM64 →</a>
       <h1>Battery Forecast</h1>
       <p class="lead">How long will your laptop really last today? An AI forecast that learns how <em>you</em> use your PC, and runs entirely on it.</p>
       <div class="ctas">
@@ -220,13 +220,13 @@
       </div>
       <p class="small">Windows 10 (2004) or 11 · Intel/AMD x64 or ARM64 · about 280 MB download</p>
       <div class="notice">
-        <b>Windows security:</b> the preview installers are not digitally signed yet, so SmartScreen may warn you.
+        <b>Windows security:</b> the installers are not digitally signed yet, so SmartScreen may warn you.
         Choose <i>More info → Run anyway</i>, or first compare the file with its <code>.sha256</code> from the release page:
         <code>Get-FileHash .\BatteryForecast-Setup-*.exe</code>
       </div>
       <details>
         <summary>Is the forecast exact?</summary>
-        <p>No forecast of the future can be. Battery Forecast shows a central estimate with a range, says which model produced it, and tells you when it is still learning. How accurate it is on real laptops is being measured during the preview.</p>
+        <p>No forecast of the future can be. Battery Forecast shows a central estimate with a range, says which model produced it, and tells you when it is still learning. Accuracy on real laptops has not yet been measured.</p>
       </details>
       <details>
         <summary>Why is the download that large?</summary>
@@ -234,7 +234,7 @@
       </details>
       <details>
         <summary>Does it change my power settings?</summary>
-        <p>No. It only reads the battery. When battery saver would help, it opens the Windows settings page for you.</p>
+        <p>No. It reads available battery and hardware signals locally. When battery saver would help, it opens the Windows settings page for you.</p>
       </details>
     </section>
   </main>
@@ -246,6 +246,7 @@
         <div>Forecasts by <a href="https://github.com/mistralai/timestral">Timestral</a> (Mistral AI): code Apache-2.0, weights under their modified MIT license. Independent of Matteo Bonfanti and Mistral AI; no endorsement is implied.</div>
         <div>The code’s MIT license does not replace third-party terms. The model weights have a company/employer revenue condition (global consolidated monthly revenue exceeding USD 20 million in the preceding month).
         <a href="https://github.com/Mattboxx/battery-forecast/blob/main/licenses/vendor/Timestral-28M-LICENSE.txt">Read the full model terms</a> · <a href="https://github.com/Mattboxx/battery-forecast/blob/main/docs/LICENSE_AUDIT.md">Distribution audit</a>.</div>
+        <div>Native runtimes also have supplier terms (including Intel OpenMP/oneMKL on x64, ArmPL on ARM64 and Microsoft Visual C++). The installer includes their original agreements and offline notices.</div>
         <div>Ko-fi donations to Mattboxx fund this independent Windows port, not the original authors.</div>
       </div>
       <a class="kofi" href="https://ko-fi.com/mattboxx" rel="noopener">♥ Support on Ko-fi</a>
