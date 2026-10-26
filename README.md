@@ -167,7 +167,7 @@ forecast\.venv\Scripts\python -m pytest -q forecast
 dotnet run --project windows\src\BatteryForecast.App -- --demo
 
 # full offline package and installer in artifacts\
-powershell -NoProfile -File tools\package.ps1 -Version 0.9.0
+powershell -NoProfile -File tools\package.ps1 -Version 0.9.1
 ```
 
 ARM64 installers are built natively on Windows ARM by the [release workflow](.github/workflows/release.yml),
@@ -210,7 +210,7 @@ to the original authors. Their copyright and attribution notices are preserved i
 If Battery Forecast is useful to you, you can support its development on **[Ko-fi](https://ko-fi.com/mattboxx)**.
 Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
-## In development: more control and context
+## New in 0.9.1: more control and context
 
 - **Optional time goals:** switch off the evening goal and extra times without losing saved hours. The main
   forecast and chart remain available.
@@ -256,7 +256,7 @@ The tray tooltip is hidden while its panel is visible. Data and privacy also rec
 missing. This is not a per-monitor measurement, and it does not reconstruct old history. Recording and
 model-use switches apply to this channel too. Hover captions occupy a dedicated line outside each chart.
 
-The unreleased calculation corrections keep forecasts anchored to the actual reading time, preserve
+The 0.9.1 calculation corrections keep forecasts anchored to the actual reading time, preserve
 unknown power states and use contiguous recent trends. [Calculation details](docs/FORECAST_METHOD.md).
 Functional regression checks do not establish predictive superiority.
 
@@ -266,4 +266,4 @@ Choose a saved forecast to inspect individual differences, with warnings for cha
 and interruptions. New curves are saved locally under the same retention/deletion controls; older
 summary-only records cannot reconstruct missing past curves. The popup's gold dot is labelled as the
 **time goal**. The interface uses the original vector app icon at every size; the copy-summary action
-has been removed. These changes are in development and are not in the current 0.9.0 installer.
+has been removed. Available in 0.9.1. The last genuine cached forecast is also preserved when upgrading.

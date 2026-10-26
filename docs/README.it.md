@@ -202,7 +202,7 @@ o diversi nello stesso intervallo di cinque minuti restano mancanti. Non è una 
 ricostruisce lo storico precedente. Gli interruttori di raccolta e uso nel modello valgono anche per questo
 canale. Le didascalie al passaggio del mouse occupano una riga esterna a ogni grafico.
 
-Le correzioni del calcolo, non ancora pubblicate, ancorano la curva all’istante reale della lettura,
+Le correzioni del calcolo nella 0.9.1 ancorano la curva all’istante reale della lettura,
 preservano gli stati di alimentazione sconosciuti e usano tratti recenti continui.
 [Dettagli del metodo](FORECAST_METHOD.md). I test funzionali non dimostrano una superiorità predittiva.
 
@@ -212,4 +212,4 @@ vedere lo scarto puntuale, con avvisi per alimentazione diversa e interruzioni. 
 locali e seguono conservazione e cancellazione dello storico; i vecchi riepiloghi non permettono di
 ricostruire curve mancanti. Il pallino oro nel popup è associato esplicitamente all’**obiettivo orario**.
 Le interfacce usano l’icona vettoriale originale; rimosso il comando copia riepilogo. Queste novità sono
-in sviluppo e non sono presenti nell’installer 0.9.0 attualmente pubblicato.
+presenti nella 0.9.1. All’aggiornamento viene conservata anche l’ultima previsione autentica rimasta nella cache.

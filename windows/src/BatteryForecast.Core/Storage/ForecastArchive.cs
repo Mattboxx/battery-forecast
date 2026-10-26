@@ -12,6 +12,23 @@ public sealed record ForecastSnapshot(long Id, DateTimeOffset IssuedAt, string S
 
 public sealed partial class HistoryStore
 {
+    /// <summary>Keep the genuine last response retained by an older app, without reconstructing missing curves.</summary>
+    public bool PreserveCachedForecast(ForecastResponse response, DateTimeOffset issuedAt)
+    {
+        lock (gate)
+        {
+            using var check = db.CreateCommand();
+            check.CommandText = "SELECT 1 FROM forecast_snapshots WHERE origin=$origin AND source=$source LIMIT 1";
+            check.Parameters.AddWithValue("$origin", (long)response.ContextEndUtc);
+            check.Parameters.AddWithValue("$source", response.Source);
+            if (check.ExecuteScalar() is not null) return false;
+            using var tx = db.BeginTransaction();
+            InsertForecastSnapshot(response, issuedAt, response.Source, tx);
+            tx.Commit();
+            return true;
+        }
+    }
+
     void InsertForecastSnapshot(ForecastResponse response, DateTimeOffset issuedAt, string source, SqliteTransaction tx)
     {
         using var cmd = db.CreateCommand();

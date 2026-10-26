@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.9.1
 
-- Open settings on Battery trend: original issued forecasts beside observed readings, clear legends, individual differences and condition-change warnings. Save full responses locally with retention/deletion; never invent missing historical forecasts.
+- Open settings on Battery trend: original issued forecasts beside observed readings, clear legends, individual differences and condition-change warnings. Save full responses locally with retention/deletion, and preserve the genuine last cached response when upgrading; never invent missing historical forecasts.
 - Render the unchanged brand artwork as a vector in window icons and headers for high-DPI clarity.
 - Remove the copy-battery-summary action and identify the popup's automatic gold marker as the time goal.
 

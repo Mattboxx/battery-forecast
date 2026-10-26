@@ -394,7 +394,15 @@ public sealed class ForecastCoordinator : IDisposable
         try
         {
             var r = JsonSerializer.Deserialize<ForecastResponse>(File.ReadAllText(cachePath), Protocol.Json);
-            return r is null ? null : ForecastView.From(r);
+            if (r is null) return null;
+            if (r.Curve.Count > 0 && double.IsFinite(r.GeneratedAtUtc) && r.GeneratedAtUtc >= r.ContextEndUtc &&
+                r.GeneratedAtUtc >= clock.GetUtcNow().AddDays(-settings().RetentionDays).ToUnixTimeSeconds() &&
+                r.GeneratedAtUtc <= clock.GetUtcNow().ToUnixTimeSeconds())
+            {
+                try { store.PreserveCachedForecast(r, DateTimeOffset.FromUnixTimeMilliseconds((long)(r.GeneratedAtUtc * 1000))); }
+                catch (Microsoft.Data.Sqlite.SqliteException) { }
+            }
+            return ForecastView.From(r);
         }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException) { return null; }
     }

@@ -111,6 +111,7 @@ public sealed record QualityDto
 {
     public string State { get; init; } = "insufficient";
     public double ObservedDays { get; init; }
+    public double ObservedHours { get; init; }
     public double Coverage { get; init; }
     public int DischargeSessions { get; init; }
     public int ChargeSessions { get; init; }

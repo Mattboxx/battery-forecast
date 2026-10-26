@@ -3,6 +3,9 @@ using BatteryForecast.Core.Forecasting;
 using BatteryForecast.Core.Presentation;
 using BatteryForecast.Core.Storage;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Time.Testing;
+using System.Text.Json;
+using BatteryForecast.Core;
 
 namespace BatteryForecast.Tests;
 
@@ -18,6 +21,31 @@ public class ForecastArchiveTests : IDisposable
     static void Save(HistoryStore store, ForecastResponse r, DateTimeOffset issued) => store.RecordForecast(
         DateTimeOffset.FromUnixTimeSeconds((long)r.ContextEndUtc), r.Source, r.Level, r.ReservePct,
         "beyond_horizon", null,null,null,"learning",r.ModelId,r.ModelRevision,0,snapshot:r,issuedAt:issued);
+
+    [Fact]
+    public void Upgrade_preserves_the_genuine_past_cache_once_without_recalculating_it()
+    {
+        using var store = new HistoryStore(path);
+        var clock = new FakeTimeProvider(Samples.T0.AddSeconds(15));
+        var cachePath = path + ".json";
+        try
+        {
+            File.WriteAllText(cachePath, JsonSerializer.Serialize(Response(Samples.T0), Protocol.Json));
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                using var collector = new Collector(new CachedBattery(clock),store,clock);
+                using var coordinator = new ForecastCoordinator(collector,store,null,() => new Settings { Refresh=RefreshPolicy.OnOpen },cachePath,clock);
+                coordinator.Start();
+            }
+            var saved = Assert.Single(store.ForecastSnapshots(Samples.T0,Samples.T0.AddMinutes(1)));
+            Assert.Equal(Samples.T0.AddSeconds(10),saved.IssuedAt);
+            Assert.Equal(85,saved.Response.Curve[0].P50);
+        }
+        finally { File.Delete(cachePath); }
+    }
+
+    sealed class CachedBattery(FakeTimeProvider clock) : IBatteryProvider
+    { public BatterySample Read() => new(clock.GetUtcNow(),ChargeState.Discharging,90,false); }
 
     [Fact]
     public void Migration_four_preserves_existing_history_and_does_not_invent_forecasts()

@@ -153,7 +153,7 @@ See [Microsoft's power-setting definitions](https://learn.microsoft.com/en-us/wi
 and [registration API](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerpowersettingnotification).
 The physical screen-off/on cycle has not yet been manually verified on this machine.
 
-### Operational trend corrections (unreleased)
+### Operational trend corrections (0.9.1)
 
 See [the calculation method](FORECAST_METHOD.md) for the current pipeline. Forecast points now begin
 exactly five minutes after the request timestamp, through 24 hours; historical bins remain on their UTC
@@ -173,7 +173,7 @@ Scientific comparisons are postponed at the user's request; superiority and accu
 The first settings page displays saved responses without recalculating them from subsequent history.
 New accepted responses are archived locally and atomically with their run metadata, including issue
 and context timestamps, original quantile points, scenario and model revision. The archive follows
-history retention and deletion. Existing summary-only runs do not gain invented historical curves.
+history retention and deletion. Existing summary-only runs do not gain invented historical curves. The genuine last cached response from an older version is preserved once with its original timestamp.
 
 A point difference is shown only against an observation after issue time and inside the saved horizon.
 Power-scenario changes and interruptions are flagged. The chart covers the previous/next 12 hours;

@@ -1,6 +1,6 @@
 # Battery Forecast: calculation method
 
-Status: experimental, local inference. This describes the unreleased development build.
+Status: experimental, local inference. This describes version 0.9.1.
 The current changes correct functional defects; they do not establish predictive superiority.
 Scientific backtesting is postponed at the user's request.
 
@@ -76,6 +76,6 @@ new battery reading or model result arrives, without launching extra inference; 
 survives updates of the same selected curve.
 
 Schema 5 adds the response archive without generating historical forecasts. Retention and wipe include
-it. Old summary rows are preserved, with no fabricated curves. The UI lists up to 100 forecasts issued
+it. Old summary rows are preserved, with no fabricated curves. The genuine last cached response from an older version is imported once, retaining its original model-generation timestamp. The UI lists up to 100 forecasts issued
 in the last 24 hours and plots a 24-hour window from 12 hours ago to 12 hours ahead. This feature is an
 individual visual comparison requested by the user, separate from postponed scientific backtesting.

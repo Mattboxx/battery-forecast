@@ -201,7 +201,7 @@
     </section>
 
     <section class="wrap reveal">
-      <p class="eyebrow">In development · not in the current installer</p>
+      <p class="eyebrow">New in 0.9.1</p>
       <h2>More control, clearer context.</h2>
       <div class="cards">
         <article class="card"><h3>Optional time goals</h3><p>Turn evening goals off without losing saved times. The automatic gold dot is explicitly linked to your time goal. A small button at the far right of the forecast header starts a fresh local calculation.</p></article>
@@ -315,8 +315,8 @@
       // ripiego se l'API di GitHub non risponde (limite di richieste, rete): l'ultima versione nota
       let release = { assets: {} };
       for (const arch of ['x64', 'arm64']) {
-        const name = `BatteryForecast-Setup-0.9.0-${arch}.exe`;
-        const url = `https://github.com/${repo}/releases/download/v0.9.0/${name}`;
+        const name = `BatteryForecast-Setup-0.9.1-${arch}.exe`;
+        const url = `https://github.com/${repo}/releases/download/v0.9.1/${name}`;
         release.assets[arch] = { url, name, size: 0, sha: url + '.sha256' };
       }
       const loaded = fetch(`https://api.github.com/repos/${repo}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } })

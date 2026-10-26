@@ -1,13 +1,13 @@
 name: Release
 
-# Si avvia solo con un tag di versione, per esempio: git tag v0.9.0-beta.1 && git push origin v0.9.0-beta.1
+# Si avvia solo con un tag di versione, per esempio: git tag v0.9.1-beta.1 && git push origin v0.9.1-beta.1
 on:
   workflow_dispatch:
     inputs:
       version:
         description: 'Build and verify installers without publishing'
         required: true
-        default: '0.9.0'
+        default: '0.9.1'
   push:
     tags: ["v*"]
 
