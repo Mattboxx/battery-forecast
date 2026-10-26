@@ -155,9 +155,19 @@ public partial class App : Application
         var until = DateTime.UtcNow.AddMinutes(2);
         while (DateTime.UtcNow < until && Coordinator?.State is not { Forecast: not null, Updating: false })
             await Task.Delay(250);
+        // per l'immagine "in carica": una vera previsione di carica di Timestral sullo stesso storico demo
+        ForecastView? charge = null;
+        if (worker is not null && Store is not null && Coordinator?.State is { } st)
+            try
+            {
+                var r = await worker.ForecastAsync(new ForecastRequest(st.Now, Snapshots.ChargingLevel, true, Settings.ChargeTargetPct,
+                    Store.ModelSamples(st.Now.AddDays(-110)), Charge: true, TargetPct: Settings.ChargeTargetPct));
+                charge = ForecastView.From(r);
+            }
+            catch (ForecastWorkerException ex) { log?.Write($"snapshot charge: {ex.Message}"); }
         await Dispatcher.InvokeAsync(() =>
         {
-            try { Snapshots.Save(this, Coordinator!.State!, dir); }
+            try { Snapshots.Save(this, Coordinator!.State!, dir, charge); }
             catch (Exception ex) { log?.Write($"snapshot: {ex}"); }
             Quit();
         });

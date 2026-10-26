@@ -18,41 +18,57 @@
 </p>
 
 <p align="center">
-  <img src="images/it-panel-dark.png" width="300" alt="Pannello di Battery Forecast, tema Crepuscolo">
-  &nbsp;&nbsp;
-  <img src="images/it-panel-light.png" width="300" alt="Pannello di Battery Forecast, tema Alba">
+  <picture>
+    <source srcset="images/it-hover-open-dark.gif" media="(prefers-color-scheme: dark)">
+    <img src="images/it-hover-open-light.gif" width="420" alt="Il puntatore si ferma sull'icona della batteria vicino all'orologio e il pannello di Battery Forecast si apre; quando si allontana si richiude">
+  </picture>
 </p>
-<p align="center"><sub>Modalità demo: nelle immagini la scarica è simulata a partire da un livello reale della batteria.</sub></p>
+<p align="center"><sub>Lascia il puntatore sull'icona: il pannello si apre senza clic e si richiude quando ti allontani.
+Modalità demo: la scarica è simulata a partire da un livello reale della batteria.</sub></p>
 
 > **Anteprima.** Battery Forecast funziona ed è in prova su portatili reali. La sua accuratezza non è ancora stata
 > misurata, quindi non ne dichiara: mostra una fascia e dice da dove viene ogni numero.
 
-## Cosa fa
+## Due previsioni, un pannello
 
-- **Fino a quando:** l'ora in cui la batteria arriva alla riserva (5% di default), con una fascia indicativa
-  dalla stima prudente a quella ottimista. Orari stimati arrotondati a 5 minuti, mai un numero finto preciso.
-- **La tua sera:** il livello previsto alle 22:00 o all'ora che scegli, e il suggerimento del risparmio
-  energetico quando non basterebbe.
-- **Grafico delle 24 ore** con stima centrale, fascia, linea della riserva e obiettivo serale.
-- **Anche con l'alimentatore:** in carica, quando arrivi all'obiettivo (80% di default), imparato da Timestral
-  dalle tue ricariche passate. Con la carica ferma per un limite di carica (o a batteria piena): quanto
-  dureresti staccando adesso, con lo stesso grafico.
-- **Abitudini e presente insieme:** accanto alla previsione sulle abitudini ci sono sempre la stima al ritmo
-  attuale e quella di Windows.
+Windows mostra una percentuale. Battery Forecast ti dice cosa significa per il resto della giornata, a batteria e
+con l'alimentatore. Entrambe le previsioni vengono dallo stesso modello di intelligenza artificiale locale, che
+legge come contesto il tuo storico della batteria: nulla viene caricato in rete e il modello non viene riaddestrato.
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="images/it-panel-dark.png" alt="A batteria: fino alle 14:20, circa 13 ore, con fascia e grafico delle 24 ore"></td>
+    <td align="center" width="33%"><img src="images/it-charging-dark.png" alt="In carica: obiettivo 80% alle 01:40, circa 31 minuti, con fascia e grafico"></td>
+    <td align="center" width="33%"><img src="images/it-held-dark.png" alt="Collegato con la carica ferma all'80% per un limite di carica: se stacchi adesso, fino alle 16:50"></td>
+  </tr>
+  <tr>
+    <td valign="top"><b>A batteria: fino a quando.</b> L'ora in cui arrivi alla riserva (5% di default), con una
+      fascia dalla stima prudente a quella ottimista, il livello previsto alla tua ora serale e il grafico delle 24 ore.</td>
+    <td valign="top"><b>In carica: quando arrivi all'obiettivo.</b> Quando arriverai all'80% (o all'obiettivo che
+      scegli), imparato dalle tue ricariche passate, compreso il rallentamento vicino al pieno, accanto al ritmo attuale.</td>
+    <td valign="top"><b>Collegato, carica ferma.</b> Con un limite di carica (come la protezione all'80% di molti
+      portatili) o a batteria piena: quanto dureresti staccando adesso, con lo stesso grafico.</td>
+  </tr>
+</table>
+<p align="center"><sub>Modalità demo: storico sintetico; le previsioni sono calcolate dal vero modello locale.</sub></p>
+
+- **Mai un numero finto preciso:** orari arrotondati a 5 minuti, sempre con una fascia e la loro fonte: le tue
+  abitudini, il ritmo attuale e la stima di Windows, fianco a fianco.
+- **La tua sera:** il livello previsto alle 22:00 o all'ora che scegli (più altri quattro orari), e il suggerimento
+  del risparmio energetico quando non basterebbe.
 - **Avvisi discreti:** a circa 60, 30 e 15 minuti dalla riserva, a batteria bassa, a carica raggiunta e con un
-  consumo insolito. Un avviso per soglia in ogni scarica, mai con l'alimentatore.
+  consumo insolito. Un avviso per soglia in ogni scarica, mai con l'alimentatore. Orario silenzioso.
+- **Sempre a portata di mano:** passa sull'icona, cliccala o premi la scorciatoia che registri (inizialmente
+  `Ctrl+Alt+B`, premuta di nuovo chiude). Dimensione e larghezza del pannello a scelta.
 - **Storico e salute:** le scariche osservate e la capacità a piena carica rispetto a quella di progetto.
 - **Vicino all'orologio:** icona con il livello esatto, quattro temi (Alba, Nebbia, Crepuscolo, Notte) o quello
   di Windows, italiano e inglese, tastiera e lettori di schermo.
 - **Aggiornamenti dall'app:** un clic controlla GitHub, scarica l'installer e ne verifica lo SHA-256.
 
 <p align="center">
-  <img src="images/it-held-dark.png" width="300" alt="Collegato con la carica ferma per un limite di carica: previsione se stacchi adesso">
+  <img src="images/it-history-dark.png" width="380" alt="Finestra Storico e salute della batteria">
   &nbsp;
-  <img src="images/it-history-dark.png" width="420" alt="Finestra Storico e salute della batteria">
-</p>
-<p align="center">
-  <img src="images/it-preferences-dark.png" width="640" alt="Preferenze, ordinate in sezioni">
+  <img src="images/it-preferences-dark.png" width="520" alt="Preferenze, ordinate in sezioni con icone">
 </p>
 
 ## Come funziona
@@ -61,11 +77,13 @@
    Le lacune restano lacune: per il tempo a PC spento non si inventa nulla.
 2. [Timestral](https://github.com/mistralai/timestral), un modello di Mistral AI per le serie temporali, legge
    fino a 110 giorni di storico su una griglia di 5 minuti e prevede le prossime 24 ore.
-3. Lo scenario è sempre lo stesso: *uso abituale, senza collegare l'alimentatore da adesso*. La curva non può
-   risalire né superare il livello attuale.
-4. Quando di solito colleghi l'alimentatore, il modello non può sapere quanto consumeresti a batteria: il
-   pannello lo dice e il grafico prosegue, tratteggiato, al ritmo medio previsto.
-5. Finché lo storico non basta, si mostra la stima al ritmo attuale, e il pannello lo dice.
+3. Ogni previsione risponde a uno scenario chiaro. A batteria, o collegato con la carica ferma: *uso abituale,
+   senza collegare l'alimentatore da adesso*, quindi la curva non risale. In carica: *resto collegato*, quindi la
+   curva non scende e si ferma al 100%. Lo scenario arriva al modello come dato futuro noto.
+4. Quando di solito colleghi (o stacchi) l'alimentatore a una certa ora, il modello non può sapere cosa
+   succederebbe dopo: il pannello lo dice e il grafico prosegue, tratteggiato, al ritmo medio previsto.
+5. Finché lo storico non basta (qualche ora di scariche o alcune ricariche), si mostra la stima al ritmo attuale,
+   e il pannello lo dice.
 
 Dettagli e limiti nella [model card](MODEL_CARD.md) (in inglese).
 

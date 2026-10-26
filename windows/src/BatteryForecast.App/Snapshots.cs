@@ -15,7 +15,9 @@ namespace BatteryForecast.App;
 /// </summary>
 static class Snapshots
 {
-    public static void Save(App app, DashboardState state, string dir)
+    public const double ChargingLevel = 52;
+
+    public static void Save(App app, DashboardState state, string dir, ForecastView? chargeForecast = null)
     {
         Directory.CreateDirectory(dir);
         var model = PanelPresenter.Present(state);
@@ -26,9 +28,9 @@ static class Snapshots
             var panel = new PanelWindow(app) { Left = -20000, Top = -20000, ShowActivated = false };
             panel.Update(model, state.Target.When);
             Render(panel, Path.Combine(dir, $"panel-{name}.png"));
-            var chargingState = state with { Battery = state.Battery with { State = ChargeState.Charging, OnAc = true, LevelPct = 63 },
-                Phase = PowerPhase.Charging, Forecast = null, Recent = null,
-                Charging = new(ChargeEstimateKind.RecentRate, 75, state.Now.AddMinutes(30)), Demo = true };
+            var chargingState = state with { Battery = state.Battery with { State = ChargeState.Charging, OnAc = true, LevelPct = ChargingLevel },
+                Phase = PowerPhase.Charging, Forecast = null, Recent = null, ChargeForecast = chargeForecast, ChargeForecastFresh = true,
+                Charging = chargeForecast is null ? new(ChargeEstimateKind.Collecting, 80) : null, Demo = true };
             var charging = new PanelWindow(app) { Left = -20000, Top = -20000, ShowActivated = false };
             charging.Update(PanelPresenter.Present(chargingState), state.Target.When);
             Render(charging, Path.Combine(dir, $"charging-{name}.png"));

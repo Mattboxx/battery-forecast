@@ -40,11 +40,11 @@
       </div>
       <p class="small">Free and open source · No account · Works offline</p>
       <picture>
-        <source srcset="assets/panel-dark.png" media="(prefers-color-scheme: dark)">
-        <img class="shot" src="assets/panel-light.png" width="384" height="708"
-             alt="Battery Forecast panel: until tomorrow at 04:10, about 8 hours 40 minutes, with a 24-hour chart">
+        <source srcset="assets/hover-open-dark.gif" media="(prefers-color-scheme: dark)">
+        <img class="shot" src="assets/hover-open-light.gif" width="420" height="540"
+             alt="The pointer rests on the battery icon next to the clock and the Battery Forecast panel opens; when the pointer moves away it closes">
       </picture>
-      <p class="caption">Demo mode: the discharge in this screenshot is simulated from a real battery level.</p>
+      <p class="caption">Rest the pointer on the icon: the panel opens, no click needed. Demo mode: the discharge is simulated from a real battery level.</p>
     </header>
 
     <section class="wrap reveal">
@@ -72,6 +72,29 @@
       </div>
     </section>
 
+    <section id="forecasts" class="wrap reveal">
+      <p class="eyebrow">On battery and on the charger</p>
+      <div class="split">
+        <h2>Two forecasts.<br>One panel.</h2>
+        <p>The same local AI reads your battery history and answers the question that fits the moment: how long you will last, or when you will be charged.</p>
+      </div>
+      <div class="trio">
+        <figure>
+          <picture><source srcset="assets/panel-dark.png" media="(prefers-color-scheme: dark)"><img src="assets/panel-light.png" width="384" height="708" alt="On battery: until 14:20, about 13 hours, with range and 24-hour chart" loading="lazy"></picture>
+          <figcaption><b>On battery</b>When you reach the reserve, with a cautious-to-optimistic range, your evening level and a 24-hour chart.</figcaption>
+        </figure>
+        <figure>
+          <picture><source srcset="assets/charging-dark.png" media="(prefers-color-scheme: dark)"><img src="assets/charging-light.png" width="384" height="458" alt="Charging: target 80% at 01:40, about 31 minutes, with range and chart" loading="lazy"></picture>
+          <figcaption><b>Charging</b>When you reach 80% or your own target, learned from your past charges, slowdown near full included.</figcaption>
+        </figure>
+        <figure>
+          <picture><source srcset="assets/held-dark.png" media="(prefers-color-scheme: dark)"><img src="assets/held-light.png" width="384" height="521" alt="Plugged in with the charge held at 80% by a charge limit: if you unplug now, until 16:50" loading="lazy"></picture>
+          <figcaption><b>Plugged in, charge held</b>With a charge limit or a full battery: how long it would last if you unplugged now.</figcaption>
+        </figure>
+      </div>
+      <p class="caption">Demo mode: synthetic history; the forecasts are computed by the real local model.</p>
+    </section>
+
     <section id="how" class="wrap reveal">
       <p class="eyebrow">How it works</p>
       <div class="split">
@@ -80,7 +103,7 @@
       </div>
       <div class="duo">
         <ul class="checks">
-          <li><b>Usual use, no charging.</b> The forecast answers one clear question: how long if you keep going as you usually do, without plugging in.</li>
+          <li><b>One clear scenario at a time.</b> On battery: how long if you keep going as you usually do, without plugging in. While charging: when you reach your target if you stay plugged in.</li>
           <li><b>Habits and the present, side by side.</b> The forecast from your habits always comes with the estimate at your current rate, and with Windows' own.</li>
           <li><b>Honest about the unknown.</b> When you usually plug in, the model can't know what you'd use on battery; the chart says so and continues at the expected rate, dashed.</li>
           <li><b>Health and history.</b> Full-charge vs design capacity, and the discharges it has observed, without inventing cycles.</li>
@@ -134,13 +157,13 @@
       </div>
       <div class="duo" style="margin-top:40px">
         <ul class="checks">
-          <li><b>Plugged in, still useful.</b> With the charge held by a charge limit (or a full battery), the panel shows how long you would last if you unplugged now, with the same chart.</li>
-          <li><b>Says why it stops.</b> A short line explains that the charge is paused by a limit, so you know nothing is wrong.</li>
+          <li><b>Says why the charge stops.</b> Plugged in at 80% and not charging? A short line explains that a charge limit is probably protecting the battery.</li>
+          <li><b>Open it your way.</b> Rest the pointer on the icon, click it, or press your shortcut again to close.</li>
           <li><b>Tidy preferences.</b> Six sections with icons: forecast, panel and shortcut, notifications, appearance, data and privacy, general.</li>
         </ul>
         <picture>
-          <source srcset="assets/held-dark.png" media="(prefers-color-scheme: dark)">
-          <img src="assets/held-light.png" width="384" height="521" alt="Panel while plugged in with the charge held at 80%: if you unplug now, until 16:50, with a 24-hour chart" loading="lazy">
+          <source srcset="assets/preferences-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/preferences-light.png" width="867" height="625" alt="Preferences window with sections and icons: forecast reserve, evening target, charge target and refresh" loading="lazy">
         </picture>
       </div>
       <p class="caption">Charging and sensor context are experimental. Functional tests use the real local model; accuracy gains have not been established.</p>

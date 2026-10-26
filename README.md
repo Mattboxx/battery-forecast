@@ -26,43 +26,57 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/panel-dark.png" width="300" alt="Battery Forecast panel, Dusk theme">
-  &nbsp;&nbsp;
-  <img src="docs/images/panel-light.png" width="300" alt="Battery Forecast panel, Dawn theme">
+  <picture>
+    <source srcset="docs/images/hover-open-dark.gif" media="(prefers-color-scheme: dark)">
+    <img src="docs/images/hover-open-light.gif" width="420" alt="The pointer rests on the battery icon next to the clock and the Battery Forecast panel opens; when the pointer moves away it closes">
+  </picture>
 </p>
-<p align="center"><sub>Demo mode: the discharge in these screenshots is simulated from a real battery level.</sub></p>
+<p align="center"><sub>Rest the pointer on the icon: the panel opens without a click and closes when you move away.
+Demo mode: the discharge is simulated from a real battery level.</sub></p>
 
 > **Preview.** Battery Forecast works and is being tested on real laptops. Its accuracy has not been measured
 > yet, so it does not claim any: it shows a range and tells you where each number comes from.
 
-## What it does
+## Two forecasts, one panel
 
-Windows shows a percentage. Battery Forecast tells you what that percentage means for the rest of your day.
+Windows shows a percentage. Battery Forecast tells you what that percentage means for the rest of your day,
+on battery and on the charger. Both forecasts come from the same local AI model, which reads your own battery
+history as context; nothing is uploaded and the model is not retrained.
 
-- **Until when.** The time your battery reaches the reserve (5% by default), with an indicative range from
-  cautious to optimistic. Never a fake exact number: estimated times are rounded to 5 minutes.
-- **Your evening.** The level expected at 22:00 or at any time you choose, and a suggestion to turn on battery
-  saver when it would not last.
-- **24-hour chart.** Central estimate, cautious/optimistic band, reserve line and your evening target.
-- **Plugged in, too.** While charging: when you will reach your charge target (80% by default), learned by
-  Timestral from your past charges. When the charge is held by a charge limit (or the battery is full): how
-  long it would last if you unplugged now, with the same chart.
-- **Habits and the present, side by side.** The forecast from your habits always comes with the estimate at your
-  current rate and with Windows' own.
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/images/panel-dark.png" alt="On battery: until 14:20, about 13 hours, with range and 24-hour chart"></td>
+    <td align="center" width="33%"><img src="docs/images/charging-dark.png" alt="Charging: target 80% at 01:40, about 31 minutes, with range and chart"></td>
+    <td align="center" width="33%"><img src="docs/images/held-dark.png" alt="Plugged in with the charge held at 80% by a charge limit: if you unplug now, until 16:50"></td>
+  </tr>
+  <tr>
+    <td valign="top"><b>On battery: until when.</b> The time your battery reaches the reserve (5% by default), with an
+      indicative range from cautious to optimistic, the level expected at your evening time and a 24-hour chart.</td>
+    <td valign="top"><b>Charging: when you reach your target.</b> When you will reach 80% (or the target you choose),
+      learned from your past charges, slowdown near full included, next to the current charging rate.</td>
+    <td valign="top"><b>Plugged in, charge held.</b> With a charge limit (such as the 80% battery care of many
+      laptops) or a full battery: how long it would last if you unplugged now, with the same chart.</td>
+  </tr>
+</table>
+<p align="center"><sub>Demo mode: synthetic history; the forecasts are computed by the real local model.</sub></p>
+
+- **Never a fake exact number.** Estimated times are rounded to 5 minutes and always come with a range and their
+  source: your habits, the current rate, and Windows' own estimate side by side.
+- **Your evening.** The level expected at 22:00 or at any time you choose (up to four more), and a suggestion to
+  turn on battery saver when it would not last.
 - **Calm alerts.** About 60, 30 and 15 minutes before the reserve, at low battery, when charged, and when the PC
-  suddenly uses twice as much power. One alert per threshold per discharge, never on the adapter.
+  suddenly uses twice as much power. One alert per threshold per discharge, never on the adapter. Quiet hours.
+- **Always at hand.** Hover the tray icon, click it, or press a shortcut you record (initially `Ctrl+Alt+B`,
+  press again to close). Choose the panel size and width.
 - **History and health.** Observed discharges and full-charge capacity vs design capacity, with source and date.
 - **At home next to the clock.** Tray icon with the exact level, four themes (Dawn, Mist, Dusk, Midnight) or
   Windows' own, Italian and English, keyboard and screen-reader friendly.
 - **Updates from the app.** One click checks GitHub, downloads the installer and verifies its SHA-256.
 
 <p align="center">
-  <img src="docs/images/held-dark.png" width="300" alt="Plugged in with the charge held by a charge limit: forecast if you unplug now">
+  <img src="docs/images/history-dark.png" width="380" alt="History and battery health window">
   &nbsp;
-  <img src="docs/images/history-dark.png" width="420" alt="History and battery health window">
-</p>
-<p align="center">
-  <img src="docs/images/preferences-dark.png" width="640" alt="Preferences, organized in sections">
+  <img src="docs/images/preferences-dark.png" width="520" alt="Preferences, organized in sections with icons">
 </p>
 
 ## How it works
@@ -77,12 +91,13 @@ Windows battery API ──► local history (SQLite, 1 sample/min) ──► Tim
    and charger events. Gaps stay gaps: nothing is invented for the time the PC was off.
 2. [Timestral](https://github.com/mistralai/timestral), a time-series model by Mistral AI, reads up to 110 days of
    that history on a 5-minute grid and forecasts the next 24 hours, with percentiles.
-3. The scenario is always the same, so the answer is clear: *your usual use, without plugging in from now on*.
-   The curve can never rise and never goes above the current level.
-4. When your habits say you usually plug in at a certain time, the model cannot know what you would use on
-   battery. The panel says so and the chart continues at the expected average rate, drawn dashed.
-5. Until there is enough history (a couple of hours of discharges), the estimate at your current rate is shown
-   instead, and the panel says that too.
+3. Each forecast answers one clear scenario. On battery, or plugged in with the charge held: *your usual use,
+   without plugging in from now on*, so the curve never rises. While charging: *staying plugged in*, so the curve
+   never falls and stops at 100%. The scenario is given to the model as a known future input.
+4. When your habits say you usually plug in (or unplug) at a certain time, the model cannot know what would happen
+   after it. The panel says so and the chart continues at the expected average rate, drawn dashed.
+5. Until there is enough history (a couple of hours of discharges, or a few recorded charges), the estimate at
+   your current rate is shown instead, and the panel says that too.
 
 The details, limits and the meaning of the range are in the [model card](docs/MODEL_CARD.md).
 
