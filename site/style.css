@@ -172,3 +172,6 @@ footer a { color: var(--muted); }
   .glance-feature { grid-template-columns: 1fr; gap: 32px; }
   .glance-media { width: min(100%, 460px); justify-self: center; }
 }
+
+/* banner di presentazione: prima immagine della pagina */
+.banner { width: min(1120px, 100%); height: auto; margin: 0 auto 36px; border-radius: 22px; box-shadow: var(--shadow); }

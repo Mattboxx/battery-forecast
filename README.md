@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/icon-256.png" width="128" alt="Battery Forecast icon">
+  <a href="https://mattboxx.github.io/battery-forecast/"><img src="docs/images/banner.png" width="100%" alt="Battery Forecast: how long will your laptop really last today? An AI battery forecast that learns how you use your PC, on battery and while charging. Local AI with Timestral, works offline, free"></a>
 </p>
 
 <h1 align="center">Battery Forecast</h1>
