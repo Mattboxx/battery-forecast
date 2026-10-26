@@ -15,7 +15,7 @@ public readonly record struct ModelCovariate(long Ts,double? Value);
 /// </summary>
 public sealed class HistoryStore : IDisposable
 {
-    public const int SchemaVersion = 3;
+    public const int SchemaVersion = 4;
     readonly SqliteConnection db;
     readonly Lock gate = new();
 
@@ -76,19 +76,25 @@ public sealed class HistoryStore : IDisposable
                 """,tx);
             tx.Commit();
         }
+        if (version < 4)
+        {
+            using var tx = db.BeginTransaction();
+            Exec("ALTER TABLE context_samples ADD COLUMN display_state INTEGER NULL; PRAGMA user_version=4;", tx);
+            tx.Commit();
+        }
     }
 
-    static readonly string[] ContextColumns = ["cpu_pct","cpu_mhz","memory_pct","cpu_temp_c","battery_temp_c","thermal_zone_c","brightness_pct","discharge_w","charge_w","power_profile"];
+    static readonly string[] ContextColumns = ["cpu_pct","cpu_mhz","memory_pct","cpu_temp_c","battery_temp_c","thermal_zone_c","brightness_pct","discharge_w","charge_w","power_profile","display_state"];
 
     public void AppendContext(SystemSample sample)
     {
         lock(gate)
         {
             using var cmd=db.CreateCommand();
-            cmd.CommandText="INSERT OR IGNORE INTO context_samples VALUES ($ts,$v0,$v1,$v2,$v3,$v4,$v5,$v6,$v7,$v8,$v9,$source)";
+            cmd.CommandText=$"INSERT OR IGNORE INTO context_samples (ts,{string.Join(',',ContextColumns)},source) VALUES ($ts,$v0,$v1,$v2,$v3,$v4,$v5,$v6,$v7,$v8,$v9,$v10,$source)";
             cmd.Parameters.AddWithValue("$ts",sample.TimestampUtc.ToUnixTimeSeconds());
             var values=new double?[] { sample.CpuPct,sample.CpuMHz,sample.MemoryPct,sample.CpuTemperatureC,sample.BatteryTemperatureC,
-                sample.ThermalZoneC,sample.BrightnessPct,sample.DischargeW,sample.ChargeW,sample.PowerProfile };
+                sample.ThermalZoneC,sample.BrightnessPct,sample.DischargeW,sample.ChargeW,sample.PowerProfile,sample.DisplayState is 0 or 1 or 2 ? sample.DisplayState : null };
             for(int i=0;i<values.Length;i++)cmd.Parameters.AddWithValue($"$v{i}",values[i] is double v && double.IsFinite(v)?v:DBNull.Value);
             cmd.Parameters.AddWithValue("$source",sample.Source);
             cmd.ExecuteNonQuery();
@@ -100,7 +106,7 @@ public sealed class HistoryStore : IDisposable
         lock(gate)
         {
             using var cmd=db.CreateCommand();
-            cmd.CommandText=$"SELECT (ts/300)*300, {string.Join(',',ContextColumns.Select(c=>c=="power_profile"?"CASE WHEN MIN(power_profile)=MAX(power_profile) THEN MAX(power_profile) ELSE NULL END":$"AVG({c})"))} FROM context_samples WHERE ts >= $since AND ts <= $until GROUP BY ts/300 ORDER BY ts/300";
+            cmd.CommandText=$"SELECT (ts/300)*300, {string.Join(',',ContextColumns.Select(c=>c is "power_profile" or "display_state" ? $"CASE WHEN COUNT({c})=COUNT(*) AND MIN({c})=MAX({c}) THEN MAX({c}) ELSE NULL END":$"AVG({c})"))} FROM context_samples WHERE ts >= $since AND ts <= $until GROUP BY ts/300 ORDER BY ts/300";
             cmd.Parameters.AddWithValue("$since",since.ToUnixTimeSeconds());
             cmd.Parameters.AddWithValue("$until",until.ToUnixTimeSeconds());
             using var reader=cmd.ExecuteReader();
@@ -112,11 +118,26 @@ public sealed class HistoryStore : IDisposable
         }
     }
 
+    public ContextHistory ContextSummary(DateTimeOffset since)
+    {
+        lock (gate)
+        {
+            using var cmd = db.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*), MAX(ts), " + string.Join(',', ContextColumns.Select(c => $"COUNT({c})")) +
+                " FROM context_samples WHERE ts >= $since";
+            cmd.Parameters.AddWithValue("$since", since.ToUnixTimeSeconds());
+            using var reader = cmd.ExecuteReader();
+            reader.Read();
+            return new(reader.GetInt64(0), reader.IsDBNull(1) ? null : DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(1)),
+                ContextColumns.Select((name, i) => (name, count: reader.GetInt64(i + 2))).ToDictionary(x => x.name, x => x.count));
+        }
+    }
+
     public int ExportContextCsv(TextWriter writer)
     {
         lock(gate)
         {
-            using var cmd=db.CreateCommand();cmd.CommandText="SELECT * FROM context_samples ORDER BY ts";
+            using var cmd=db.CreateCommand();cmd.CommandText=$"SELECT ts,{string.Join(',',ContextColumns)},source FROM context_samples ORDER BY ts";
             using var reader=cmd.ExecuteReader();
             writer.WriteLine("timestamp_utc,"+string.Join(',',ContextColumns)+",source");
             int count=0;
@@ -124,7 +145,7 @@ public sealed class HistoryStore : IDisposable
             {
                 var values=new List<string> { DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(0)).ToString("O",CultureInfo.InvariantCulture) };
                 for(int i=1;i<=ContextColumns.Length;i++)values.Add(reader.IsDBNull(i)?"":reader.GetDouble(i).ToString("0.###",CultureInfo.InvariantCulture));
-                values.Add(reader.GetString(11));writer.WriteLine(string.Join(',',values));count++;
+                values.Add(reader.GetString(ContextColumns.Length+1));writer.WriteLine(string.Join(',',values));count++;
             }
             return count;
         }

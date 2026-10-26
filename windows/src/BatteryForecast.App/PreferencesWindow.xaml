@@ -114,6 +114,12 @@
                         <TextBlock Text="{app:T PrefReserveHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
                 </DockPanel></Border>
                 <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE708;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="EveningEnabled" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T EveningEnabled}"/>
+                    <StackPanel><TextBlock Text="{app:T EveningEnabled}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T EveningEnabledHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
                     <TextBlock Text="&#xE823;" Style="{StaticResource RowIcon}"/>
                     <TextBox x:Name="Target" DockPanel.Dock="Right" Style="{StaticResource Field}" AutomationProperties.Name="{app:T PrefTarget}"/>
                     <StackPanel VerticalAlignment="Center"><TextBlock Text="{app:T PrefTarget}" Style="{StaticResource RowTitle}"/>
@@ -313,6 +319,50 @@
                     <CheckBox x:Name="UseContext" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T UseContext}"/>
                     <TextBlock Text="{app:T UseContext}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
                 </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><DockPanel>
+                    <TextBlock Text="&#xE9CA;" Style="{StaticResource RowIcon}"/>
+                    <CheckBox x:Name="AdvancedSensors" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T AdvancedSensors}"/>
+                    <StackPanel><TextBlock Text="{app:T AdvancedSensors}" Style="{StaticResource RowTitle}"/>
+                        <TextBlock Text="{app:T AdvancedSensorsHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
+                </DockPanel></Border>
+                <Border Style="{StaticResource Row}"><StackPanel>
+                    <DockPanel>
+                        <TextBox x:Name="ContextInterval" DockPanel.Dock="Right" Style="{StaticResource Field}" AutomationProperties.Name="{app:T ContextInterval}"/>
+                        <TextBlock Text="{app:T ContextInterval}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock Text="{app:T ContextIntervalHelp}" Style="{StaticResource RowHelp}"/>
+                    <DockPanel Margin="0,12,0,0">
+                        <TextBox x:Name="ContextHours" DockPanel.Dock="Right" Style="{StaticResource Field}" AutomationProperties.Name="{app:T ContextHistoryHours}"/>
+                        <TextBlock Text="{app:T ContextHistoryHours}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <Button Content="{app:T ApplyCustom}" Click="SaveContext_Click" HorizontalAlignment="Left" Padding="12,5" Margin="0,10,0,0"/>
+                    <TextBlock x:Name="ContextSettingsStatus" Style="{StaticResource RowHelp}"/>
+                </StackPanel></Border>
+                <TextBlock Text="{app:T ContextTools}" Style="{StaticResource Group}"/>
+                <Border Style="{StaticResource Row}"><StackPanel>
+                    <Button x:Name="RefreshSensors" Content="{app:T RefreshSensors}" Click="RefreshSensors_Click" HorizontalAlignment="Left" Padding="12,5"/>
+                    <TextBlock x:Name="ContextStatus" Style="{StaticResource RowHelp}" Margin="0,10,0,0"/>
+                </StackPanel></Border>
+                <Border Style="{StaticResource Row}"><StackPanel>
+                    <TextBlock Text="{app:T ContextGraphsHelp}" Style="{StaticResource RowHelp}"/>
+                    <TextBlock Text="{app:T ContextPowerGraph}" Style="{StaticResource Group}"/>
+                    <TextBlock Text="{Binding HoverText, ElementName=PowerHistory}" MinHeight="16" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                    <app:ContextHistoryChart x:Name="PowerHistory" AutomationProperties.Name="{app:T ContextPowerGraph}"/>
+                    <TextBlock Text="{Binding PinnedText, ElementName=PowerHistory}" MinHeight="16" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                    <TextBlock Text="{app:T ContextCpuGraph}" Style="{StaticResource Group}"/>
+                    <TextBlock Text="{Binding HoverText, ElementName=CpuHistory}" MinHeight="16" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                    <app:ContextHistoryChart x:Name="CpuHistory" AutomationProperties.Name="{app:T ContextCpuGraph}"/>
+                    <TextBlock Text="{Binding PinnedText, ElementName=CpuHistory}" MinHeight="16" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                    <TextBlock Text="{app:T ContextMemoryGraph}" Style="{StaticResource Group}"/>
+                    <TextBlock Text="{Binding HoverText, ElementName=MemoryHistory}" MinHeight="16" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                    <app:ContextHistoryChart x:Name="MemoryHistory" AutomationProperties.Name="{app:T ContextMemoryGraph}"/>
+                    <TextBlock Text="{Binding PinnedText, ElementName=MemoryHistory}" MinHeight="16" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                    <TextBlock Text="{app:T ContextDisplayGraph}" Style="{StaticResource Group}"/>
+                    <TextBlock Text="{app:T ContextDisplayHelp}" Style="{StaticResource RowHelp}"/>
+                    <TextBlock Text="{Binding HoverText, ElementName=DisplayHistory}" MinHeight="16" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                    <app:ContextHistoryChart x:Name="DisplayHistory" AutomationProperties.Name="{app:T ContextDisplayGraph}"/>
+                    <TextBlock Text="{Binding PinnedText, ElementName=DisplayHistory}" MinHeight="16" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                </StackPanel></Border>
                 <Border Style="{StaticResource Row}"><DockPanel>
                     <TextBlock Text="&#xE81C;" Style="{StaticResource RowIcon}"/>
                     <ComboBox x:Name="Retention" DockPanel.Dock="Right" Width="160" VerticalAlignment="Center" AutomationProperties.Name="{app:T PrefRetention}"/>

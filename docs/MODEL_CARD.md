@@ -104,7 +104,7 @@ OpenHardwareMonitor/LibreHardwareMonitor WMI provider. ACPI thermal zones are a 
 are never labelled CPU or battery temperature. Missing, unsupported or access-denied data stays null.
 No kernel driver, elevated helper, process names, window titles or online telemetry are introduced.
 
-Sensor context is stored separately in SQLite schema 3, under the same retention/deletion settings.
+Sensor context is stored separately in SQLite schema 4, under the same retention/deletion settings.
 Five-minute means align to the battery grid; mixed power-profile bins are missing. Six observed bins
 and nonconstant values are required per channel. Numeric gaps up to ten minutes can interpolate when
 AC state is unchanged. Longer gaps stay missing. Profiles are categorical, with no interpolation.
@@ -120,3 +120,35 @@ without context, grouped by laptop/workload and using only observations availabl
 are still required. More channels may help, do nothing or worsen forecasts; no claim is made before
 those measurements exist. Sensor collection overhead and additional inference cost also need field
 measurements. GetSystemTimes reports the active processor group on systems with more than 64 CPUs.
+
+
+### Inspecting collection without changing the compact popup
+
+Preferences → Data and privacy shows current sensor availability, per-channel saved observations,
+last saved time and the channels listed by the applicable forecast response. An explicit refresh obtains
+new readings; unavailable values remain unavailable. Collection is enabled by default, separately from
+model use, with a default 60-second context interval configurable from 30 to 120 seconds. Battery history
+keeps its existing one-minute cadence. Optional firmware/WMI temperature and brightness probes can be
+disabled while aggregate CPU, memory and battery power remain collected.
+
+The three history charts show observed five-minute means for battery watts (discharge positive, charge
+negative), CPU load and memory use. They are not forecasts; missing values and gaps over ten minutes are
+not joined. The chart window is selectable from 1 to 168 hours. Hover shows a compact observed-value caption; a click pins an outlined diamond and writes its values inline below the chart while the hover probe remains independent. Demo values are explicitly synthetic and
+stored separately. No hardware values are added to the forecast popup.
+
+A local read-only integration check against collected history confirmed that the real model consumed
+available variable power/CPU/memory channels and returned its 288-point curve. This verifies the data path,
+not a causal relationship or an accuracy gain. Unsupported temperature/brightness channels were absent,
+not replaced by zero. Device availability and optional-probe latency remain hardware-dependent.
+
+### Session display state
+
+Windows `GUID_SESSION_DISPLAY_STATUS` notifications supply 0=off, 1=on, 2=dimmed; unknown until
+reported. Registration is passive, without changing Windows power settings or polling. Context recording
+opt-out also disables persistence of display transitions. Migration leaves existing rows NULL. The model
+receives historical categorical observations only: mixed or unknown five-minute bins stay missing, and
+no future display states are invented. Display state is session-wide, not individual monitor telemetry.
+
+See [Microsoft's power-setting definitions](https://learn.microsoft.com/en-us/windows/win32/power/power-setting-guids)
+and [registration API](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerpowersettingnotification).
+The physical screen-off/on cycle has not yet been manually verified on this machine.

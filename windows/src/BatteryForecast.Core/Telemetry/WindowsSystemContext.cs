@@ -8,6 +8,8 @@ namespace BatteryForecast.Core.Telemetry;
 public sealed class WindowsSystemContext : ISystemContextProvider
 {
     readonly TimeProvider clock;
+    readonly Func<bool> collectAdvanced;
+    readonly Func<double?> displayState;
     ulong? previousIdle, previousTotal;
     DateTimeOffset? previousCpu, optionalAt;
     int optionalBusy;
@@ -15,7 +17,12 @@ public sealed class WindowsSystemContext : ISystemContextProvider
     OptionalSensors optional = new();
     sealed record OptionalSensors(double? CpuC = null, double? BatteryC = null, double? ZoneC = null, double? Brightness = null);
 
-    public WindowsSystemContext(TimeProvider? clock = null) => this.clock = clock ?? TimeProvider.System;
+    public WindowsSystemContext(TimeProvider? clock = null, Func<bool>? collectAdvanced = null, Func<double?>? displayState = null)
+    {
+        this.clock = clock ?? TimeProvider.System;
+        this.collectAdvanced = collectAdvanced ?? (() => true);
+        this.displayState = displayState ?? (() => null);
+    }
 
     public SystemSample Read(BatterySample battery)
     {
@@ -25,7 +32,7 @@ public sealed class WindowsSystemContext : ISystemContextProvider
         {
             var total = kernel+user;
             if (previousIdle is { } pi && previousTotal is { } pt && previousCpu is { } at &&
-                now-at >= TimeSpan.FromSeconds(1) && now-at <= TimeSpan.FromMinutes(2))
+                now-at >= TimeSpan.FromSeconds(1) && now-at <= TimeSpan.FromMinutes(10))
                 cpu = SensorMath.CpuPercent(pi,pt,idle,total);
             if (previousCpu is null || now-previousCpu >= TimeSpan.FromSeconds(1))
             { previousIdle=idle; previousTotal=total; previousCpu=now; }
@@ -54,23 +61,32 @@ public sealed class WindowsSystemContext : ISystemContextProvider
         OptionalSensors sensors;
         lock(optionalGate)
         {
-            sensors = optionalAt is { } at && now-at <= TimeSpan.FromMinutes(2) ? optional : new();
-            if ((optionalAt is null || now-optionalAt >= TimeSpan.FromSeconds(50)) && Interlocked.CompareExchange(ref optionalBusy,1,0)==0)
+            if (!collectAdvanced())
             {
-                // One background request maximum, even if a firmware/WMI provider is slow.
-                _=Task.Run(() =>
+                optional = new();
+                optionalAt = null;
+                sensors = new();
+            }
+            else
+            {
+                sensors = optionalAt is { } at && now-at <= TimeSpan.FromMinutes(2) ? optional : new();
+                if ((optionalAt is null || now-optionalAt >= TimeSpan.FromSeconds(50)) && Interlocked.CompareExchange(ref optionalBusy,1,0)==0)
                 {
-                    try
+                    // One background request maximum, even if a firmware/WMI provider is slow.
+                    _=Task.Run(() =>
                     {
-                        var fresh=ReadOptional();
-                        lock(optionalGate) { optional=fresh; optionalAt=this.clock.GetUtcNow(); }
-                    }
-                    finally { Interlocked.Exchange(ref optionalBusy,0); }
-                });
+                        try
+                        {
+                            var fresh=ReadOptional();
+                            lock(optionalGate) { if (collectAdvanced()) { optional=fresh; optionalAt=this.clock.GetUtcNow(); } }
+                        }
+                        finally { Interlocked.Exchange(ref optionalBusy,0); }
+                    });
+                }
             }
         }
         return new(now,cpu,mhz,memoryPct,sensors.CpuC,sensors.BatteryC,sensors.ZoneC,sensors.Brightness,
-            battery.DischargePowerMW/1000.0,battery.ChargingPowerMW/1000.0,profile);
+            battery.DischargePowerMW/1000.0,battery.ChargingPowerMW/1000.0,profile, DisplayState: displayState());
     }
 
     static OptionalSensors ReadOptional()

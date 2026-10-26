@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- Suppress the tray tooltip while the forecast panel is visible; restore its latest text on close.
+- Record Windows session display on/off/dimmed events and expose an observed-state chart in Data and privacy.
+  Preserve old history as unknown; pass display state as historical categorical context, never future data.
+- Keep graph hover captions above the plotting area and pinned values below it.
+
+- Optional evening/time goals, preserving saved times and the main forecast when disabled.
+- Manual local-model recalculation from the far-right button in the popup, with fresh readings and no duplicate requests while busy.
+- Separate pinned outlined diamond and moving chart probe; outside clicks clear the reference. Compact hover captions; clicked references appear inline below the chart. No focus border is drawn.
+- Data/privacy sensor checks, saved observation counts and actual model-channel reporting; observed watts/CPU/memory history charts with a configurable hour window.
+- Context collection interval (30–120 seconds) and independent optional temperature/brightness probes. Battery history remains at one minute.
+- Real sensor-to-model integration verified locally; no measured accuracy improvement claimed.
+
 ## 0.9.0
 
 - Preserve complete offline Intel OpenMP and ArmPL agreements/notices, verified against the exact bundled DLLs.

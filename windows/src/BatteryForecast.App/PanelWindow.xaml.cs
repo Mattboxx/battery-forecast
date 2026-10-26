@@ -39,7 +39,12 @@ public partial class PanelWindow : Window
             HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)?.AddHook(WindowMessage);
         };
         SizeChanged += (_, _) => QueuePlacement();
-        Deactivated += (_, _) => { if (KeepOpen.IsChecked != true) Dismiss(); };
+        PreviewMouseDown += (_, e) =>
+        {
+            var point = e.GetPosition(Chart);
+            if (!new Rect(Chart.RenderSize).Contains(point)) Chart.ClearSelection();
+        };
+        Deactivated += (_, _) => { Chart.ClearSelection(); if (KeepOpen.IsChecked != true) Dismiss(); };
         // un clic dentro un pannello aperto al passaggio lo rende un pannello normale
         Activated += (_, _) => { if (OpenedBy == PanelOpening.Hover) Pin(); };
         PreviewKeyDown += (_, e) =>
@@ -257,6 +262,8 @@ public partial class PanelWindow : Window
         t.Tick += (_, _) => { t.Stop(); b.Content = icon; };
         t.Start();
     }
+
+    void Recalculate_Click(object sender, RoutedEventArgs e) => app.Coordinator?.RecalculateNow();
 
     void Retry_Click(object sender, RoutedEventArgs e) => app.Coordinator?.Retry();
     void Saver_Click(object sender, RoutedEventArgs e) => OpenUri("ms-settings:batterysaver");

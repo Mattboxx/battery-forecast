@@ -313,6 +313,42 @@ public sealed class CoordinatorTests : IDisposable
         Assert.Equal(52.8, s.AtTarget!.Value.P50, 1);
     }
 
+    [Fact]
+    public void Evening_target_can_be_disabled_without_running_model_again()
+    {
+        settings = settings with { AdditionalTargets = [new(18, 30)] };
+        var c = Start();
+        var first = Wait(c, s => s.Forecast is not null && !s.Updating);
+        Assert.NotNull(first.AtTarget);
+        settings = settings with { EveningTargetEnabled = false };
+        c.SettingsChanged(recalculate: false);
+        var off = Wait(c, s => !s.EveningTargetEnabled);
+        Assert.Null(off.AtTarget);
+        Assert.Empty(off.AdditionalTargets);
+        Assert.Equal(SavingSuggestion.None, off.Saving);
+        Assert.Same(first.Forecast, off.Forecast);
+        Assert.Equal(1, engine.Calls);
+        settings = settings with { EveningTargetEnabled = true };
+        c.SettingsChanged(recalculate: false);
+        Assert.NotNull(Wait(c, s => s.EveningTargetEnabled).AtTarget);
+        Assert.Equal(new TimeOnly(18, 30), settings.AdditionalTargets[0]);
+    }
+
+    [Fact]
+    public void Manual_recalculation_reads_current_level_even_with_on_open_and_battery_saver()
+    {
+        settings = settings with { Refresh = RefreshPolicy.OnOpen };
+        battery.Saver = true;
+        var c = Start();
+        Assert.Equal(0, engine.Calls);
+        battery.Level = 43;
+        c.RecalculateNow();
+        var state = Wait(c, s => s.Forecast is not null && !s.Updating);
+        Assert.Equal(43, state.Battery.LevelPct);
+        Assert.Equal(43, state.Forecast!.Level);
+        Assert.Equal(1, engine.Calls);
+    }
+
     public void Dispose()
     {
         coord?.Dispose();

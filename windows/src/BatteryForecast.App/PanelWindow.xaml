@@ -54,6 +54,9 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <app:Spinner Width="12" Height="12" Margin="0,0,6,0" Visibility="{Binding Busy, Converter={StaticResource IfTrue}}"/>
                         <TextBlock Text="{Binding UpdatedAt}" Style="{StaticResource Footnote}" Foreground="{DynamicResource TextTertiary}"/>
+                        <Button x:Name="RecalculateButton" Style="{StaticResource IconButton}" Width="28" Height="24"
+                                Content="&#xE72C;" Click="Recalculate_Click" IsEnabled="{Binding CanRecalculate}"
+                                ToolTip="{app:T RecalculateNowHelp}" AutomationProperties.Name="{app:T RecalculateNow}" Margin="6,-4,-4,0"/>
                     </StackPanel>
                 </Grid>
 
@@ -76,10 +79,16 @@
 
                     <TextBlock Text="{Binding ExtraTargets}" Style="{StaticResource Secondary}" Margin="0,8,0,0"
                         Visibility="{Binding ExtraTargets, Converter={StaticResource Visible}}"/>
-                    <app:ForecastChart x:Name="Chart" Height="120" Margin="0,14,0,2" Forecast="{Binding Chart}"
+                    <TextBlock Text="{Binding HoverText, ElementName=Chart}" MinHeight="16" FontSize="11" Foreground="{DynamicResource TextSecondary}"
+                               Visibility="{Binding Chart, Converter={StaticResource Visible}}"/>
+                    <app:ForecastChart x:Name="Chart" Height="120" Margin="0,0,0,2" Forecast="{Binding Chart}"
                                        AutomationProperties.HelpText="{Binding ChartSummary}" AutomationProperties.Name="{app:T ChartExplore}"
                                        Visibility="{Binding Chart, Converter={StaticResource Visible}}"/>
 
+                    <!-- riferimento cliccato: spazio riservato per evitare spostamenti durante il clic -->
+                    <TextBlock Text="{Binding PinnedText, ElementName=Chart}" MinHeight="16" FontSize="11" Margin="0,3,0,0"
+                               Foreground="{DynamicResource TextSecondary}" AutomationProperties.HelpText="{app:T ChartPinned}"
+                               Visibility="{Binding Chart, Converter={StaticResource Visible}}"/>
                     <!-- obiettivo serale come una "pillola" -->
                     <Border Background="{DynamicResource RowHover}" CornerRadius="10" Padding="12,8" Margin="0,10,0,0"
                             Visibility="{Binding TargetLabel, Converter={StaticResource Visible}}">

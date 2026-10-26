@@ -5,7 +5,9 @@ namespace BatteryForecast.Core.Telemetry;
 public sealed record SystemSample(DateTimeOffset TimestampUtc, double? CpuPct = null, double? CpuMHz = null,
     double? MemoryPct = null, double? CpuTemperatureC = null, double? BatteryTemperatureC = null,
     double? ThermalZoneC = null, double? BrightnessPct = null, double? DischargeW = null,
-    double? ChargeW = null, double? PowerProfile = null, string Source = "windows-api");
+    double? ChargeW = null, double? PowerProfile = null, string Source = "windows-api", double? DisplayState = null);
+
+public sealed record ContextHistory(long Samples, DateTimeOffset? LastSaved, IReadOnlyDictionary<string, long> Observations);
 
 public interface ISystemContextProvider { SystemSample Read(BatterySample battery); }
 

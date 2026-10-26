@@ -220,9 +220,19 @@ Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/batter
 
 ## More control and context
 
+- **Optional time goals:** switch off the evening goal and extra times without losing saved hours. The main
+  forecast and chart remain available.
+- **Recalculate now:** the small button at the far right of the forecast header takes a fresh reading and
+  starts the local model, including in on-open mode or battery saver. It is disabled while calculating.
+- **Data and privacy tools:** inspect current sensor availability, saved observation counts and the channels
+  used by the last forecast. Observed battery watts, CPU and memory have separate history charts with a manual
+  1–168 hour window. Context sampling is configurable from 30–120 seconds; optional temperature/brightness
+  probes can be switched off independently. These details stay in Preferences, outside the compact popup.
+
 - **Explore the chart:** hover to move the dot along the forecast; read the local date/time, expected
   battery percentage and indicative range. Focus it and use Left/Right, Home or End from the keyboard.
-  The tooltip identifies extrapolated portions; it does not claim calibrated confidence.
+  Click to keep a small outlined diamond as a reference while the hover point continues moving. Click outside
+  the chart to clear it. A compact caption appears on hover; pinned details remain inline below the chart. No focus frame.
 - **Set any time:** enter the main target and up to four additional targets as `HH:mm`, including
   overnight targets. A past time explicitly refers to tomorrow. Save custom settings with the button
   or Enter. Reserve percentages and alert minute thresholds are also editable.
@@ -248,3 +258,8 @@ Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/batter
 Charging and extra sensor context are experimental. The functional tests exercise the real local model,
 but **an accuracy improvement has not been measured**. See [MODEL_CARD](docs/MODEL_CARD.md) for methodology
 and limitations. Collection/model use can be disabled independently in Preferences.
+
+The tray tooltip is hidden while its panel is visible. Data and privacy also records the Windows session
+**display on/off/dimmed state**, with an observed-state chart. Unknown or mixed five-minute states stay
+missing. This is not a per-monitor measurement, and it does not reconstruct old history. Recording and
+model-use switches apply to this channel too. Hover captions occupy a dedicated line outside each chart.

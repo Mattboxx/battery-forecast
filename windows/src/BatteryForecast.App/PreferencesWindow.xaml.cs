@@ -21,11 +21,23 @@ public partial class PreferencesWindow : Window
     {
         this.app = app;
         InitializeComponent();
+        PreviewMouseDown += (_, e) =>
+        {
+            foreach (var chart in new[] { PowerHistory, CpuHistory, MemoryHistory, DisplayHistory })
+                if (!new Rect(chart.RenderSize).Contains(e.GetPosition(chart))) chart.ClearSelection();
+        };
+        Deactivated += (_, _) => { PowerHistory.ClearSelection(); CpuHistory.ClearSelection(); MemoryHistory.ClearSelection(); DisplayHistory.ClearSelection(); };
         MaxHeight = SystemParameters.WorkArea.Height - 40;     // il resto scorre
         pages = [PageForecast, PagePanel, PageNotify, PageLook, PageData, PageGeneral];
         Sections.SelectionChanged += (_, _) => ShowSection(Sections.SelectedIndex);
         Sections.SelectedIndex = lastSection;
         var s = app.Settings;
+        EveningEnabled.IsChecked = s.EveningTargetEnabled;
+        Target.IsEnabled = ExtraTimes.IsEnabled = s.EveningTargetEnabled;
+        AdvancedSensors.IsChecked = s.CollectAdvancedSensors;
+        AdvancedSensors.IsEnabled = s.CollectSystemContext;
+        ContextInterval.Text = s.ContextIntervalSeconds.ToString(CultureInfo.InvariantCulture);
+        ContextHours.Text = s.ContextHistoryHours.ToString(CultureInfo.InvariantCulture);
         CollectContext.IsChecked = s.CollectSystemContext;
         UseContext.IsChecked = s.UseSystemContext;
         UseContext.IsEnabled = s.CollectSystemContext;
@@ -72,7 +84,7 @@ public partial class PreferencesWindow : Window
         ShowUpdate(app.AvailableUpdate);
 
         foreach (var c in new[] { RefreshBox, ThemeBox, LanguageBox, Retention }) c.SelectionChanged += (_, _) => Save();
-        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, OpenOnHover, QuietEnabled, CollectContext, UseContext }) c.Click += (_, _) => Save();
+        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, OpenOnHover, QuietEnabled, CollectContext, UseContext, EveningEnabled, AdvancedSensors }) c.Click += (_, _) => Save();
         TrayPercent.Click += (_, _) => Save();
         Login.Click += (_, _) =>
         {
@@ -84,6 +96,9 @@ public partial class PreferencesWindow : Window
         foreach (var box in new[] { Reserve, Target, ExtraTimes, ChargeTarget, QuietStart, QuietEnd, AlertMinutes, NotifyLow, NotifyCharged })
             box.KeyDown += (_, e) => { if (e.Key == Key.Enter) { ApplyCustom(); e.Handled = true; } };
         loading = false;
+        Loaded += (_, _) => { if (Sections.SelectedIndex == 4) LoadContextHistory(); };
+        ContextInterval.KeyDown += (_, e) => { if (e.Key == Key.Enter) { SaveContext_Click(this, e); e.Handled = true; } };
+        ContextHours.KeyDown += (_, e) => { if (e.Key == Key.Enter) { SaveContext_Click(this, e); e.Handled = true; } };
     }
 
     // MARK: sezioni
@@ -101,6 +116,7 @@ public partial class PreferencesWindow : Window
         for (int i = 0; i < pages.Length; i++) pages[i].Visibility = i == index ? Visibility.Visible : Visibility.Collapsed;
         pages[index].ScrollToTop();
         lastSection = index;
+        if (index == 4 && !loading) LoadContextHistory();
     }
 
     static void Fill(ComboBox box, IEnumerable<(string text, object value)> items, object current)
@@ -121,6 +137,8 @@ public partial class PreferencesWindow : Window
         if (loading) return;
         app.UpdateSettings(app.Settings with
         {
+            EveningTargetEnabled = EveningEnabled.IsChecked == true,
+            CollectAdvancedSensors = AdvancedSensors.IsChecked == true,
             CollectSystemContext = CollectContext.IsChecked == true,
             UseSystemContext = UseContext.IsChecked == true,
             ShowChart = ShowChart.IsChecked == true,
@@ -143,7 +161,8 @@ public partial class PreferencesWindow : Window
             },
         });
         NotifyOptions.IsEnabled = NotifyEnabled.IsChecked == true;
-        UseContext.IsEnabled = CollectContext.IsChecked == true;
+        UseContext.IsEnabled = AdvancedSensors.IsEnabled = CollectContext.IsChecked == true;
+        Target.IsEnabled = ExtraTimes.IsEnabled = EveningEnabled.IsChecked == true;
     }
 
     void Custom_Click(object sender, RoutedEventArgs e) => ApplyCustom();
@@ -234,16 +253,18 @@ public partial class PreferencesWindow : Window
     void ApplyCustom()
     {
         static bool Time(string text, out TimeOnly value) => TimeOnly.TryParseExact(text.Trim(), ["HH:mm", "H:mm"], CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
+        var target = app.Settings.TargetTime;
+        var validTarget = EveningEnabled.IsChecked != true || Time(Target.Text, out target);
         var extra = new List<TimeOnly>();
         bool validExtra = true;
-        foreach (var part in ExtraTimes.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        foreach (var part in (EveningEnabled.IsChecked == true ? ExtraTimes.Text : string.Join(",", app.Settings.AdditionalTargets.Select(t => t.ToString("HH:mm")))).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
         { if (Time(part, out var t)) extra.Add(t); else validExtra = false; }
         var minutes = new List<int>();
         bool validMinutes = true;
         foreach (var part in AlertMinutes.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
         { if (int.TryParse(part, out var m) && m is >= 5 and <= 600) minutes.Add(m); else validMinutes = false; }
         if (!double.TryParse(Reserve.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var reserve) || reserve is < 1 or > 30 || !double.IsFinite(reserve) ||
-            !Time(Target.Text, out var target) || !Time(QuietStart.Text, out var quietStart) || !Time(QuietEnd.Text, out var quietEnd) ||
+            !validTarget || !Time(QuietStart.Text, out var quietStart) || !Time(QuietEnd.Text, out var quietEnd) ||
             !validExtra || extra.Distinct().Count() > 4 || !validMinutes ||
             !int.TryParse(ChargeTarget.Text, out var chargeTarget) || chargeTarget is < 50 or > 100 ||
             !int.TryParse(NotifyLow.Text, out var low) || low is < 0 or > 50 ||
@@ -256,6 +277,51 @@ public partial class PreferencesWindow : Window
             Notifications = app.Settings.Notifications with { MinutesLeft = [.. minutes], LowPct = low, ChargedPct = charged },
         });
         CustomStatus.Text = NotifyCustomStatus.Text = L.T("CustomSaved");
+    }
+
+    void SaveContext_Click(object sender, RoutedEventArgs e)
+    {
+        if (!int.TryParse(ContextInterval.Text, out var seconds) || seconds is < 30 or > 120 ||
+            !int.TryParse(ContextHours.Text, out var hours) || hours is < 1 or > 168)
+        { ContextSettingsStatus.Text = L.T("ContextSettingsInvalid"); return; }
+        app.UpdateSettings(app.Settings with { ContextIntervalSeconds = seconds, ContextHistoryHours = hours });
+        ContextSettingsStatus.Text = L.T("CustomSaved");
+        LoadContextHistory();
+    }
+
+    async void RefreshSensors_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshSensors.IsEnabled = false;
+        try { await app.RefreshSensorsAsync(); if (IsVisible) LoadContextHistory(); }
+        finally { RefreshSensors.IsEnabled = true; }
+    }
+
+    void LoadContextHistory()
+    {
+        if (app.Store is not { } store) return;
+        try
+        {
+            var end = DateTimeOffset.UtcNow;
+            var start = end.AddHours(-app.Settings.ContextHistoryHours);
+            var series = store.ModelCovariates(start, end);
+            var state = app.Coordinator?.State;
+            var forecast = state?.Phase switch
+            {
+                Core.Forecasting.PowerPhase.Charging => state.ChargeForecast,
+                Core.Forecasting.PowerPhase.PluggedIn => state.HeldForecast,
+                _ => state?.Forecast,
+            };
+            ContextStatus.Text = ContextPresenter.Present(app.Settings, app.CurrentSystemContext, store.ContextSummary(start), forecast?.ContextFeatures ?? []);
+            if (state?.Demo == true) ContextStatus.Text = L.T("DemoContextWarning") + Environment.NewLine + ContextStatus.Text;
+            var charge = series["charge_w"].ToDictionary(p => p.Ts, p => p.Value);
+            var watts = series["discharge_w"].Select(p => new Core.Storage.ModelCovariate(p.Ts,
+                p.Value ?? (charge.GetValueOrDefault(p.Ts) is { } w ? -w : null))).ToArray();
+            PowerHistory.SetData(watts, start, end, "W");
+            CpuHistory.SetData(series["cpu_pct"], start, end, "%", true);
+            MemoryHistory.SetData(series["memory_pct"], start, end, "%", true);
+            DisplayHistory.SetData(series["display_state"], start, end, "", displayState: true);
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException) { ContextStatus.Text = L.T("ContextReadFailed"); }
     }
 
     void Diagnostics_Click(object sender, RoutedEventArgs e)

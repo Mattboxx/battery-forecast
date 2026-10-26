@@ -8,6 +8,8 @@
   <data name="About" xml:space="preserve"><value>circa {0}</value></data>
   <data name="AboutRange" xml:space="preserve"><value>circa {0} · fascia indicativa {1}–{2}</value></data>
   <data name="AboutText" xml:space="preserve"><value>Battery Forecast {0}. Le previsioni girano in locale con {1}. Derivato da Till Dusk di Matteo Bonfanti (MIT).</value></data>
+  <data name="AdvancedSensors" xml:space="preserve"><value>Raccogli temperature e luminosità disponibili</value></data>
+  <data name="AdvancedSensorsHelp" xml:space="preserve"><value>Sonde facoltative del firmware/WMI. Se disattive, restano CPU, memoria, watt della batteria e stato dello schermo.</value></data>
   <data name="AlertMinutesCustom" xml:space="preserve"><value>Minuti degli avvisi (separati da virgola; vuoto = disattivato)</value></data>
   <data name="AlreadyBelow" xml:space="preserve"><value>Già sotto la riserva del {0}%</value></data>
   <data name="ApplyCustom" xml:space="preserve"><value>Salva impostazioni personalizzate</value></data>
@@ -37,7 +39,11 @@
   <data name="ChargingTo" xml:space="preserve"><value>In carica · {0}%</value></data>
   <data name="ChartExplore" xml:space="preserve"><value>Passa il mouse sul grafico o usa le frecce sinistra/destra con il grafico a fuoco per esplorare ora e livello.</value></data>
   <data name="ChartExtrapolated" xml:space="preserve"><value>Estrapolazione dopo l’orario abituale di ricarica</value></data>
+  <data name="ChartExtrapolatedCompact" xml:space="preserve"><value>estrapolata</value></data>
+  <data name="ChartHoverCompact" xml:space="preserve"><value>{0} · {1}% · fascia {2}–{3}%</value></data>
   <data name="ChartName" xml:space="preserve"><value>Previsione per le prossime 24 ore</value></data>
+  <data name="ChartPinned" xml:space="preserve"><value>Punto fissato · clicca fuori dal grafico per rimuoverlo</value></data>
+  <data name="ChartPinnedInline" xml:space="preserve"><value>◇ {0} · {1}% ({2}–{3}%)</value></data>
   <data name="ChartProbe" xml:space="preserve"><value>{0} · circa {1}%
 Fascia indicativa {2}–{3}%</value></data>
   <data name="ChartSummary" xml:space="preserve"><value>Ora {0}%. Stima centrale: {1}% fra 3 ore, {2}% fra 6 ore, {3}% fra 12 ore. Fascia: dalla stima prudente a quella ottimista.</value></data>
@@ -46,7 +52,31 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="CollectContext" xml:space="preserve"><value>Raccogli contesto locale del sistema</value></data>
   <data name="Collecting" xml:space="preserve"><value>Raccolta dati in corso</value></data>
   <data name="CollectingDetail" xml:space="preserve"><value>Usa il PC a batteria per qualche minuto: la prima stima arriva dal consumo recente.</value></data>
-  <data name="ContextHelp" xml:space="preserve"><value>CPU aggregata, frequenza, memoria, watt batteria, luminosità, profilo e temperature disponibili. Nessun nome di processo o telemetria online. I sensori mancanti restano non disponibili; le zone ACPI non sono la temperatura CPU. Più dati non garantiscono maggiore accuratezza.</value></data>
+  <data name="ContextChannel" xml:space="preserve"><value>{0}: {1} · {2} osservazioni salvate</value></data>
+  <data name="ContextChartEmpty" xml:space="preserve"><value>Nessuna misura disponibile in questo periodo.</value></data>
+  <data name="ContextChartSummary" xml:space="preserve"><value>{0} medie osservate; unità {1}. Le lacune lunghe non sono collegate.</value></data>
+  <data name="ContextCpuGraph" xml:space="preserve"><value>Carico CPU</value></data>
+  <data name="ContextDisplayGraph" xml:space="preserve"><value>Stato dello schermo</value></data>
+  <data name="ContextDisplayHelp" xml:space="preserve"><value>Stato dello schermo della sessione Windows. Lacune e intervalli di cinque minuti con stati diversi restano sconosciuti; non è una misura per singolo monitor.</value></data>
+  <data name="ContextGraphsHelp" xml:space="preserve"><value>Medie osservate di cinque minuti, non previsioni. Dati assenti e lacune lunghe restano vuoti. Passa il mouse per esplorare; clicca per fissare il rombo, clicca fuori per rimuoverlo.</value></data>
+  <data name="ContextHelp" xml:space="preserve"><value>CPU aggregata, frequenza, memoria, watt batteria, schermo, luminosità, profilo e temperature disponibili. Nessun nome di processo o telemetria online. I sensori mancanti restano non disponibili; le zone ACPI non sono la temperatura CPU. Più dati non garantiscono maggiore accuratezza.</value></data>
+  <data name="ContextHistoryHours" xml:space="preserve"><value>Ore nei grafici dello storico</value></data>
+  <data name="ContextInterval" xml:space="preserve"><value>Intervallo contesto (secondi)</value></data>
+  <data name="ContextIntervalHelp" xml:space="preserve"><value>30–120 secondi; lo storico batteria resta ogni minuto. Intervalli più lunghi riducono le interrogazioni.</value></data>
+  <data name="ContextLastReading" xml:space="preserve"><value>Ultima lettura: {0}</value></data>
+  <data name="ContextLastSaved" xml:space="preserve"><value>Ultimo salvataggio: {0}</value></data>
+  <data name="ContextLastUsed" xml:space="preserve"><value>Ultima previsione: canali usati {0}</value></data>
+  <data name="ContextMemoryGraph" xml:space="preserve"><value>Memoria utilizzata</value></data>
+  <data name="ContextModelOff" xml:space="preserve"><value>Uso dei sensori nel modello disattivato.</value></data>
+  <data name="ContextNeverSaved" xml:space="preserve"><value>Nessun campione di contesto salvato in questo periodo.</value></data>
+  <data name="ContextNotYetUsed" xml:space="preserve"><value>Nessun canale sensore usato nella previsione disponibile. Servono almeno sei intervalli osservati di cinque minuti e valori variabili per canale.</value></data>
+  <data name="ContextOff" xml:space="preserve"><value>Raccolta contesto disattivata. Lo storico precedente resta.</value></data>
+  <data name="ContextPowerGraph" xml:space="preserve"><value>Potenza batteria · scarica +W / carica −W</value></data>
+  <data name="ContextReadFailed" xml:space="preserve"><value>Impossibile leggere lo storico. Prova ad aggiornare.</value></data>
+  <data name="ContextRecording" xml:space="preserve"><value>Raccolta attiva · ogni {0} secondi</value></data>
+  <data name="ContextSettingsInvalid" xml:space="preserve"><value>Usa 30–120 secondi e 1–168 ore.</value></data>
+  <data name="ContextStored" xml:space="preserve"><value>{0} campioni di contesto salvati nelle ultime {1} ore.</value></data>
+  <data name="ContextTools" xml:space="preserve"><value>Verifica sensori e storico osservato</value></data>
   <data name="ContextUsed" xml:space="preserve"><value>Sensori storici usati: {0}</value></data>
   <data name="CopySummary" xml:space="preserve"><value>Copia riepilogo batteria</value></data>
   <data name="Coverage" xml:space="preserve"><value>{0} giorni di storico · {1} campioni</value></data>
@@ -60,15 +90,21 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="Deleted" xml:space="preserve"><value>Storico eliminato.</value></data>
   <data name="Demo" xml:space="preserve"><value>Demo · scarica simulata dal livello attuale, non una misura</value></data>
   <data name="DemoCharging" xml:space="preserve"><value>Demo · esempio di ricarica sintetico, non una misura</value></data>
+  <data name="DemoContextWarning" xml:space="preserve"><value>DEMO: valori sensori e storico simulati, non misurazioni di questo PC.</value></data>
   <data name="Diagnostics" xml:space="preserve"><value>Esporta diagnostica locale</value></data>
   <data name="DiagnosticsHelp" xml:space="preserve"><value>Crea uno ZIP locale con versioni, preferenze e scheda modello. Esclude storico e log e non viene caricato automaticamente.</value></data>
   <data name="DiagnosticsSaved" xml:space="preserve"><value>Diagnostica locale esportata.</value></data>
+  <data name="DisplayState_0" xml:space="preserve"><value>Spento</value></data>
+  <data name="DisplayState_1" xml:space="preserve"><value>Acceso</value></data>
+  <data name="DisplayState_2" xml:space="preserve"><value>Attenuato</value></data>
   <data name="Earlier" xml:space="preserve"><value>prima</value></data>
   <data name="EngineLoading" xml:space="preserve"><value>Avvio del motore di previsione…</value></data>
   <data name="EngineMissing" xml:space="preserve"><value>Il motore di previsione non è installato. La stima dal consumo recente funziona comunque.</value></data>
   <data name="EnginePaused" xml:space="preserve"><value>Il motore di previsione riproverà tra poco.</value></data>
   <data name="EngineSlow" xml:space="preserve"><value>Il motore di previsione non ha risposto in tempo.</value></data>
   <data name="EngineStopped" xml:space="preserve"><value>Il motore di previsione si è fermato. La stima dal consumo recente funziona comunque.</value></data>
+  <data name="EveningEnabled" xml:space="preserve"><value>Mostra obiettivo serale e altri orari</value></data>
+  <data name="EveningEnabledHelp" xml:space="preserve"><value>Se disattivo, nasconde orari, segno sul grafico e consiglio legato all’obiettivo. Gli orari salvati restano.</value></data>
   <data name="ExpectedRuntime" xml:space="preserve"><value>Autonomia prevista</value></data>
   <data name="ExportContext" xml:space="preserve"><value>Esporta contesto sistema CSV</value></data>
   <data name="ExportCsv" xml:space="preserve"><value>Esporta storico in CSV…</value></data>
@@ -156,7 +192,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="PrefNotifyTime" xml:space="preserve"><value>Quando mancano circa 60, 30 e 15 minuti alla riserva</value></data>
   <data name="PrefPanel" xml:space="preserve"><value>Pannello</value></data>
   <data name="PrefRefresh" xml:space="preserve"><value>Aggiornamento della previsione</value></data>
-  <data name="PrefRefreshHelp" xml:space="preserve"><value>Il modello si avvia solo per calcolare (circa 3 s di CPU) e poi si chiude. Con il risparmio energetico attivo non parte mai da solo; la stima dal consumo recente continua a funzionare.</value></data>
+  <data name="PrefRefreshHelp" xml:space="preserve"><value>Il modello si avvia solo per calcolare e poi si chiude. Con il risparmio energetico attivo non parte mai da solo; la stima dal consumo recente continua a funzionare.</value></data>
   <data name="PrefReserve" xml:space="preserve"><value>Soglia di riserva (%)</value></data>
   <data name="PrefReserveHelp" xml:space="preserve"><value>Le stime indicano quando la batteria arriva a questo livello, non quando il PC si spegne.</value></data>
   <data name="PrefRetention" xml:space="preserve"><value>Conserva lo storico per</value></data>
@@ -167,6 +203,10 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="PrefTrayHelp" xml:space="preserve"><value>Windows può nascondere l'icona nell'area di overflow: trascinala vicino all'orologio per tenerla visibile.</value></data>
   <data name="Preferences" xml:space="preserve"><value>Preferenze…</value></data>
   <data name="PrefsTitle" xml:space="preserve"><value>Preferenze di Battery Forecast</value></data>
+  <data name="Profile_0" xml:space="preserve"><value>Bilanciato</value></data>
+  <data name="Profile_1" xml:space="preserve"><value>Prestazioni</value></data>
+  <data name="Profile_2" xml:space="preserve"><value>Risparmio</value></data>
+  <data name="Profile_3" xml:space="preserve"><value>Personalizzato</value></data>
   <data name="PrudentAbove" xml:space="preserve"><value>Anche nella stima più prudente resta sopra il {0}%</value></data>
   <data name="PrudentCrosses" xml:space="preserve"><value>Nella stima più prudente arriva alla riserva {0}</value></data>
   <data name="QuietEnabled" xml:space="preserve"><value>Orario silenzioso per le notifiche</value></data>
@@ -175,10 +215,13 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="QuietStart" xml:space="preserve"><value>Silenzioso dalle (HH:mm)</value></data>
   <data name="Quit" xml:space="preserve"><value>Esci da Battery Forecast</value></data>
   <data name="RangeOnDay" xml:space="preserve"><value>{0} {1}–{2}</value></data>
+  <data name="RecalculateNow" xml:space="preserve"><value>Ricalcola ora</value></data>
+  <data name="RecalculateNowHelp" xml:space="preserve"><value>Legge la batteria ora e avvia il modello locale. Disattivato durante il calcolo.</value></data>
   <data name="RecentLine" xml:space="preserve"><value>Al ritmo attuale: circa {0} ({1})</value></data>
   <data name="RefreshBalanced" xml:space="preserve"><value>Ogni 30 minuti (consigliato)</value></data>
   <data name="RefreshFrequent" xml:space="preserve"><value>Ogni 10 minuti</value></data>
   <data name="RefreshOnOpen" xml:space="preserve"><value>Solo quando apro il pannello</value></data>
+  <data name="RefreshSensors" xml:space="preserve"><value>Leggi sensori e aggiorna grafici</value></data>
   <data name="ResumesOnUnplug" xml:space="preserve"><value>La previsione riparte quando stacchi l'alimentatore.</value></data>
   <data name="Retry" xml:space="preserve"><value>Riprova</value></data>
   <data name="SaverOn" xml:space="preserve"><value>Risparmio energetico attivo</value></data>
@@ -202,9 +245,11 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="SensorCpu" xml:space="preserve"><value>CPU {0:0}%</value></data>
   <data name="SensorCpuTemp" xml:space="preserve"><value>CPU {0:0.0} °C</value></data>
   <data name="SensorDischarge" xml:space="preserve"><value>Scarica {0:0.0} W</value></data>
+  <data name="SensorHoverCompact" xml:space="preserve"><value>{0} · {1:0.#} {2}</value></data>
   <data name="SensorMemory" xml:space="preserve"><value>Memoria {0:0}%</value></data>
   <data name="SensorUnavailable" xml:space="preserve"><value>Lettura della batteria non disponibile</value></data>
   <data name="SensorUnavailableDetail" xml:space="preserve"><value>Windows non comunica il livello della batteria in questo momento. Riprovo ogni minuto.</value></data>
+  <data name="SensorUnavailableValue" xml:space="preserve"><value>non disponibile</value></data>
   <data name="SensorZoneTemp" xml:space="preserve"><value>Zona ACPI {0:0.0} °C</value></data>
   <data name="Sensor_battery_temp_c" xml:space="preserve"><value>temperatura batteria</value></data>
   <data name="Sensor_brightness_pct" xml:space="preserve"><value>luminosità</value></data>
@@ -213,6 +258,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="Sensor_cpu_pct" xml:space="preserve"><value>carico CPU</value></data>
   <data name="Sensor_cpu_temp_c" xml:space="preserve"><value>temperatura CPU</value></data>
   <data name="Sensor_discharge_w" xml:space="preserve"><value>watt scarica</value></data>
+  <data name="Sensor_display_state" xml:space="preserve"><value>Schermo</value></data>
   <data name="Sensor_memory_pct" xml:space="preserve"><value>memoria</value></data>
   <data name="Sensor_power_profile" xml:space="preserve"><value>profilo energetico</value></data>
   <data name="Sensor_thermal_zone_c" xml:space="preserve"><value>temperatura ACPI</value></data>

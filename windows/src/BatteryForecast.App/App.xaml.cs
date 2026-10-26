@@ -58,6 +58,7 @@ public partial class App : Application
 
     public HistoryStore? Store { get; private set; }
     public ForecastCoordinator? Coordinator { get; private set; }
+    public SystemSample? CurrentSystemContext => collector?.CurrentContext;
     public Settings Settings { get; private set; } = new();
 
     public string EngineDescription => worker?.Info is { } i
@@ -129,7 +130,8 @@ public partial class App : Application
         if (launch is null) log.Write("engine not found next to the app");
         // il motore si chiude un minuto dopo l'ultima previsione: non resta in memoria fra un calcolo e l'altro
         worker = launch is null ? null : new ForecastWorker(launch, new WorkerOptions { IdleLimit = TimeSpan.FromMinutes(1) });
-        collector = new Collector(provider, Store, context: demo ? null : new WindowsSystemContext(), collectContext: () => Settings.CollectSystemContext);
+        collector = new Collector(provider, Store, context: demo ? new Demo.ContextProvider() : new WindowsSystemContext(collectAdvanced: () => Settings.CollectAdvancedSensors, displayState: () => displayState.Value),
+            collectContext: () => Settings.CollectSystemContext, contextIntervalSeconds: () => Settings.ContextIntervalSeconds);
         Coordinator = new ForecastCoordinator(collector, Store, worker, () => Settings, paths.LastForecast, demo: demo);
         Coordinator.Changed += s => Dispatcher.BeginInvoke(() => Render(s));
         notices = new NotificationRules(Store);
@@ -174,6 +176,8 @@ public partial class App : Application
     }
 
     HwndSource? messages;
+    readonly DisplayStateTracker displayState = new();
+    DisplayPowerNotification? displayNotification;
 
     /// <summary>
     /// Finestra invisibile di primo livello: Restart Manager (usato da Inno Setup) e "taskkill" senza /F
@@ -182,9 +186,14 @@ public partial class App : Application
     void CreateMessageWindow()
     {
         messages = new HwndSource(new HwndSourceParameters("Battery Forecast") { Width = 0, Height = 0, WindowStyle = 0 });
+        displayNotification = new DisplayPowerNotification(messages.Handle, displayState, state =>
+        {
+            if (!demo) _ = Task.Run(() => collector?.OnDisplayStateChanged(state));
+        });
         messages.AddHook((IntPtr hwnd, int msg, IntPtr w, IntPtr l, ref bool handled) =>
         {
             const int WM_CLOSE = 0x10, WM_QUERYENDSESSION = 0x11, WM_ENDSESSION = 0x16;
+            if (msg == 0x218 && w.ToInt32() == 0x8013) displayNotification?.OnMessage(l);
             switch (msg)
             {
                 case 0x0312 when w.ToInt32() == GlobalHotkey.Id:
@@ -301,7 +310,11 @@ public partial class App : Application
     void ShowPanel(PanelOpening how)
     {
         if (quitting || Coordinator is null) return;
-        panel ??= new PanelWindow(this);
+        if (panel is null)
+        {
+            panel = new PanelWindow(this);
+            panel.IsVisibleChanged += (_, _) => tray?.SetTooltipSuppressed(panel?.IsVisible == true);
+        }
         Coordinator.PanelOpened();
         var s = last ?? Coordinator.State;
         if (s is not null) panel.Show(PanelPresenter.Present(s), s.Target.When, how);
@@ -361,6 +374,7 @@ public partial class App : Application
             prefs.Closed += (_, _) => prefs = null;
         }
         if (section is { } i) prefs.ShowSection(i);
+        if (prefs.WindowState == WindowState.Minimized) prefs.WindowState = WindowState.Normal;
         prefs.Show();
         prefs.Activate();
     }
@@ -435,12 +449,21 @@ public partial class App : Application
         }
         if (prev.RetentionDays != Settings.RetentionDays)
             Task.Run(() => Store?.Prune(DateTimeOffset.UtcNow, Settings.RetentionDays));
-        if (prev.ReservePct != Settings.ReservePct || prev.TargetTime != Settings.TargetTime || prev.TrayText != Settings.TrayText
-            || prev.Refresh != Settings.Refresh || prev.ChargeTargetPct != Settings.ChargeTargetPct
-            || !prev.AdditionalTargets.SequenceEqual(Settings.AdditionalTargets) || prev.ShowChart != Settings.ShowChart
-            || prev.KeepPanelOpen != Settings.KeepPanelOpen || prev.UseSystemContext != Settings.UseSystemContext || prev.CollectSystemContext != Settings.CollectSystemContext
-            || prev.Language != Settings.Language)
-            Coordinator?.SettingsChanged();
+        var modelChanged = prev.ReservePct != Settings.ReservePct || prev.ChargeTargetPct != Settings.ChargeTargetPct
+            || prev.UseSystemContext != Settings.UseSystemContext || prev.CollectSystemContext != Settings.CollectSystemContext;
+        if (prev.CollectSystemContext != Settings.CollectSystemContext || prev.CollectAdvancedSensors != Settings.CollectAdvancedSensors
+            || prev.ContextIntervalSeconds != Settings.ContextIntervalSeconds)
+            _ = Task.Run(() => collector?.Sample(forceContext: true));
+        Coordinator?.SettingsChanged(recalculate: modelChanged);
+
+    }
+
+    public async Task RefreshSensorsAsync()
+    {
+        await Task.Run(() => collector?.Sample(forceContext: true));
+        if (!Settings.CollectSystemContext) return;
+        await Task.Delay(1100); // allow a CPU counter delta and the optional background probes to complete
+        await Task.Run(() => collector?.Sample(forceContext: true));
     }
 
     public void DeleteHistory()
@@ -495,6 +518,7 @@ public partial class App : Application
         try { worker?.DisposeAsync().AsTask().Wait(TimeSpan.FromSeconds(4)); } catch (AggregateException) { }
         Store?.Dispose();
         hotkey?.Dispose();
+        displayNotification?.Dispose();
         messages?.Dispose();
         instance?.Dispose();
         Shutdown();

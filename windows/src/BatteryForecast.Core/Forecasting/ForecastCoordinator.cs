@@ -39,6 +39,7 @@ public sealed record DashboardState
     public bool Updating { get; init; }
     public EngineState Engine { get; init; }
     public string? EngineError { get; init; }
+    public bool EveningTargetEnabled { get; init; } = true;
     public required TargetTime Target { get; init; }
     public CurvePoint? AtTarget { get; init; }
     public SavingSuggestion Saving { get; init; }
@@ -96,7 +97,7 @@ public sealed class ForecastCoordinator : IDisposable
     DateTimeOffset? lastRun, lastAcSeen, lastChargeRun, lastBatterySeen;
     ForecastView? chargeForecast, heldForecast;
     DateTimeOffset? lastHeldRun;
-    bool updating, pendingForce;
+    bool updating, pendingForce, manualRead;
     EngineState engineState = EngineState.Off;
     string? engineError;
     DashboardState? state;
@@ -149,13 +150,29 @@ public sealed class ForecastCoordinator : IDisposable
     });
 
     /// <summary>Le preferenze sono cambiate (riserva, obiettivo): la cache con un'altra riserva non vale più.</summary>
-    public void SettingsChanged() => Task.Run(() =>
+    public void SettingsChanged(bool recalculate = true) => Task.Run(() =>
     {
         Publish();
-        Request(Trigger.User);
+        if (recalculate) Request(Trigger.User);
     });
 
-    public void Retry() => Task.Run(() => Request(Trigger.User));
+    public void Retry() => RecalculateNow();
+
+    /// <summary>Fresh readings and an explicit local forecast, including in battery saver/on-open mode.</summary>
+    public void RecalculateNow() => Task.Run(() =>
+    {
+        lock (gate)
+        {
+            if (updating || manualRead) return;
+            manualRead = true;
+        }
+        try
+        {
+            collector.Sample(forceContext: true);
+            Request(Trigger.User);
+        }
+        finally { lock (gate) manualRead = false; }
+    });
 
     /// <summary>Lo storico è stato cancellato: si dimentica anche la previsione che ne derivava.</summary>
     public void Reset() => Task.Run(() =>
@@ -172,6 +189,7 @@ public sealed class ForecastCoordinator : IDisposable
         else if (s.OnAc == false)
             lock (gate) lastBatterySeen = s.TimestampUtc;
         Publish();
+        lock (gate) if (manualRead) return;
         Request(change == PowerChange.None ? Trigger.Background : Trigger.Event);
     }
 
@@ -189,7 +207,7 @@ public sealed class ForecastCoordinator : IDisposable
         // collegato con la carica ferma, quella "se stacchi adesso"
         Mode mode;
         if (s.IsDischarging) mode = Mode.Discharge;
-        else if (s is { OnAc: true, State: ChargeState.Charging } && level < settings().ChargeTargetPct) mode = Mode.Charge;
+        else if (s is { OnAc: true, State: ChargeState.Charging } && (level < settings().ChargeTargetPct || trigger == Trigger.User)) mode = Mode.Charge;
         else if (PhaseOf(s) == PowerPhase.PluggedIn && trigger != Trigger.Background) mode = Mode.Held;
         else return;
         var now = clock.GetUtcNow();
@@ -310,7 +328,9 @@ public sealed class ForecastCoordinator : IDisposable
             var heldFresh = activeHeld is not null && now - activeHeld.Generated < FreshFor
                 && Math.Abs(s.LevelPct!.Value - activeHeld.Level) <= FreshDrift;
             var target = TargetTime.Next(now, cfg.TargetTime, zone);
-            var (saving, savingAt) = Suggest(active, now, target.When, s.BatterySaver == true);
+            var (saving, savingAt) = cfg.EveningTargetEnabled
+                ? Suggest(active, now, target.When, s.BatterySaver == true)
+                : (SavingSuggestion.None, (DateTimeOffset?)null);
             next = new DashboardState
             {
                 Now = now,
@@ -325,12 +345,13 @@ public sealed class ForecastCoordinator : IDisposable
                 ChargeForecastFresh = chargeFresh,
                 HeldForecast = activeHeld,
                 HeldForecastFresh = heldFresh,
-                AdditionalTargets = [.. cfg.AdditionalTargets.Select(t => TargetTime.Next(now, t, zone))],
+                EveningTargetEnabled = cfg.EveningTargetEnabled,
+                AdditionalTargets = cfg.EveningTargetEnabled ? [.. cfg.AdditionalTargets.Select(t => TargetTime.Next(now, t, zone))] : [],
                 Updating = updating,
                 Engine = engineState,
                 EngineError = engineError,
                 Target = target,
-                AtTarget = active?.At(target.When),
+                AtTarget = cfg.EveningTargetEnabled ? active?.At(target.When) : null,
                 Saving = saving,
                 SavingAt = savingAt,
                 ReservePct = cfg.ReservePct,

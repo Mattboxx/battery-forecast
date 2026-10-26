@@ -161,8 +161,17 @@ nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
 ## Più controllo e contesto
 
+- **Obiettivi orari facoltativi:** spegni obiettivo serale e altri orari conservando quelli salvati. Stima
+  principale e grafico restano disponibili.
+- **Ricalcola ora:** il piccolo pulsante all’estrema destra della previsione legge di nuovo la batteria e
+  avvia il modello locale, anche in modalità solo all’apertura o con risparmio energetico. Durante il calcolo è disattivato.
+- **Strumenti Dati e privacy:** disponibilità dei sensori, conteggi delle osservazioni salvate e canali usati
+  nell’ultima previsione. Grafici storici di watt, CPU e memoria, con finestra manuale di 1–168 ore; raccolta del
+  contesto ogni 30–120 secondi e sonde temperatura/luminosità disattivabili separatamente. Sono nelle Preferenze: il popup resta essenziale.
+
 - **Grafico esplorabile:** passa il mouse per spostare il pallino e leggere data/ora, percentuale e fascia
-  indicativa. Da tastiera usa frecce, Home e Fine. Il tooltip distingue la parte estrapolata.
+  indicativa. Da tastiera usa frecce, Home e Fine. Un clic fissa un piccolo rombo vuoto mentre il puntatore
+  continua a muoversi; un clic fuori lo rimuove. La didascalia è compatta al passaggio; dopo il clic i dettagli restano integrati sotto il grafico, senza cornice di selezione.
 - **Orari liberi:** scrivi l’obiettivo e fino a quattro altri orari in `HH:mm`, anche di notte.
   Gli orari passati si riferiscono esplicitamente a domani. Pulsante Salva o Invio per i campi manuali.
 - **Scorciatoia globale:** inizialmente `Ctrl+Alt+B`, apre il pannello e, premuta di nuovo, lo chiude. Per cambiarla
@@ -186,3 +195,9 @@ nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 I test funzionali includono il modello reale, ma **non è stato misurato un aumento di accuratezza**.
 Ricarica e sensori sono sperimentali; raccolta e uso nel modello si disattivano separatamente.
 Vedi [scheda modello](MODEL_CARD.md).
+
+La didascalia dell’icona viene nascosta mentre il pannello è visibile. Dati e privacy registra anche lo
+**schermo acceso, spento o attenuato** nella sessione Windows, con un grafico dedicato. Stati sconosciuti
+o diversi nello stesso intervallo di cinque minuti restano mancanti. Non è una misura per monitor e non
+ricostruisce lo storico precedente. Gli interruttori di raccolta e uso nel modello valgono anche per questo
+canale. Le didascalie al passaggio del mouse occupano una riga esterna a ogni grafico.

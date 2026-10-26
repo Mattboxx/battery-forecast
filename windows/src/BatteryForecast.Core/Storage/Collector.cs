@@ -16,13 +16,17 @@ public sealed class Collector : IDisposable
     readonly TimeSpan interval;
     readonly ISystemContextProvider? context;
     readonly Func<bool> collectContext;
+    readonly Func<int> contextIntervalSeconds;
+    DateTimeOffset? lastContextRead;
     public SystemSample? CurrentContext { get; private set; }
     readonly Lock gate = new();
-    ITimer? timer;
+    ITimer? timer, contextTimer;
     bool? lastOnAc;
+    bool disposed;
 
-    public Collector(IBatteryProvider provider, HistoryStore store, TimeProvider? clock = null, TimeSpan? interval = null, ISystemContextProvider? context = null, Func<bool>? collectContext = null)
+    public Collector(IBatteryProvider provider, HistoryStore store, TimeProvider? clock = null, TimeSpan? interval = null, ISystemContextProvider? context = null, Func<bool>? collectContext = null, Func<int>? contextIntervalSeconds = null)
     {
+        this.contextIntervalSeconds = contextIntervalSeconds ?? (() => 60);
         this.context = context;
         this.collectContext = collectContext ?? (() => true);
         this.provider = provider;
@@ -42,15 +46,18 @@ public sealed class Collector : IDisposable
         store.AppendEvent(clock.GetUtcNow(), "app_start");
         Sample();
         timer = clock.CreateTimer(_ => Sample(), null, interval, interval);
+        if (context is not null)
+            contextTimer = clock.CreateTimer(_ => ContextTick(), null, ContextInterval, Timeout.InfiniteTimeSpan);
     }
 
     /// <summary>Lettura immediata: cambio di alimentazione, ripresa, apertura del pannello.</summary>
-    public BatterySample Sample()
+    public BatterySample Sample(bool forceContext = false)
     {
         BatterySample s;
         PowerChange change;
         lock (gate)
         {
+            if (disposed) return Current ?? throw new ObjectDisposedException(nameof(Collector));
             s = provider.Read();
             Current = s;
             change = s.OnAc switch
@@ -63,8 +70,7 @@ public sealed class Collector : IDisposable
             try
             {
                 store.Append(s);
-                CurrentContext = context is not null && collectContext() ? context.Read(s) : null;
-                if(CurrentContext is not null) store.AppendContext(CurrentContext);
+                UpdateContext(s, forceContext);
                 if (change != PowerChange.None)
                     store.AppendEvent(s.TimestampUtc, change == PowerChange.Connected ? "ac_connected" : "ac_disconnected");
             }
@@ -72,6 +78,50 @@ public sealed class Collector : IDisposable
         }
         Sampled?.Invoke(s, change);
         return s;
+    }
+
+    TimeSpan ContextInterval => TimeSpan.FromSeconds(Math.Clamp(contextIntervalSeconds(), 30, 120));
+
+    void UpdateContext(BatterySample? battery = null, bool force = false)
+    {
+        if (context is null || !collectContext())
+        {
+            CurrentContext = null;
+            lastContextRead = null;
+            return;
+        }
+        var now = clock.GetUtcNow();
+        // A small tolerance avoids losing an entire sample to ordinary timer jitter.
+        if (!force && lastContextRead is { } at && now - at + TimeSpan.FromMilliseconds(250) < ContextInterval) return;
+        CurrentContext = context.Read(battery ?? provider.Read());
+        lastContextRead = now;
+        contextTimer?.Change(ContextInterval, Timeout.InfiniteTimeSpan);
+        store.AppendContext(CurrentContext);
+    }
+
+    void ContextTick()
+    {
+        lock (gate)
+        {
+            if (disposed) return;
+            try { UpdateContext(); }
+            catch (Microsoft.Data.Sqlite.SqliteException) { }
+            finally { contextTimer?.Change(ContextInterval, Timeout.InfiniteTimeSpan); }
+        }
+    }
+
+    public void OnDisplayStateChanged(int state)
+    {
+        lock (gate)
+        {
+            if (disposed || !collectContext() || state is < 0 or > 2) return;
+            try
+            {
+                store.AppendEvent(clock.GetUtcNow(), "display_" + state);
+                UpdateContext(force: true);
+            }
+            catch (Microsoft.Data.Sqlite.SqliteException) { }
+        }
     }
 
     public void OnSuspend() => TryEvent("suspend");
@@ -90,7 +140,15 @@ public sealed class Collector : IDisposable
         catch (Microsoft.Data.Sqlite.SqliteException) { }
     }
 
-    public void Dispose() => timer?.Dispose();
+    public void Dispose()
+    {
+        lock (gate)
+        {
+            disposed = true;
+            timer?.Dispose();
+            contextTimer?.Dispose();
+        }
+    }
 }
 
 public enum PowerChange { None, Connected, Disconnected }

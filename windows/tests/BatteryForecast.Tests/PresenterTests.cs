@@ -54,6 +54,28 @@ public class PresenterTests
     };
 
     [Fact]
+    public void Disabled_evening_goal_removes_target_tooltip_and_advice_but_keeps_forecast()
+    {
+        var state = State(Bat(), View()) with
+        {
+            EveningTargetEnabled = false,
+            Saving = SavingSuggestion.Likely, SavingAt = Now.AddHours(3),
+            AdditionalTargets = [TargetTime.Next(Now, new(20, 0), Rome)],
+        };
+        var model = PanelPresenter.Present(state, Rome);
+        Assert.NotNull(model.Chart);
+        Assert.NotNull(model.Headline);
+        Assert.False(model.ShowEveningMarker);
+        Assert.Null(model.TargetLabel);
+        Assert.Null(model.TargetValue);
+        Assert.Null(model.ExtraTargets);
+        Assert.Null(model.SavingTitle);
+        Assert.DoesNotContain("22:00", model.Tooltip);
+        Assert.True(model.CanRecalculate);
+        Assert.False(PanelPresenter.Present(state with { Updating = true }, Rome).CanRecalculate);
+    }
+
+    [Fact]
     public void Habit_forecast_shows_until_range_reserve_and_source()
     {
         var m = PanelPresenter.Present(State(Bat(), View(), new RecentEstimate(RecentMethod.Slope, 20, Now.AddHours(2.75), TimeSpan.FromMinutes(30))), Rome);

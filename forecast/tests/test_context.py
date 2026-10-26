@@ -39,3 +39,13 @@ def test_protocol_rejects_nonfinite_and_unknown_context_and_drops_future():
     with pytest.raises(protocol.ProtocolError):protocol.parse_request(json.dumps(req).encode())
     req["past_covariates"]={"cpu_pct":[[300,float('nan')]]}
     with pytest.raises(protocol.ProtocolError):protocol.parse_request(json.dumps(req).encode())
+
+
+def test_display_state_categorical_missing_and_mixed_bins_are_not_interpolated():
+    data = {"display_state": [[i*300, 0 if i < 5 else 1] for i in range(10) if i != 4]}
+    data["display_state"].append([301, 2])
+    numeric, categorical, names = series.past_covariates(data, context())
+    assert numeric is None and names == ["display_state"]
+    assert np.isnan(categorical[0, 0, 1])  # mixed, not averaged
+    assert np.isnan(categorical[0, 0, 4])  # not interpolated
+    assert categorical[0, 0, 5] == 1

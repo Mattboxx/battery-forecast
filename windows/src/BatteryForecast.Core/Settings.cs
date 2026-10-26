@@ -18,12 +18,16 @@ public enum RefreshPolicy { OnOpen, Balanced, Frequent }
 public sealed record Settings
 {
     public double ReservePct { get; init; } = 5;
+    public bool EveningTargetEnabled { get; init; } = true;
     /// <summary>Ora locale dell'obiettivo serale ("Alle 22:00 circa …%").</summary>
     public TimeOnly TargetTime { get; init; } = new(22, 0);
     public TimeOnly[] AdditionalTargets { get; init; } = [];
     public int ChargeTargetPct { get; init; } = 80;
     public string PanelHotkey { get; init; } = "Ctrl+Alt+B";
     public bool CollectSystemContext { get; init; } = true;
+    public bool CollectAdvancedSensors { get; init; } = true;
+    public int ContextIntervalSeconds { get; init; } = 60;
+    public int ContextHistoryHours { get; init; } = 24;
     public bool UseSystemContext { get; init; } = true;
     public bool ShowChart { get; init; } = true;
     public bool KeepPanelOpen { get; init; }
@@ -61,6 +65,8 @@ public sealed record Settings
     public Settings Normalized() => this with
     {
         ReservePct = ReservePct is >= 1 and <= 30 ? ReservePct : 5,
+        ContextHistoryHours = ContextHistoryHours is >= 1 and <= 168 ? ContextHistoryHours : 24,
+        ContextIntervalSeconds = ContextIntervalSeconds is >= 30 and <= 120 ? ContextIntervalSeconds : 60,
         RetentionDays = RetentionDays is >= 7 and <= 3650 ? RetentionDays : 90,
         Notifications = (Notifications ?? new()).Normalized(),
         AdditionalTargets = [.. (AdditionalTargets ?? []).Where(t => t != TargetTime).Distinct().Order().Take(4)],

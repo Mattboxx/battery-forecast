@@ -1,4 +1,5 @@
 using BatteryForecast.Core.Storage;
+using BatteryForecast.Core.Telemetry;
 
 namespace BatteryForecast.Core.Battery;
 
@@ -33,6 +34,21 @@ public static class Demo
         }
     }
 
+    /// <summary>Synthetic context for UI demos only, always labelled and stored separately.</summary>
+    public sealed class ContextProvider(TimeProvider? clock = null) : ISystemContextProvider
+    {
+        readonly TimeProvider clock = clock ?? TimeProvider.System;
+        public SystemSample Read(BatterySample battery) => ContextAt(clock.GetUtcNow(), battery.OnAc == true);
+    }
+
+    static SystemSample ContextAt(DateTimeOffset now, bool onAc)
+    {
+        var phase = now.ToUnixTimeSeconds() / 3600.0;
+        return new(now, CpuPct: 45 + 30 * Math.Sin(phase), CpuMHz: 1800 + 500 * Math.Sin(phase),
+            MemoryPct: 60 + 8 * Math.Cos(phase), DischargeW: onAc ? null : 9 + 4 * Math.Sin(phase),
+            ChargeW: onAc ? 18 + 3 * Math.Sin(phase) : null, PowerProfile: 0, Source: "demo-synthetic", DisplayState: (int)Math.Floor(phase) % 8 == 0 ? 0 : 1);
+    }
+
     /// <summary>
     /// Sette giorni di abitudini (notte in carica, scarica la mattina e il pomeriggio, sera a corrente),
     /// poi gli ultimi 90 minuti a batteria fino al livello del <see cref="Provider"/>: nessun salto.
@@ -48,6 +64,7 @@ public static class Demo
             var onBattery = (h is >= 8.5 and < 12.5) || (h >= 14 && h < 18 + day % 3 * 0.5);
             var rate = h < 12.5 ? 9.5 + day % 2 : 12;
             level = onBattery ? Math.Max(3, level - rate / 12) : Math.Min(100, level + 30.0 / 12);
+            if (t >= now.AddHours(-24)) store.AppendContext(ContextAt(t, !onBattery));
             store.Append(new BatterySample(t, onBattery ? ChargeState.Discharging : ChargeState.Charging,
                 Math.Round(level), !onBattery, Source: "demo"));
         }
@@ -57,6 +74,7 @@ public static class Demo
         store.Append(new BatterySample(unplugged.AddMinutes(-5), ChargeState.Charging, Math.Round(from), true, Source: "demo"));
         for (var t = unplugged; t < now; t = t.AddMinutes(1))
         {
+            store.AppendContext(ContextAt(t, false));
             var l = from - lastRate * (t - unplugged).TotalHours;
             store.Append(new BatterySample(t, ChargeState.Discharging, Math.Round(l), false, (int)(fullMWh * l / 100),
                 fullMWh, designMWh, (int)(fullMWh * Math.Max(lastRate, 1) / 100), Source: "demo"));

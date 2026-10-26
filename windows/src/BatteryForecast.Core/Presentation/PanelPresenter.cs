@@ -19,6 +19,7 @@ public sealed record PanelModel
     public string SectionTitle { get; init; } = "";
     public string? UpdatedAt { get; init; }
     public bool Busy { get; init; }
+    public bool CanRecalculate { get; init; }
     public string Headline { get; init; } = "";
     public string? Detail { get; init; }
     public string? Note { get; init; }
@@ -56,6 +57,11 @@ public static class PanelPresenter
         var m = new PanelModel
         {
             Level = level,
+            Busy = s.Updating,
+            CanRecalculate = !s.Updating && s.Battery.LevelPct is not null &&
+                s.Phase is (PowerPhase.Discharging or PowerPhase.Charging or PowerPhase.PluggedIn) &&
+                s.EngineError is not ("not_found" or "model_unavailable"),
+            ShowEveningMarker = s.EveningTargetEnabled,
             PowerLine = L.F("PowerSource", L.T(b.OnAc == true ? "SourceAc" : "SourceBattery")),
             SaverLine = b.BatterySaver == true ? L.T("SaverOn") : null,
             DemoLine = s.Demo ? L.T(s.Battery.OnAc == true ? "DemoCharging" : "Demo") : null,
@@ -152,7 +158,7 @@ public static class PanelPresenter
                 CanRetry = err is not ("not_found" or "model_unavailable"),
             };
 
-        if (f is not null && habitsUsable)
+        if (f is not null && habitsUsable && s.EveningTargetEnabled)
         {
             if (s.AtTarget is { } below && below.P50 <= f.ReservePct)
                 m = m with
@@ -173,17 +179,18 @@ public static class PanelPresenter
                     TargetLabel = L.F(s.Target.Tomorrow ? "AtTargetTomorrow" : "AtTarget", Clock(s.Target.When, zone)),
                     TargetRange = L.T("TargetBeyond"),
                 };
-            m = m with { Chart = f, ChartSummary = Summary(f, now) };
         }
+        if (f is not null && habitsUsable)
+            m = m with { Chart = f, ChartSummary = Summary(f, now) };
 
-        if (s.Saving != SavingSuggestion.None && s.SavingAt is { } at)
+        if (s.EveningTargetEnabled && s.Saving != SavingSuggestion.None && s.SavingAt is { } at)
             m = m with
             {
                 SavingTitle = s.Saving == SavingSuggestion.Likely ? L.F("SavingLikelyTitle", Clock(s.Target.When, zone)) : L.T("SavingPossibleTitle"),
                 SavingDetail = s.Saving == SavingSuggestion.Likely ? L.F("SavingLikely", UntilPhrase(at, now, zone)) : L.F("SavingPossible", At(at, now, zone)),
             };
 
-        if (f is not null && habitsUsable && s.AdditionalTargets.Count > 0)
+        if (s.EveningTargetEnabled && f is not null && habitsUsable && s.AdditionalTargets.Count > 0)
         {
             m = m with { ExtraTargets = string.Join(Environment.NewLine, s.AdditionalTargets.Select(t =>
             {
@@ -334,7 +341,7 @@ public static class PanelPresenter
             parts.Add(L.F("TipUntil", Duration(c - s.Now)));
         else if (m.Source == EstimateSource.Recent && s.Recent?.ReserveAt is { } r)
             parts.Add(L.F("TipUntil", Duration(r - s.Now)));
-        if (s.AtTarget is { } p)
+        if (s.EveningTargetEnabled && s.AtTarget is { } p)
             parts.Add(L.F("TipAtTarget", Clock(s.Target.When, zone), Math.Round(p.P50)));
         return Tip([.. parts]);
     }

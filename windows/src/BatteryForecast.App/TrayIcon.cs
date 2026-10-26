@@ -15,6 +15,8 @@ sealed class TrayIcon : IDisposable
 {
     readonly Forms.NotifyIcon icon;
     IntPtr hicon;
+    string latestTooltip = "Battery Forecast";
+    bool tooltipSuppressed;
     (int level, bool charging, bool percent, bool dark, int size) drawn = (-1, false, false, false, 0);
 
     public TrayIcon(Action onClick, Action onOpen, Action onHistory, Action onPreferences, Action onQuit, Func<string, string> text,
@@ -37,7 +39,8 @@ sealed class TrayIcon : IDisposable
 
     public void Set(double? level, bool charging, bool showPercent, string tooltip)
     {
-        icon.Text = tooltip.Length <= 127 ? tooltip : tooltip[..127];
+        latestTooltip = tooltip.Length <= 127 ? tooltip : tooltip[..127];
+        icon.Text = tooltipSuppressed ? "" : latestTooltip;
         var size = Forms.SystemInformation.SmallIconSize.Width;
         var key = ((int)Math.Round(level ?? -1), charging, showPercent, Theme.TaskbarIsDark, size);
         if (key == drawn) return;
@@ -47,6 +50,12 @@ sealed class TrayIcon : IDisposable
         icon.Icon = Icon.FromHandle(next);
         if (hicon != IntPtr.Zero) DestroyIcon(hicon);
         hicon = next;
+    }
+
+    public void SetTooltipSuppressed(bool suppressed)
+    {
+        tooltipSuppressed = suppressed;
+        icon.Text = suppressed ? "" : latestTooltip;
     }
 
     /// <summary>

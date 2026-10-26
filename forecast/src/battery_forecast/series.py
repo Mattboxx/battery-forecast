@@ -134,7 +134,7 @@ CONTEXT_RANGES = {
     "discharge_w": (0, 1000), "charge_w": (0, 1000), "cpu_pct": (0, 100),
     "cpu_mhz": (0, 20000), "memory_pct": (0, 100), "brightness_pct": (0, 100),
     "cpu_temp_c": (-30, 130), "battery_temp_c": (-30, 130), "thermal_zone_c": (-30, 130),
-    "power_profile": (0, 3),
+    "power_profile": (0, 3), "display_state": (0, 2),
 }
 
 
@@ -160,17 +160,23 @@ def past_covariates(data: dict, context: Series):
         bins = np.floor((arr[:, 0] - context.start) / STEP_SECONDS).astype(np.int64)
         keep = (bins >= 0) & (bins < n) & (arr[:, 0] <= context.end)
         bins, values = bins[keep], arr[:, 1][keep]
-        if name == "power_profile":
+        if name in {"power_profile", "display_state"}:
             keep = values == np.floor(values)
             bins, values = bins[keep], values[keep]
         counts = np.bincount(bins, minlength=n)
         sums = np.bincount(bins, weights=values, minlength=n)
         channel = np.full(n, np.nan, dtype=np.float32)
         np.divide(sums, counts, out=channel, where=counts > 0)
+        if name in {"power_profile", "display_state"}:
+            # Never average categorical states when a caller supplies raw observations.
+            for idx in np.unique(bins):
+                group = values[bins == idx]
+                if np.min(group) != np.max(group):
+                    channel[idx] = np.nan
         observed = np.isfinite(channel)
         if observed.sum() < 6 or np.nanstd(channel) < 1e-5:
             continue
-        if name == "power_profile":
+        if name in {"power_profile", "display_state"}:
             # The C# bin is missing when multiple profiles were observed in that bin.
             categorical.append(channel)
         else:
