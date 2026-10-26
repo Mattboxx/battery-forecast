@@ -176,3 +176,57 @@ footer a { color: var(--muted); }
 .banner { width: min(1120px, 100%); height: auto; margin: 0 auto 36px; border-radius: 22px; box-shadow: var(--shadow); }
 /* su telefono la barra non galleggia: coprirebbe il banner e i contenuti mentre si scorre (in fondo, dopo .hero e .banner) */
 @media (max-width: 720px) { .nav { position: relative; top: auto; } .hero { padding-top: 28px; } .banner { margin-bottom: 28px; border-radius: 14px; } }
+
+/* dialogo di download (solo PC): scelta x64 / ARM64 */
+.dl {
+  width: min(640px, calc(100% - 32px)); padding: 36px 36px 30px; border: 1px solid var(--line); border-radius: 26px;
+  background: var(--bg); color: var(--ink); box-shadow: 0 40px 120px -20px rgba(0, 0, 0, 0.55); text-align: center;
+}
+.dl::backdrop { background: rgba(10, 10, 24, 0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.dl[open] { animation: dl-in .42s cubic-bezier(.2, .9, .25, 1.15); }
+.dl[open]::backdrop { animation: dl-fade .3s ease-out; }
+.dl h2 { font-size: 26px; margin: 12px 0 6px; letter-spacing: -0.02em; }
+.dl-icon { margin: 0 auto; width: 56px; height: 56px; }
+.dl-sub { color: var(--muted); margin: 0 0 22px; }
+.dl-close-form { position: absolute; top: 14px; right: 14px; margin: 0; }
+.dl-x { border: 0; background: transparent; color: var(--muted); font-size: 18px; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
+.dl-x:hover { background: var(--surface); color: var(--ink); }
+.dl-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dl-card {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 26px 18px 22px;
+  border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--ink); font: inherit;
+  cursor: pointer; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  animation: dl-card .5s cubic-bezier(.2, .9, .25, 1.1) both;
+}
+.dl-card:nth-child(2) { animation-delay: .08s; }
+.dl-card:hover, .dl-card:focus-visible { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .45); outline: none; }
+.dl-card svg { width: 40px; height: 40px; fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 8px; }
+.dl-card b { font-size: 19px; }
+.dl-arch { font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--brand); }
+.dl-card small { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.4; }
+.dl-card.chosen { animation: dl-pulse .35s ease-out; border-color: var(--accent); }
+.dl-badge {
+  position: absolute; top: -11px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+  background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+}
+.dl-hint { color: var(--muted); font-size: 13px; margin: 20px 0 0; }
+.dl-hint a { color: var(--ink); }
+.dl-done { animation: dl-card .45s cubic-bezier(.2, .9, .25, 1.1) both; }
+.dl-check svg { width: 64px; height: 64px; margin: 0 auto; display: block; fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.dl-check circle { stroke-dasharray: 151; stroke-dashoffset: 151; animation: dl-draw .5s ease-out forwards; }
+.dl-check path { stroke-dasharray: 36; stroke-dashoffset: 36; animation: dl-draw .35s .4s ease-out forwards; }
+.dl-file { font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+.dl-steps { text-align: left; max-width: 440px; margin: 0 auto; padding-left: 20px; color: var(--muted); font-size: 15px; }
+.dl-steps li { margin: 6px 0; }
+.dl-steps b { color: var(--ink); }
+@keyframes dl-in { from { opacity: 0; transform: translateY(18px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes dl-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dl-card { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes dl-pulse { 50% { transform: scale(.97); } }
+@keyframes dl-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .dl[open], .dl[open]::backdrop, .dl-card, .dl-card.chosen, .dl-done { animation: none; }
+  .dl-check circle, .dl-check path { animation: none; stroke-dashoffset: 0; }
+  .dl-card { transition: none; }
+}
+@media (max-width: 560px) { .dl { padding: 30px 20px 24px; } .dl-choices { grid-template-columns: 1fr; } }

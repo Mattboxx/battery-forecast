@@ -38,7 +38,7 @@
       <h1>Battery Forecast</h1>
       <p class="lead">How long will your laptop really last today? An AI forecast that learns how <em>you</em> use your PC, and runs entirely on it.</p>
       <div class="ctas">
-        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases">
+        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases" data-download>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg>
           Download for Windows</a>
         <a class="btn secondary" href="#how">How it works →</a>
@@ -220,7 +220,7 @@
         <p>One installer per architecture, for your user only: no administrator rights needed.</p>
       </div>
       <div class="ctas" style="justify-content:flex-start;margin-top:32px">
-        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases">Download for Windows</a>
+        <a class="btn primary" href="https://github.com/Mattboxx/battery-forecast/releases" data-download>Download for Windows</a>
         <a class="btn secondary" href="https://github.com/Mattboxx/battery-forecast#install">Installation guide</a>
       </div>
       <p class="small">Windows 10 (2004) or 11 · Intel/AMD x64 or ARM64 · about 280 MB download</p>
@@ -257,6 +257,98 @@
       <a class="kofi" href="https://ko-fi.com/mattboxx" rel="noopener">♥ Support on Ko-fi</a>
     </div>
   </footer>
+
+  <!-- scelta dell'architettura: solo su PC; su telefono i pulsanti aprono la pagina delle release -->
+  <dialog id="dl" class="dl" aria-labelledby="dl-title">
+    <form method="dialog" class="dl-close-form"><button class="dl-x" aria-label="Close">✕</button></form>
+    <div class="dl-pick">
+      <img class="dl-icon" src="assets/icon.svg" alt="" width="56" height="56">
+      <h2 id="dl-title">Which Windows PC do you have?</h2>
+      <p class="dl-sub">Pick the installer for your processor. The download starts right away.</p>
+      <div class="dl-choices">
+        <button class="dl-card" data-arch="x64">
+          <span class="dl-badge" hidden>Recommended for this PC</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6v6H9zM9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
+          <b>Intel or AMD</b><span class="dl-arch">x64</span>
+          <small>Most Windows laptops and desktops</small>
+        </button>
+        <button class="dl-card" data-arch="arm64">
+          <span class="dl-badge" hidden>Recommended for this PC</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+          <b>Arm</b><span class="dl-arch">ARM64</span>
+          <small>Snapdragon X and other Windows on Arm PCs</small>
+        </button>
+      </div>
+      <p class="dl-hint">Not sure? <b>Settings → System → About → System type</b> says “x64-based” or “ARM-based”.</p>
+    </div>
+    <div class="dl-done" hidden>
+      <div class="dl-check" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg></div>
+      <h2>Your download is starting</h2>
+      <p class="dl-sub"><span class="dl-file"></span></p>
+      <ol class="dl-steps">
+        <li>Open the installer when the download finishes.</li>
+        <li>The installer is not digitally signed: if SmartScreen appears, choose <b>More info → Run anyway</b>.</li>
+        <li>The battery icon appears next to the clock.</li>
+      </ol>
+      <p class="dl-hint">Not starting? <a class="dl-again" href="#">Download again</a> · <a class="dl-sha" href="#" rel="noopener">SHA-256</a> · <a href="https://github.com/Mattboxx/battery-forecast/releases" rel="noopener">All releases</a></p>
+    </div>
+  </dialog>
+
+  <script>
+    // Download: dialogo con la scelta x64/ARM64 e scaricamento diretto dagli asset dell'ultima release.
+    (() => {
+      const dialog = document.getElementById('dl');
+      const desktop = matchMedia('(hover: hover) and (pointer: fine)').matches && typeof dialog.showModal === 'function';
+      if (!desktop) return;                                  // telefono/tablet: resta il link alle release
+      const repo = 'Mattboxx/battery-forecast';
+      // ripiego se l'API di GitHub non risponde (limite di richieste, rete): l'ultima versione nota
+      let release = { assets: {} };
+      for (const arch of ['x64', 'arm64']) {
+        const name = `BatteryForecast-Setup-0.9.0-${arch}.exe`;
+        const url = `https://github.com/${repo}/releases/download/v0.9.0/${name}`;
+        release.assets[arch] = { url, name, size: 0, sha: url + '.sha256' };
+      }
+      const loaded = fetch(`https://api.github.com/repos/${repo}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+          const find = suffix => data.assets.find(a => a.name.endsWith(suffix));
+          const x64 = find('-x64.exe'), arm = find('-arm64.exe');
+          if (!x64 || !arm) return;
+          const sha = a => data.assets.find(s => s.name === a.name + '.sha256')?.browser_download_url;
+          const as = a => ({ url: a.browser_download_url, name: a.name, size: a.size, sha: sha(a) });
+          release = { assets: { x64: as(x64), arm64: as(arm) } };
+        })
+        .catch(() => {});
+      // il browser a volte dice l'architettura (Chrome/Edge): in quel caso si suggerisce la scelta
+      navigator.userAgentData?.getHighEntropyValues?.(['architecture', 'bitness']).then(v => {
+        const arch = v.architecture === 'arm' ? 'arm64' : v.architecture === 'x86' && v.bitness === '64' ? 'x64' : null;
+        if (arch) dialog.querySelector(`[data-arch="${arch}"] .dl-badge`).hidden = false;
+      }).catch(() => {});
+
+      const pickView = dialog.querySelector('.dl-pick'), doneView = dialog.querySelector('.dl-done');
+      document.querySelectorAll('[data-download]').forEach(a => a.addEventListener('click', event => {
+        event.preventDefault();
+        pickView.hidden = false;
+        doneView.hidden = true;
+        dialog.showModal();
+        // il focus va sulla scelta consigliata (o sulla prima), non sulla X di chiusura
+        const suggested = dialog.querySelector('.dl-badge:not([hidden])')?.closest('.dl-card') || dialog.querySelector('.dl-card');
+        suggested.focus({ focusVisible: false });
+      }));
+      dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });   // clic sullo sfondo
+      const mb = n => n ? ` · ${Math.round(n / 1048576)} MB` : '';
+      dialog.querySelectorAll('.dl-card').forEach(card => card.addEventListener('click', async () => {
+        card.classList.add('chosen');
+        await Promise.race([loaded, new Promise(r => setTimeout(r, 1500))]);
+        const asset = release.assets[card.dataset.arch];
+        location.href = asset.url;                         // GitHub risponde come allegato: la pagina resta qui
+        dialog.querySelector('.dl-file').textContent = asset.name + mb(asset.size);
+        dialog.querySelector('.dl-again').href = asset.url;
+        dialog.querySelector('.dl-sha').href = asset.sha;
+        setTimeout(() => { pickView.hidden = true; doneView.hidden = false; card.classList.remove('chosen'); }, 350);
+      }));
+    })();
+  </script>
 
   <script>
     // comparsa delle sezioni allo scorrimento: solo estetica, mai a costo del contenuto
