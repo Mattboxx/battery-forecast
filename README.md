@@ -25,14 +25,6 @@
   <a href="https://ko-fi.com/mattboxx"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-support-C2416B?logo=kofi&logoColor=white"></a>
 </p>
 
-<p align="center">
-  <picture>
-    <source srcset="docs/images/panel-dark.png" media="(prefers-color-scheme: dark)">
-    <img src="docs/images/panel-light.png" width="384" alt="Battery Forecast interface with estimated battery life, indicative range and the 24-hour chart">
-  </picture>
-</p>
-<p align="center"><sub>Demo interface · synthetic history; forecasts computed by the real local model.</sub></p>
-
 > **Forecast accuracy.** Battery Forecast works and is being tested on real laptops. Its accuracy has not been measured
 > yet, so it does not claim any: it shows a range and tells you where each number comes from.
 
