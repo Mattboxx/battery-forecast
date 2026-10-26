@@ -61,7 +61,6 @@ a { color: inherit; }
 .nav .support { color: var(--heart) !important; display: inline-flex; gap: 6px; align-items: center; }
 @media (max-width: 720px) { .nav .links .hide-s { display: none; } }
 @media (max-width: 520px) { .nav { gap: 12px; padding: 8px 12px; } .nav .links { gap: 14px; } .nav .links .hide-xs { display: none; } }
-
 /* intestazione */
 .hero { text-align: center; padding: 56px 0 24px; }
 .chip {
@@ -175,3 +174,5 @@ footer a { color: var(--muted); }
 
 /* banner di presentazione: prima immagine della pagina */
 .banner { width: min(1120px, 100%); height: auto; margin: 0 auto 36px; border-radius: 22px; box-shadow: var(--shadow); }
+/* su telefono la barra non galleggia: coprirebbe il banner e i contenuti mentre si scorre (in fondo, dopo .hero e .banner) */
+@media (max-width: 720px) { .nav { position: relative; top: auto; } .hero { padding-top: 28px; } .banner { margin-bottom: 28px; border-radius: 14px; } }
