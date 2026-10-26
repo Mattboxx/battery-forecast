@@ -214,6 +214,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="QuietStart" xml:space="preserve"><value>Silenzioso dalle (HH:mm)</value></data>
   <data name="Quit" xml:space="preserve"><value>Esci da Battery Forecast</value></data>
   <data name="RangeOnDay" xml:space="preserve"><value>{0} {1}–{2}</value></data>
+  <data name="RecalculateInlineHelp" xml:space="preserve"><value>↻ Ricalcola ora: nuova lettura e modello locale.</value></data>
   <data name="RecalculateNow" xml:space="preserve"><value>Ricalcola ora</value></data>
   <data name="RecalculateNowHelp" xml:space="preserve"><value>Legge la batteria ora e avvia il modello locale. Disattivato durante il calcolo.</value></data>
   <data name="RecentLine" xml:space="preserve"><value>Al ritmo attuale: circa {0} ({1})</value></data>
@@ -299,6 +300,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="TrendForecastPoint" xml:space="preserve"><value>{0} · previsto {1:0.#}%</value></data>
   <data name="TrendInterrupted" xml:space="preserve"><value>interruzione o lacuna nei dati</value></data>
   <data name="TrendIntro" xml:space="preserve"><value>Confronta l’andamento reale della batteria con una previsione salvata quando è stata emessa.</value></data>
+  <data name="TrendNoCurves" xml:space="preserve"><value>Spunta almeno una curva sopra il grafico.</value></data>
   <data name="TrendNoPoint" xml:space="preserve"><value>nessuna lettura osservata</value></data>
   <data name="TrendNoSaved" xml:space="preserve"><value>Nessuna curva ancora salvata. I nuovi calcoli compariranno qui; i vecchi riepiloghi non permettono di ricostruire le curve passate.</value></data>
   <data name="TrendNow" xml:space="preserve"><value>Ora</value></data>

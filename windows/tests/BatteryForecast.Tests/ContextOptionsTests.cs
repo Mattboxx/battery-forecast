@@ -17,11 +17,15 @@ public class ContextOptionsTests
             File.WriteAllText(path, "{\"TargetTime\":\"20:15:00\"}");
             var old = Settings.Load(path);
             Assert.True(old.EveningTargetEnabled);
+            Assert.True(old.TrendShowObserved);
+            Assert.True(old.TrendShowForecast);
             var settings = old with { EveningTargetEnabled = false, CollectAdvancedSensors = false,
-                ContextIntervalSeconds = 120, ContextHistoryHours = 48 };
+                ContextIntervalSeconds = 120, ContextHistoryHours = 48, TrendShowObserved = false, TrendShowForecast = false };
             settings.Save(path);
             var loaded = Settings.Load(path);
             Assert.False(loaded.EveningTargetEnabled);
+            Assert.False(loaded.TrendShowObserved);
+            Assert.False(loaded.TrendShowForecast);
             Assert.False(loaded.CollectAdvancedSensors);
             Assert.Equal(new TimeOnly(20, 15), loaded.TargetTime);
             Assert.Equal(120, loaded.ContextIntervalSeconds);

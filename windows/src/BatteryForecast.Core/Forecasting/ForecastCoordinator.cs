@@ -91,6 +91,7 @@ public sealed class ForecastCoordinator : IDisposable
     readonly TimeZoneInfo zone;
     readonly string? cachePath;
     readonly bool demo;
+    readonly Action<Action> queueManualWork;
     readonly Lock gate = new();
 
     ForecastView? forecast;
@@ -103,7 +104,8 @@ public sealed class ForecastCoordinator : IDisposable
     DashboardState? state;
 
     public ForecastCoordinator(Collector collector, HistoryStore store, IForecastEngine? engine, Func<Settings> settings,
-        string? cachePath = null, TimeProvider? clock = null, TimeZoneInfo? zone = null, bool demo = false)
+        string? cachePath = null, TimeProvider? clock = null, TimeZoneInfo? zone = null, bool demo = false,
+        Action<Action>? queueManualWork = null)
     {
         this.collector = collector;
         this.store = store;
@@ -113,6 +115,7 @@ public sealed class ForecastCoordinator : IDisposable
         this.clock = clock ?? TimeProvider.System;
         this.zone = zone ?? TimeZoneInfo.Local;
         this.demo = demo;
+        this.queueManualWork = queueManualWork ?? (work => { _ = Task.Run(work); });
         if (engine is null)
             (engineState, engineError) = (EngineState.Unavailable, "not_found");
     }
@@ -159,20 +162,24 @@ public sealed class ForecastCoordinator : IDisposable
     public void Retry() => RecalculateNow();
 
     /// <summary>Fresh readings and an explicit local forecast, including in battery saver/on-open mode.</summary>
-    public void RecalculateNow() => Task.Run(() =>
+    public void RecalculateNow()
     {
+        // Claim the click before scheduling: a busy thread pool must not retain clicks for later.
         lock (gate)
         {
             if (updating || manualRead) return;
             manualRead = true;
         }
-        try
+        queueManualWork(() =>
         {
-            collector.Sample(forceContext: true);
-            Request(Trigger.User);
-        }
-        finally { lock (gate) manualRead = false; }
-    });
+            try
+            {
+                collector.Sample(forceContext: true);
+                Request(Trigger.User);
+            }
+            finally { lock (gate) manualRead = false; }
+        });
+    }
 
     /// <summary>Lo storico è stato cancellato: si dimentica anche la previsione che ne derivava.</summary>
     public void Reset() => Task.Run(() =>

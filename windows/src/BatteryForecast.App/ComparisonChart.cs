@@ -17,6 +17,7 @@ sealed class ComparisonChart : FrameworkElement
     IReadOnlyList<DateTimeOffset> breaks = [];
     ForecastSnapshot? snapshot;
     ForecastView? forecast;
+    bool showObserved = true, showPredicted = true;
     DateTimeOffset from, until, now;
     DateTimeOffset? hover, pinned;
     const double Top = 10, Right = 42, Bottom = 27;
@@ -81,6 +82,13 @@ sealed class ComparisonChart : FrameworkElement
         AutomationProperties.SetHelpText(this, L.T("TrendChartHelp"));
     }
 
+    public void SetDisplay(bool observed, bool predicted)
+    {
+        if (showObserved == observed && showPredicted == predicted) return;
+        showObserved = observed; showPredicted = predicted;
+        ClearSelection();
+    }
+
     public void ClearSelection()
     {
         hover = pinned = null;
@@ -101,19 +109,19 @@ sealed class ComparisonChart : FrameworkElement
     DateTimeOffset? Position(Point p)
     {
         double width = ActualWidth-Right;
-        if (width <= 0 || until <= from || p.X < 0 || p.X > width || p.Y < Top || p.Y > ActualHeight-Bottom) return null;
+        if ((!showObserved && !showPredicted) || width <= 0 || until <= from || p.X < 0 || p.X > width || p.Y < Top || p.Y > ActualHeight-Bottom) return null;
         var t = from.AddSeconds(p.X / width * (until-from).TotalSeconds);
-        return ActualAt(t)?.TimestampUtc ?? t;
+        return (showObserved ? ActualAt(t)?.TimestampUtc : null) ?? t;
     }
 
     string Caption(DateTimeOffset t)
     {
-        if (ActualAt(t) is { } observed)
+        if (showObserved && ActualAt(t) is { } observed)
         {
-            if (TrendComparison.At(snapshot, observed, actual, breaks) is { } compared) return TrendComparison.Describe(compared);
+            if (showPredicted && TrendComparison.At(snapshot, observed, actual, breaks) is { } compared) return TrendComparison.Describe(compared);
             return L.F("TrendObservedPoint", observed.TimestampUtc.ToLocalTime().ToString("dd/MM HH:mm", L.Culture), observed.LevelPct);
         }
-        if (forecast?.At(t) is { } predicted)
+        if (showPredicted && forecast?.At(t) is { } predicted)
             return L.F("TrendForecastPoint", t.ToLocalTime().ToString("dd/MM HH:mm", L.Culture), predicted.P50);
         return t.ToLocalTime().ToString("dd/MM HH:mm", L.Culture) + " · " + L.T("TrendNoPoint");
     }
@@ -136,7 +144,7 @@ sealed class ComparisonChart : FrameworkElement
             dc.DrawText(Text($"{v:0}%"),new(width+6,Y(v)-7));
         }
         dc.PushClip(new RectangleGeometry(new Rect(0,Top,width,height)));
-        if (forecast is { } f)
+        if (showPredicted && forecast is { } f)
         {
             var points = new[] { new CurvePoint(f.Generated,f.Level,f.Level,f.Level) }.Concat(f.Curve).ToArray();
             var band = new StreamGeometry();
@@ -156,7 +164,7 @@ sealed class ComparisonChart : FrameworkElement
             }
         }
         BatterySample? previous = null;
-        foreach (var sample in actual)
+        if (showObserved) foreach (var sample in actual)
         {
             if (sample.LevelPct is not (>=0 and <=100)) { previous=null; continue; }
             if (previous is { LevelPct: double old } prev && sample.TimestampUtc-prev.TimestampUtc <= TimeSpan.FromMinutes(3) &&
@@ -169,8 +177,8 @@ sealed class ComparisonChart : FrameworkElement
         dc.DrawLine(guide,new(X(now),Top),new(X(now),Top+height));
         void Probe(DateTimeOffset t, bool fixedPoint)
         {
-            var observed=ActualAt(t);
-            var predicted=forecast?.At(t);
+            var observed=showObserved ? ActualAt(t) : null;
+            var predicted=showPredicted ? forecast?.At(t) : null;
             var level=observed?.LevelPct ?? predicted?.P50;
             if (level is null) return;
             var p=new Point(X(t),Y(level.Value));
@@ -195,6 +203,8 @@ sealed class ComparisonChart : FrameworkElement
             var label=Text(time.ToString("HH:mm",L.Culture));
             dc.DrawText(label,new(Math.Clamp(k*width-label.Width/2,0,Math.Max(0,width-label.Width)),Top+height+6));
         }
+        if (!showObserved && !showPredicted)
+            dc.DrawText(Text(L.T("TrendNoCurves")),new Point(10,Top+height/2));
         var nowLabel=Text(L.T("TrendNow"));
         dc.DrawText(nowLabel,new(Math.Clamp(X(now)-nowLabel.Width/2,0,Math.Max(0,width-nowLabel.Width)),Top+2));
     }

@@ -267,3 +267,5 @@ and interruptions. New curves are saved locally under the same retention/deletio
 summary-only records cannot reconstruct missing past curves. The popup's gold dot is labelled as the
 **time goal**. The interface uses the original vector app icon at every size; the copy-summary action
 has been removed. Available in 0.9.1. The last genuine cached forecast is also preserved when upgrading.
+
+In Battery trend, the observed and predicted curves have independent checkboxes. Their visibility is saved; hiding a curve never changes saved data or starts inference. The refresh button explanation is inline, without a tooltip.

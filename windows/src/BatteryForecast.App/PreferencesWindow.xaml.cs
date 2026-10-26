@@ -36,6 +36,10 @@ public partial class PreferencesWindow : Window
         Sections.SelectionChanged += (_, _) => ShowSection(Sections.SelectedIndex);
         Sections.SelectedIndex = 0;
         var s = app.Settings;
+        TrendObservedToggle.IsChecked = s.TrendShowObserved;
+        TrendForecastToggle.IsChecked = s.TrendShowForecast;
+        TrendObservedToggle.Click += TrendVisibility_Click;
+        TrendForecastToggle.Click += TrendVisibility_Click;
         EveningEnabled.IsChecked = s.EveningTargetEnabled;
         Target.IsEnabled = ExtraTimes.IsEnabled = s.EveningTargetEnabled;
         AdvancedSensors.IsChecked = s.CollectAdvancedSensors;
@@ -305,6 +309,17 @@ public partial class PreferencesWindow : Window
 
     void RefreshTrend_Click(object sender, RoutedEventArgs e) => LoadTrend();
 
+    void TrendVisibility_Click(object sender, RoutedEventArgs e)
+    {
+        if (loading) return;
+        app.UpdateSettings(app.Settings with
+        {
+            TrendShowObserved = TrendObservedToggle.IsChecked == true,
+            TrendShowForecast = TrendForecastToggle.IsChecked == true,
+        });
+        ShowTrend();
+    }
+
     void LoadTrend()
     {
         if (app.Store is not { } store) return;
@@ -340,6 +355,8 @@ public partial class PreferencesWindow : Window
         TrendStatus.Text = TrendComparison.Latest(saved, trendSamples, trendBreaks) is { } latest
             ? TrendComparison.Describe(latest) : saved is null ? L.T("TrendNoSaved") : L.T("TrendWaiting");
         if (app.Coordinator?.State?.Demo == true) TrendSource.Text = L.T("DemoContextWarning") + Environment.NewLine + TrendSource.Text;
+        TrendChart.SetDisplay(app.Settings.TrendShowObserved, app.Settings.TrendShowForecast);
+        if (!app.Settings.TrendShowObserved && !app.Settings.TrendShowForecast) TrendStatus.Text = L.T("TrendNoCurves");
     }
 
     void SaveContext_Click(object sender, RoutedEventArgs e)

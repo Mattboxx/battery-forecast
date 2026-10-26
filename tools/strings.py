@@ -366,6 +366,10 @@ S.update({
     "TrendNow": ("Now", "Ora"),
 })
 
+S.update({"RecalculateInlineHelp": ("↻ Recalculate now: fresh readings, local model.", "↻ Ricalcola ora: nuova lettura e modello locale.")})
+
+S.update({"TrendNoCurves": ("Select at least one curve above the chart.", "Spunta almeno una curva sopra il grafico.")})
+
 RESX_HEAD = """<?xml version="1.0" encoding="utf-8"?>
 <!-- Generato da tools/strings.py: modificare lì. -->
 <root>

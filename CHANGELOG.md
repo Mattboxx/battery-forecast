@@ -2,6 +2,10 @@
 
 ## 0.9.1
 
+- Independently show or hide observed and predicted curves in Battery trend; remember the choices without running the model.
+
+- Claim manual refresh clicks before scheduling so slow executors cannot replay clicks after the first calculation. Keep the refresh explanation inline without a button tooltip.
+
 - Open settings on Battery trend: original issued forecasts beside observed readings, clear legends, individual differences and condition-change warnings. Save full responses locally with retention/deletion, and preserve the genuine last cached response when upgrading; never invent missing historical forecasts.
 - Render the unchanged brand artwork as a vector in window icons and headers for high-DPI clarity.
 - Remove the copy-battery-summary action and identify the popup's automatic gold marker as the time goal.

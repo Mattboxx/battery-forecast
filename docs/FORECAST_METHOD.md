@@ -79,3 +79,5 @@ Schema 5 adds the response archive without generating historical forecasts. Rete
 it. Old summary rows are preserved, with no fabricated curves. The genuine last cached response from an older version is imported once, retaining its original model-generation timestamp. The UI lists up to 100 forecasts issued
 in the last 24 hours and plots a 24-hour window from 12 hours ago to 12 hours ahead. This feature is an
 individual visual comparison requested by the user, separate from postponed scientific backtesting.
+
+Curve visibility is controlled by two independent saved checkboxes. Hiding a curve also hides its markers and band; saved curves and model inputs remain unchanged. Manual refresh requests are claimed before scheduling, so delayed worker execution cannot replay clicks received while busy. A deterministic delayed-executor regression checks this behavior.

@@ -18,6 +18,8 @@ public enum RefreshPolicy { OnOpen, Balanced, Frequent }
 public sealed record Settings
 {
     public double ReservePct { get; init; } = 5;
+    public bool TrendShowObserved { get; init; } = true;
+    public bool TrendShowForecast { get; init; } = true;
     public bool EveningTargetEnabled { get; init; } = true;
     /// <summary>Ora locale dell'obiettivo serale ("Alle 22:00 circa …%").</summary>
     public TimeOnly TargetTime { get; init; } = new(22, 0);

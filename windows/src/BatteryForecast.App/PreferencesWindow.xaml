@@ -118,14 +118,18 @@
                 </StackPanel></Border>
                 <Border Style="{StaticResource Row}"><StackPanel>
                     <WrapPanel Margin="0,0,0,4">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
-                            <Border Background="{DynamicResource Accent}" Width="20" Height="3" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="{app:T TrendObserved}"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
-                            <Border Background="{DynamicResource Curve}" Width="20" Height="3" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="{app:T TrendPredicted}"/>
-                        </StackPanel>
+                        <CheckBox x:Name="TrendObservedToggle" Margin="0,0,18,6" AutomationProperties.Name="{app:T TrendObserved}">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="{DynamicResource Accent}" Width="18" Height="3" Margin="4,0,7,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{app:T TrendObserved}"/>
+                            </StackPanel>
+                        </CheckBox>
+                        <CheckBox x:Name="TrendForecastToggle" Margin="0,0,0,6" AutomationProperties.Name="{app:T TrendPredicted}">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="{DynamicResource Curve}" Width="18" Height="3" Margin="4,0,7,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{app:T TrendPredicted}"/>
+                            </StackPanel>
+                        </CheckBox>
                     </WrapPanel>
                     <TextBlock Text="{app:T TrendWindow}" Style="{StaticResource RowHelp}"/>
                     <TextBlock Text="{Binding HoverText, ElementName=TrendChart}" MinHeight="30" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondary}" Margin="0,6,0,0"/>

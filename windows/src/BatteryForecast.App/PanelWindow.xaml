@@ -56,10 +56,12 @@
                         <TextBlock Text="{Binding UpdatedAt}" Style="{StaticResource Footnote}" Foreground="{DynamicResource TextTertiary}"/>
                         <Button x:Name="RecalculateButton" Style="{StaticResource IconButton}" Width="28" Height="24"
                                 Content="&#xE72C;" Click="Recalculate_Click" IsEnabled="{Binding CanRecalculate}"
-                                ToolTip="{app:T RecalculateNowHelp}" AutomationProperties.Name="{app:T RecalculateNow}" Margin="6,-4,-4,0"/>
+                                AutomationProperties.HelpText="{app:T RecalculateNowHelp}" AutomationProperties.Name="{app:T RecalculateNow}" Margin="6,-4,-4,0"/>
                     </StackPanel>
                 </Grid>
 
+                <TextBlock Text="{app:T RecalculateInlineHelp}" Style="{StaticResource Footnote}" FontSize="10" Margin="0,4,0,0"
+                           Foreground="{DynamicResource TextSecondary}"/>
                 <StackPanel x:Name="ForecastBody" Margin="0,8,0,0">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">

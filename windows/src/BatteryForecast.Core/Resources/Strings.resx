@@ -214,6 +214,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="QuietStart" xml:space="preserve"><value>Quiet from (HH:mm)</value></data>
   <data name="Quit" xml:space="preserve"><value>Quit Battery Forecast</value></data>
   <data name="RangeOnDay" xml:space="preserve"><value>{0} {1}–{2}</value></data>
+  <data name="RecalculateInlineHelp" xml:space="preserve"><value>↻ Recalculate now: fresh readings, local model.</value></data>
   <data name="RecalculateNow" xml:space="preserve"><value>Recalculate now</value></data>
   <data name="RecalculateNowHelp" xml:space="preserve"><value>Read the battery now and run the local model. Disabled while calculating.</value></data>
   <data name="RecentLine" xml:space="preserve"><value>At the current rate: about {0} ({1})</value></data>
@@ -299,6 +300,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="TrendForecastPoint" xml:space="preserve"><value>{0} · forecast {1:0.#}%</value></data>
   <data name="TrendInterrupted" xml:space="preserve"><value>interruption or data gap</value></data>
   <data name="TrendIntro" xml:space="preserve"><value>See how the battery actually behaved beside a forecast saved when it was issued.</value></data>
+  <data name="TrendNoCurves" xml:space="preserve"><value>Select at least one curve above the chart.</value></data>
   <data name="TrendNoPoint" xml:space="preserve"><value>no observed reading</value></data>
   <data name="TrendNoSaved" xml:space="preserve"><value>No forecast curve saved yet. New calculations will be saved here; old summary records cannot reconstruct past curves.</value></data>
   <data name="TrendNow" xml:space="preserve"><value>Now</value></data>

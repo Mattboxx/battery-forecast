@@ -213,3 +213,5 @@ locali e seguono conservazione e cancellazione dello storico; i vecchi riepilogh
 ricostruire curve mancanti. Il pallino oro nel popup è associato esplicitamente all’**obiettivo orario**.
 Le interfacce usano l’icona vettoriale originale; rimosso il comando copia riepilogo. Queste novità sono
 presenti nella 0.9.1. All’aggiornamento viene conservata anche l’ultima previsione autentica rimasta nella cache.
+
+In Andamento puoi spuntare separatamente le curve osservata e prevista: la scelta resta salvata e non modifica i dati né avvia calcoli. Il pulsante Ricalcola ora ha una spiegazione integrata nel pannello, senza didascalia.

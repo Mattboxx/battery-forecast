@@ -8,6 +8,41 @@ namespace BatteryForecast.Tests;
 
 public class ManualRefreshTests
 {
+    [Fact]
+    public async Task Manual_click_is_claimed_before_a_delayed_executor_can_run_it()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"bf-delayed-click-{Guid.NewGuid():N}.db");
+        var clock = new FakeTimeProvider(DateTimeOffset.FromUnixTimeSeconds(1800000000));
+        var queued = new Queue<Action>();
+        try
+        {
+            using var store = new HistoryStore(path);
+            using var collector = new Collector(new Battery(clock), store, clock);
+            var engine = new WaitingEngine();
+            using var coordinator = new ForecastCoordinator(collector, store, engine,
+                () => new Settings { Refresh = RefreshPolicy.OnOpen }, clock: clock, queueManualWork: queued.Enqueue);
+            coordinator.Start();
+            for (int i = 0; i < 10; i++) coordinator.RecalculateNow();
+            Assert.Single(queued); // The executor has not started yet: later clicks must already be discarded.
+            queued.Dequeue()();
+            var request = await engine.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            for (int i = 0; i < 10; i++) coordinator.RecalculateNow();
+            Assert.Empty(queued);
+            engine.Finished.SetResult(new ForecastResponse
+            {
+                ContextEndUtc = request.Now.ToUnixTimeSeconds(), GeneratedAtUtc = request.Now.ToUnixTimeSeconds(),
+                Level = request.Level, ReservePct = 5, Source = "test",
+                Curve = [new(request.Now.AddMinutes(5).ToUnixTimeSeconds(), 50, 55, 60)],
+            });
+            var deadline = DateTime.UtcNow.AddSeconds(5);
+            while (coordinator.State?.Updating == true && DateTime.UtcNow < deadline) await Task.Delay(10);
+            Assert.False(coordinator.State!.Updating);
+            Assert.Equal(1, engine.Calls);
+            Assert.Single(store.ForecastSnapshots(clock.GetUtcNow().AddDays(-1), clock.GetUtcNow().AddDays(1)));
+        }
+        finally { foreach (var file in new[] { path, path + "-wal", path + "-shm" }) File.Delete(file); }
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
