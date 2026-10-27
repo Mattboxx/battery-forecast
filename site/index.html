@@ -202,13 +202,16 @@
 
     <section class="wrap reveal">
       <p class="eyebrow">New in 0.9.2</p>
-      <h2>Better prepared local data.</h2>
+      <h2>Your apps, your usage, your history.</h2>
       <div class="cards">
+        <article class="card"><h3>Recognise recurring workloads</h3><p>Optional local app recording distinguishes executable names, measured CPU load and working sets. Recurring apps have separate historical model channels. Observed power associations describe the whole PC in similar conditions.</p></article>
+        <article class="card"><h3>Learn from past errors</h3><p>Compare original forecasts with later uninterrupted readings under similar conditions. Local rate correction starts after eight independent comparisons across three sessions, stays within ±25%, and can be disabled or reset. The AI weights stay unchanged.</p></article>
+        <article class="card"><h3>Zoom into the difference</h3><p>Zoom Battery trend around your pointer, pan with the middle button, or use + / − / reset. Show observed and predicted curves independently; exploring does not run the model.</p></article>
         <article class="card"><h3>Independent sensors</h3><p>Brightness collection works even when optional temperature providers are unavailable. Unsupported values stay missing.</p></article>
         <article class="card"><h3>Time, not reading counts</h3><p>Battery and sensor means respect the time each reading represents. Rapid diagnostic refreshes no longer get extra weight.</p></article>
-        <article class="card"><h3>Respect real interruptions</h3><p>Sleep, wake and app restarts stop interpolation across breaks. Timestral receives the original battery-observation mask; reconstructed points do not count as measurements.</p></article>
+        <article class="card"><h3>Respect real interruptions</h3><p>Wake invalidates old estimates. Unobserved sleep and hibernation are excluded from active-use model time; hours asleep do not become zero-consumption usage. Screen-off activity stays distinct. Reconstructed points do not count as measurements.</p></article>
       </div>
-      <p class="caption">Your existing history stays on your PC. New CPU intervals need about thirty minutes of varying observations. These functional corrections do not establish an accuracy gain. <a href="https://github.com/Mattboxx/battery-forecast/blob/main/docs/FORECAST_METHOD.md">Read the calculation method</a>.</p>
+      <p class="caption">Your existing history stays on your PC. App recording is off by default. New CPU intervals need about thirty minutes of varying observations; error correction needs longer comparable history and may remain inactive. Original and issued forecasts remain saved. Future app activity is unknown; a faster correction may shorten the supported chart horizon. No accuracy gain has been measured. <a href="https://github.com/Mattboxx/battery-forecast/blob/main/docs/FORECAST_METHOD.md">Read the calculation method</a>.</p>
     </section>
 
     <section class="wrap reveal">

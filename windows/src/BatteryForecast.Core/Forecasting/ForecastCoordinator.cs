@@ -162,6 +162,7 @@ public sealed class ForecastCoordinator : IDisposable
     });
 
     public void Retry() => RecalculateNow();
+    public void CalibrationChanged()=>Task.Run(()=> { OnInterrupted("calibration",clock.GetUtcNow());Request(Trigger.User); });
 
     /// <summary>Fresh readings and an explicit local forecast, including in battery saver/on-open mode.</summary>
     public void RecalculateNow()
@@ -186,7 +187,11 @@ public sealed class ForecastCoordinator : IDisposable
     /// <summary>Lo storico è stato cancellato: si dimentica anche la previsione che ne derivava.</summary>
     public void Reset() => Task.Run(() =>
     {
-        lock (gate) (forecast, lastRun, lastAcSeen, chargeForecast, lastChargeRun, heldForecast, lastHeldRun) = (null, null, null, null, null, null, null);
+        lock (gate)
+        {
+            operatingEpoch++;
+            (forecast, lastRun, lastAcSeen, chargeForecast, lastChargeRun, heldForecast, lastHeldRun) = (null, null, null, null, null, null, null);
+        }
         Publish();
         Request(Trigger.User);
     });
@@ -271,7 +276,8 @@ public sealed class ForecastCoordinator : IDisposable
         var charge = mode == Mode.Charge;
         var options = settings();
         // All fresh measurements are available by this cutoff; the battery anchor may precede it by milliseconds.
-        var origin = collector.CurrentContext is { } context && context.TimestampUtc>s.TimestampUtc && context.TimestampUtc<=clock.GetUtcNow()
+        var capturedContext=collector.CurrentContext;
+        var origin = capturedContext is { } context && context.TimestampUtc>s.TimestampUtc && context.TimestampUtc<=clock.GetUtcNow()
             ? context.TimestampUtc : s.TimestampUtc;
         var reserve = charge ? options.ChargeTargetPct : options.ReservePct;
         try
@@ -286,10 +292,29 @@ public sealed class ForecastCoordinator : IDisposable
                 modelContext,
                 Charge: charge, TargetPct: reserve,
                 Discontinuities:store.ModelDiscontinuities(origin-HistoryDays,origin))).ConfigureAwait(false);
+            var useContext=options.UseSystemContext && options.CollectSystemContext;
+            var conditions=ForecastConditions.Capture(s,useContext?capturedContext:null,useContext&&options.CollectProcesses);
+            r=r with { Conditions=conditions };
+            var report=new CalibrationInfo { Enabled=options.UseLocalCalibration && !demo,Reason=demo?"demo":"disabled",ResetUtc=options.CalibrationResetUtc };
+            if(options.UseLocalCalibration && !demo && r.TimeBasis=="active_use" && r.Source=="timestral")
+            {
+                var since=origin.AddDays(-Math.Min(30,options.RetentionDays));
+                if(options.CalibrationResetUtc is { } reset && reset>since) since=reset;
+                if(since<origin)
+                    report=LocalCalibration.Learn(r,store.CalibrationSnapshots(since,origin,charge),store.Samples(since,origin),
+                        store.ModelDiscontinuities(since,origin),
+                        useContext?store.CalibrationContext(since,origin,options.CollectProcesses):[],origin,options.CalibrationResetUtc);
+                else report=report with { Reason="collecting" };
+            }
+            r=LocalCalibration.Apply(r,report);
             var view = ForecastView.From(r);
             lock (gate)
             {
                 if(requestEpoch!=operatingEpoch) view=null;
+                var latest=settings();
+                if(latest.UseLocalCalibration!=options.UseLocalCalibration || latest.CalibrationResetUtc!=options.CalibrationResetUtc ||
+                    latest.UseSystemContext!=options.UseSystemContext || latest.CollectSystemContext!=options.CollectSystemContext || latest.CollectProcesses!=options.CollectProcesses)
+                { view=null;pendingForce=true; }
                 // Cambiata l'alimentazione mentre si calcolava: la risposta descrive uno scenario che non c'è più.
                 if (mode == Mode.Discharge && lastAcSeen is { } ac && ac >= started) view = null;
                 if (charge && lastBatterySeen is { } bat && bat >= started) view = null;
@@ -446,7 +471,9 @@ public sealed class ForecastCoordinator : IDisposable
                 catch (Microsoft.Data.Sqlite.SqliteException) { }
             }
             // Preserve the genuine legacy curve above, but never reuse its old time basis as a new estimate.
-            return r.Source=="timestral" && r.TimeBasis!="active_use" ? null : ForecastView.From(r);
+            if(r.Source=="timestral" && r.TimeBasis!="active_use") return null;
+            if(r.Calibration is { } calibration && (calibration.Enabled!=settings().UseLocalCalibration || calibration.ResetUtc!=settings().CalibrationResetUtc)) return null;
+            return ForecastView.From(r);
         }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException) { return null; }
     }

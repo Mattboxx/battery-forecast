@@ -23,6 +23,14 @@
   <data name="Battery" xml:space="preserve"><value>Batteria</value></data>
   <data name="Beyond" xml:space="preserve"><value>Oltre le prossime {0} ore</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calcolo della previsione…</value></data>
+  <data name="CalibrationAppScope" xml:space="preserve"><value>stesse app e carico CPU</value></data>
+  <data name="CalibrationCollecting" xml:space="preserve"><value>Confronti validi raccolti: {0}/{1}, sessioni {2}/{3}. Nessuna correzione applicata per ora.</value></data>
+  <data name="CalibrationFreshLoad" xml:space="preserve"><value>Attendo letture fresche del carico app per selezionare errori confrontabili.</value></data>
+  <data name="CalibrationGeneralScope" xml:space="preserve"><value>carico generale confrontabile</value></data>
+  <data name="CalibrationHelp" xml:space="preserve"><value>Confronta previsioni originali e letture successive in condizioni simili. Parte dopo 8 confronti indipendenti in 3 sessioni; con la raccolta app attiva abbina anche app e carico CPU. Correzione limitata al ±25%, senza riaddestrare l’IA né dimostrare accuratezza. Può accorciare l’orizzonte del grafico. Azzera conserva le vecchie previsioni e ricomincia da quelle nuove.</value></data>
+  <data name="CalibrationOff" xml:space="preserve"><value>Correzione personale disattivata. Le previsioni originali restano salvate per il confronto.</value></data>
+  <data name="CalibrationReady" xml:space="preserve"><value>Correzione locale pronta: {0} confronti indipendenti, {1} sessioni, fattore velocità {2} · {3}. Non è una garanzia di accuratezza misurata.</value></data>
+  <data name="CalibrationReset" xml:space="preserve"><value>Azzera apprendimento</value></data>
   <data name="ChargeActiveUseSource" xml:space="preserve"><value>Durante la carica e l’uso del PC · {0} giorni</value></data>
   <data name="ChargeBeyond" xml:space="preserve"><value>Obiettivo {0}%: oltre le prossime 24 ore</value></data>
   <data name="ChargeCollecting" xml:space="preserve"><value>Raccolta dati di ricarica</value></data>
@@ -66,7 +74,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="ContextDisplayGraph" xml:space="preserve"><value>Stato dello schermo</value></data>
   <data name="ContextDisplayHelp" xml:space="preserve"><value>Stato dello schermo della sessione Windows. Lacune e intervalli di cinque minuti con stati diversi restano sconosciuti; non è una misura per singolo monitor.</value></data>
   <data name="ContextGraphsHelp" xml:space="preserve"><value>Medie osservate di cinque minuti, non previsioni. Dati assenti e lacune lunghe restano vuoti. Passa il mouse per esplorare; clicca per fissare il rombo, clicca fuori per rimuoverlo.</value></data>
-  <data name="ContextHelp" xml:space="preserve"><value>CPU aggregata, frequenza, memoria, watt batteria, schermo, luminosità, profilo e temperature disponibili. Nessun nome di processo o telemetria online. I sensori mancanti restano non disponibili; le zone ACPI non sono la temperatura CPU. Più dati non garantiscono maggiore accuratezza.</value></data>
+  <data name="ContextHelp" xml:space="preserve"><value>CPU, frequenza, memoria, watt batteria, schermo, luminosità, profilo e temperature disponibili. I nomi delle app richiedono la raccolta facoltativa qui sotto. Nessuna telemetria online. I sensori mancanti restano non disponibili; le zone ACPI non sono la temperatura CPU. Più dati non garantiscono maggiore accuratezza.</value></data>
   <data name="ContextHistoryHours" xml:space="preserve"><value>Ore nei grafici dello storico</value></data>
   <data name="ContextInterval" xml:space="preserve"><value>Intervallo contesto (secondi)</value></data>
   <data name="ContextIntervalHelp" xml:space="preserve"><value>30–120 secondi; lo storico batteria resta ogni minuto. Intervalli più lunghi riducono le interrogazioni.</value></data>
@@ -180,6 +188,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="PanelSizeReset" xml:space="preserve"><value>Ripristina dimensioni</value></data>
   <data name="PanelSizeTitle" xml:space="preserve"><value>Dimensioni del pannello</value></data>
   <data name="PanelWidth" xml:space="preserve"><value>Larghezza</value></data>
+  <data name="PersonalForecastSource" xml:space="preserve"><value>Previsione personalizzata · uso attivo continuo</value></data>
   <data name="PluggedIn" xml:space="preserve"><value>Alimentatore collegato</value></data>
   <data name="PowerSource" xml:space="preserve"><value>Fonte di alimentazione: {0}</value></data>
   <data name="PrefAbout" xml:space="preserve"><value>Informazioni</value></data>
@@ -354,6 +363,7 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="UpdateStarting" xml:space="preserve"><value>Avvio dell'installazione…</value></data>
   <data name="UpdatedAt" xml:space="preserve"><value>alle {0}</value></data>
   <data name="UpdatesTitle" xml:space="preserve"><value>Aggiornamenti</value></data>
+  <data name="UseCalibration" xml:space="preserve"><value>Impara dagli errori delle previsioni</value></data>
   <data name="UseContext" xml:space="preserve"><value>Usa sensori storici in Timestral (sperimentale)</value></data>
   <data name="VersionLine" xml:space="preserve"><value>Versione {0}</value></data>
   <data name="WindowsLine" xml:space="preserve"><value>Windows: {0} di uso continuo al ritmo attuale</value></data>

@@ -4,7 +4,7 @@ Status: **experimental**. No accuracy figures are claimed until `docs/VALIDATION
 
 ## What is forecast
 
-- **Target**: battery level (%) on a 5-minute grid, next 24 hours (288 steps).
+- **Target**: battery level (%) on a 5-minute grid, up to the next 24 hours (288 native steps).
 - **Model**: Timestral-28M (Mistral AI), pinned revision in [UPSTREAM.md](UPSTREAM.md), run locally on CPU.
   Timestral-5M is kept for comparison.
 - **Context**: up to 110 days of this PC's own history, recorded by the app (one sample per minute,
@@ -241,3 +241,23 @@ Battery trend supports pointer-anchored wheel zoom down to fifteen minutes, boun
 panning and +/-/reset controls (keyboard +, −, 0). The visible percentage scale adapts when zoomed.
 Refreshing the same saved forecast preserves the viewport; selecting a different one resets it.
 Navigation changes no stored observations, issued curves or model calculations.
+
+### Local error correction (0.9.2)
+
+An optional bounded correction compares original usable forecasts with later continuous Windows
+observations in comparable battery, CPU, display/brightness and, when opted in, app-load conditions.
+It requires eight non-overlapping comparisons across three operating sessions. Sleep, gaps, changed
+power scenarios, different model revisions, saturated endpoints and unavailable future observations
+cannot become error evidence. The median observed/predicted movement ratio adjusts the curve's time
+axis by at most ±25%. It does not retrain Timestral, attribute watts to a process, or establish accuracy.
+See [the calculation method](FORECAST_METHOD.md#optional-local-correction-from-past-errors-092)
+for exact selection rules and limits.
+
+Original and issued curves are retained separately when a correction is applied; future learning uses
+the unadjusted curve rather than learning its own correction. The comparison page shows the issued
+curve, unchanged after saving. The future curve never extends beyond data supported by the native
+forecast; a faster correction can shorten its horizon below 24 hours. P10–P90 remains indicative,
+not a calibrated interval. Data and privacy shows whether evidence is sufficient and offers disable
+and reset controls. Reset keeps past forecasts but excludes old evidence; deleting history removes it.
+Workloads that change often may never collect enough matching evidence. Future app activity remains
+unknown. All new model and correction behavior is experimental pending real-session measurements.

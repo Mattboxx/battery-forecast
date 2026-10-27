@@ -110,6 +110,46 @@ Charging uses a robust short local trend only within the existing allowed range 
 comparable observed charging intervals. Future observations are excluded and fresh duplicates win.
 The app does not blend these methods using arbitrary weights or claim one universally wins.
 
+## Optional local correction from past errors (0.9.2)
+
+This is a bounded correction of the forecast's time axis, rebuilt from retained local evidence, not
+training of Timestral's weights. It is enabled by default, can be disabled or reset in Data and privacy,
+and remains inactive until enough comparable evidence exists. Demo data cannot activate it.
+
+- Compare only original, usable (`learning`/`ok`), active-use Timestral forecasts with subsequent Windows
+  battery observations already available at the current request cutoff. Use the same model revision,
+  scenario and comparable battery capacity. An unplug-now scenario issued while on AC is not evidence.
+- Candidate comparisons span 30, 60 or 120 minutes, with at least two percentage points of predicted
+  and actual movement, a nearby observed endpoint and continuous readings. Exclude gaps over three
+  minutes, known interruptions, AC/battery changes, large sensor jumps, charge-idle intervals and
+  saturated/reserve endpoints. Observations before issue time or after the new cutoff cannot be targets.
+- Match the recorded CPU band, display state and brightness when available. When app context is enabled,
+  also require the same opaque workload key, composed of the recurring app profile and individual CPU
+  bands for its leading apps. Unknown fresh app load leaves correction inactive. Context must cover the
+  comparison with at least 80% matching readings and no gaps over 150 seconds. This is coarse condition
+  matching, not causal attribution of a process's energy consumption.
+- Greedily retain disjoint comparison periods, at least eight across three distinct operating sessions.
+  Derive the median ratio of actual to originally predicted percentage movement, capped at 0.75–1.25.
+  Read at most 30 days (or the shorter retention/reset interval). Thin bursts of saved forecasts before
+  the 200-candidate limit so repeated manual requests do not count as independent evidence.
+- Evaluate the original curve at elapsed time multiplied by that factor. This preserves percentage
+  constraints and quantile order without leaving an artificial residual above reserve when slowing a
+  clipped curve. Recompute threshold crossings and declared extrapolation times. Do not evaluate past
+  the original supported horizon: a faster correction therefore yields a shorter future curve.
+
+Archives keep the curve actually issued, the unadjusted curve/timing when correction was applied, and
+the matching conditions, factor and evidence counts. Later calculations never revise old responses.
+Learning always uses the unadjusted curve, avoiding repeated correction of its own previous output.
+Battery trend compares the issued forecast to what happened; the unadjusted response is also retained
+for future checks. Reset excludes earlier evidence without deleting those old forecasts. History wipe
+and retention remove the underlying evidence; no separate trained parameter file survives deletion.
+Changing correction settings invalidates the cache and results still in flight.
+
+The correction assumes comparable continued use; future workload changes remain unknown. It can stay
+inactive on variable workloads or insufficient movement. Tests verify matching, chronology, minimum
+evidence, interruptions, charging, bounds, no compounding and archive integration. They do not measure
+accuracy or calibrate the P10–P90 band.
+
 ## Checks and limits
 
 Regression tests exercise mixed AC, endpoint gap length, sparse data, actual session durations,
@@ -125,11 +165,11 @@ superiority, calibrated coverage or energy-saving claim has been measured for th
 See [MODEL_CARD.md](MODEL_CARD.md) for thresholds, extrapolation details and model limitations;
 [UPSTREAM.md](UPSTREAM.md) and [LICENSE_AUDIT.md](LICENSE_AUDIT.md) for pinned sources and third-party terms.
 
-## Visible comparison with the original response
+## Visible comparison with the issued response
 
 Accepted responses now save their full curve and metadata locally, atomically with the existing run
-record. The new first settings page overlays gold observed readings and the selected purple original
-prediction, with the P10–P90 indicative band. Original curves remain unchanged when new calculations
+record. The new first settings page overlays gold observed readings and the selected purple issued
+prediction, with the P10–P90 indicative band. Saved curves remain unchanged when new calculations
 arrive. Points before issue time are not used for displayed differences. AC-scenario changes and data
 interruptions are identified; observations are not joined across known interruptions or gaps over
 three minutes. Isolated observations remain visible as dots. The page updates while visible when a

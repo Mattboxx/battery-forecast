@@ -391,6 +391,15 @@
                 </DockPanel></Border>
                 <TextBlock Text="{app:T ContextTools}" Style="{StaticResource Group}"/>
                 <Border Style="{StaticResource Row}"><StackPanel>
+                    <DockPanel>
+                        <CheckBox x:Name="UseCalibration" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T UseCalibration}"/>
+                        <TextBlock Text="{app:T UseCalibration}" Style="{StaticResource RowTitle}"/>
+                    </DockPanel>
+                    <TextBlock Text="{app:T CalibrationHelp}" Style="{StaticResource RowHelp}"/>
+                    <TextBlock x:Name="CalibrationStatus" Style="{StaticResource RowHelp}" Margin="0,8,0,0"/>
+                    <Button Content="{app:T CalibrationReset}" Click="ResetCalibration_Click" HorizontalAlignment="Left" Padding="12,5" Margin="0,8,0,0"/>
+                </StackPanel></Border>
+                <Border Style="{StaticResource Row}"><StackPanel>
                     <Button x:Name="RefreshSensors" Content="{app:T RefreshSensors}" Click="RefreshSensors_Click" HorizontalAlignment="Left" Padding="12,5"/>
                     <TextBlock x:Name="ContextStatus" Style="{StaticResource RowHelp}" Margin="0,10,0,0"/>
                 </StackPanel></Border>

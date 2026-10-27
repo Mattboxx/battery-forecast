@@ -44,6 +44,7 @@ public partial class PreferencesWindow : Window
         Target.IsEnabled = ExtraTimes.IsEnabled = s.EveningTargetEnabled;
         AdvancedSensors.IsChecked = s.CollectAdvancedSensors;
         CollectProcesses.IsChecked=s.CollectProcesses;
+        UseCalibration.IsChecked=s.UseLocalCalibration;
         CollectProcesses.IsEnabled=s.CollectSystemContext;
         AdvancedSensors.IsEnabled = s.CollectSystemContext;
         ContextInterval.Text = s.ContextIntervalSeconds.ToString(CultureInfo.InvariantCulture);
@@ -94,7 +95,7 @@ public partial class PreferencesWindow : Window
         ShowUpdate(app.AvailableUpdate);
 
         foreach (var c in new[] { RefreshBox, ThemeBox, LanguageBox, Retention }) c.SelectionChanged += (_, _) => Save();
-        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, OpenOnHover, QuietEnabled, CollectContext, UseContext, EveningEnabled, AdvancedSensors,CollectProcesses }) c.Click += (_, _) => Save();
+        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, OpenOnHover, QuietEnabled, CollectContext, UseContext, EveningEnabled, AdvancedSensors,CollectProcesses,UseCalibration }) c.Click += (_, _) => Save();
         TrayPercent.Click += (_, _) => Save();
         Login.Click += (_, _) =>
         {
@@ -152,6 +153,7 @@ public partial class PreferencesWindow : Window
             EveningTargetEnabled = EveningEnabled.IsChecked == true,
             CollectAdvancedSensors = AdvancedSensors.IsChecked == true,
             CollectProcesses=CollectProcesses.IsChecked==true,
+            UseLocalCalibration=UseCalibration.IsChecked==true,
             CollectSystemContext = CollectContext.IsChecked == true,
             UseSystemContext = UseContext.IsChecked == true,
             ShowChart = ShowChart.IsChecked == true,
@@ -375,6 +377,11 @@ public partial class PreferencesWindow : Window
     void TrendZoomIn_Click(object sender,RoutedEventArgs e)=>TrendChart.Zoom(1.5);
     void TrendZoomOut_Click(object sender,RoutedEventArgs e)=>TrendChart.Zoom(1/1.5);
     void TrendZoomReset_Click(object sender,RoutedEventArgs e)=>TrendChart.ResetZoom();
+    void ResetCalibration_Click(object sender,RoutedEventArgs e)
+    {
+        app.UpdateSettings(app.Settings with { CalibrationResetUtc=DateTimeOffset.UtcNow });
+        CalibrationStatus.Text=CalibrationPresenter.Present(app.Settings.UseLocalCalibration,null);
+    }
 
     async void RefreshSensors_Click(object sender, RoutedEventArgs e)
     {
@@ -399,6 +406,7 @@ public partial class PreferencesWindow : Window
                 _ => state?.Forecast,
             };
             ContextStatus.Text = ContextPresenter.Present(app.Settings, app.CurrentSystemContext, store.ContextSummary(start), forecast?.ContextFeatures ?? []);
+            CalibrationStatus.Text=CalibrationPresenter.Present(app.Settings.UseLocalCalibration,forecast?.Calibration);
             if(app.Settings.CollectProcesses && app.Settings.CollectSystemContext && app.CurrentSystemContext is { } currentApps)
             {
                 var associations=store.ProcessAssociations(currentApps,start,end);

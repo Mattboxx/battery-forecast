@@ -95,6 +95,10 @@ public sealed record WorkerForecast(long? Id, ForecastResponse Response) : Worke
 public sealed record ForecastResponse
 {
     public string TimeBasis { get; init; } = "calendar";
+    public ForecastConditions? Conditions { get; init; }
+    public CalibrationInfo? Calibration { get; init; }
+    public IReadOnlyList<CurvePointDto>? RawCurve { get; init; }
+    public RawForecastTiming? RawTiming { get; init; }
     public double GeneratedAtUtc { get; init; }
     public double ContextEndUtc { get; init; }
     public string Source { get; init; } = "";
@@ -123,6 +127,8 @@ public sealed record QualityDto
     public double Coverage { get; init; }
     public int DischargeSessions { get; init; }
     public int ChargeSessions { get; init; }
+    public int ModelContextSteps { get; init; }
+    public int CalendarContextSteps { get; init; }
 }
 
 public sealed record CrossingDto

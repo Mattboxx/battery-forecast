@@ -29,6 +29,8 @@ public sealed record Settings
     public bool CollectSystemContext { get; init; } = true;
     public bool CollectAdvancedSensors { get; init; } = true;
     public bool CollectProcesses { get; init; } = false;
+    public bool UseLocalCalibration { get; init; } = true;
+    public DateTimeOffset? CalibrationResetUtc { get; init; }
     public int ContextIntervalSeconds { get; init; } = 60;
     public int ContextHistoryHours { get; init; } = 24;
     public bool UseSystemContext { get; init; } = true;

@@ -210,7 +210,21 @@ to the original authors. Their copyright and attribution notices are preserved i
 If Battery Forecast is useful to you, you can support its development on **[Ko-fi](https://ko-fi.com/mattboxx)**.
 Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
-## New in 0.9.2: better prepared local data
+## New in 0.9.2: learn from comparable use
+
+- **Recognise recurring apps and their load.** Enable optional app-workload recording in **Data and privacy**
+  to keep executable names, measured CPU load and working sets locally. Timestral receives distinct historical
+  channels for up to six currently observed apps and recurring app combinations. Power associations show
+  whole-PC consumption in similar conditions; they do not measure a process's own watts.
+- **Learn from past forecast errors.** Optional local correction compares original saved forecasts with later
+  uninterrupted readings under similar battery, CPU, display and app-load conditions. It starts after at least
+  eight non-overlapping comparisons across three operating sessions, adjusts the forecast rate by at most ±25%,
+  and can be switched off or reset. Original and issued curves remain saved; model weights are unchanged.
+- **Treat sleep as an interruption.** Old cached and in-flight estimates are invalidated on wake. Unobserved
+  sleep/hibernation duration does not become hours of zero-consumption active use. Forecast hours mean continued
+  use of the PC; screen-off background activity is still recorded.
+- **Zoom Battery trend.** Use the wheel at the point of interest, the middle button to pan, and the visible
+  + / − / reset controls. The percentage scale adapts; navigation does not run the model again.
 
 Optional brightness collection now works independently of unavailable temperature providers. Battery
 and sensor history is weighted by represented time, so rapid diagnostic readings do not distort the
@@ -225,6 +239,11 @@ and use **Recalculate now**, then compare the saved forecast with later observat
 New CPU intervals need at least six varying five-minute bins (about thirty minutes). Unsupported sensors
 remain unavailable. Schema 7 cannot be read by 0.9.1; keep a backup of `%LOCALAPPDATA%\BatteryForecast`
 before downgrading.
+
+Future app activity is unknown. Correction needs new comparable observations after upgrading and may remain
+inactive when workloads change often. A faster correction can shorten the chart's supported horizon. Functional
+tests cover the data path and error exclusions; no scientific accuracy gain has been measured. See the
+[calculation method](docs/FORECAST_METHOD.md).
 
 ## New in 0.9.1: more control and context
 

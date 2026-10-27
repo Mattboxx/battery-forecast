@@ -464,7 +464,8 @@ public partial class App : Application
         if (prev.CollectSystemContext != Settings.CollectSystemContext || prev.CollectAdvancedSensors != Settings.CollectAdvancedSensors
             || prev.ContextIntervalSeconds != Settings.ContextIntervalSeconds || prev.CollectProcesses!=Settings.CollectProcesses)
             _ = Task.Run(() => collector?.Sample(forceContext: true));
-        Coordinator?.SettingsChanged(recalculate: modelChanged);
+        if(prev.UseLocalCalibration!=Settings.UseLocalCalibration || prev.CalibrationResetUtc!=Settings.CalibrationResetUtc) Coordinator?.CalibrationChanged();
+        else Coordinator?.SettingsChanged(recalculate: modelChanged);
 
     }
 

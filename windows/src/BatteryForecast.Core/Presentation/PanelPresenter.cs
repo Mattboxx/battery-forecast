@@ -237,7 +237,8 @@ public static class PanelPresenter
             Busy = s.Updating,
             Stale = !s.ChargeForecastFresh,
             Source = EstimateSource.Habits,
-            SourceLine = L.F(cf.TimeBasis=="active_use" ? "ChargeActiveUseSource" : cf.Quality == HistoryQuality.Ok ? "ChargeHabitsSource" : "ChargeLearningSource", Days(cf.ObservedDays)),
+            SourceLine = cf.Calibration is { Enabled:true,Ready:true } personal && Math.Abs(personal.Factor-1)>.001 ? L.T("PersonalForecastSource")
+                : L.F(cf.TimeBasis=="active_use" ? "ChargeActiveUseSource" : cf.Quality == HistoryQuality.Ok ? "ChargeHabitsSource" : "ChargeLearningSource", Days(cf.ObservedDays)),
             RechargeLine = unplug,
             RecentLine = recent,
             Chart = cf,
@@ -304,6 +305,7 @@ public static class PanelPresenter
     {
         var now = s.Now;
         var source = L.F(f.TimeBasis=="active_use" ? "ActiveUseSource" : f.Quality == HistoryQuality.Ok ? "SourceHabits" : "SourceLearning", Days(f.ObservedDays));
+        if(f.Calibration is { Enabled:true,Ready:true } calibration && Math.Abs(calibration.Factor-1)>.001) source=L.T("PersonalForecastSource");
         var recharge = f.HabitualRecharge is { } hr
             ? L.F(f.ExtrapolatedFrom is null ? "HabitualRechargeNoRate" : "HabitualRecharge", Clock(Round5(hr), zone)) : null;
         m = m with { Source = EstimateSource.Habits, SourceLine = source, RechargeLine = recharge };

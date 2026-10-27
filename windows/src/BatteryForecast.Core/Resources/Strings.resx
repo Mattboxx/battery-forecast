@@ -23,6 +23,14 @@
   <data name="Battery" xml:space="preserve"><value>Battery</value></data>
   <data name="Beyond" xml:space="preserve"><value>Beyond the next {0} hours</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calculating the forecast…</value></data>
+  <data name="CalibrationAppScope" xml:space="preserve"><value>same apps and CPU load</value></data>
+  <data name="CalibrationCollecting" xml:space="preserve"><value>Collecting valid comparisons: {0}/{1}, sessions {2}/{3}. No correction applied yet.</value></data>
+  <data name="CalibrationFreshLoad" xml:space="preserve"><value>Waiting for fresh app-load readings before selecting comparable errors.</value></data>
+  <data name="CalibrationGeneralScope" xml:space="preserve"><value>comparable general load</value></data>
+  <data name="CalibrationHelp" xml:space="preserve"><value>Compares original forecasts with later readings under similar conditions. Starts after 8 independent comparisons in 3 sessions; app recording also matches apps and CPU load. Adjustment is limited to ±25%, without retraining the AI or establishing accuracy. A faster adjustment may shorten the chart horizon. Reset keeps old forecasts and starts learning from new ones.</value></data>
+  <data name="CalibrationOff" xml:space="preserve"><value>Personal correction is off. Original forecasts remain saved for comparison.</value></data>
+  <data name="CalibrationReady" xml:space="preserve"><value>Local correction ready: {0} independent comparisons, {1} sessions, rate factor {2} · {3}. Not a measured accuracy guarantee.</value></data>
+  <data name="CalibrationReset" xml:space="preserve"><value>Reset learning</value></data>
   <data name="ChargeActiveUseSource" xml:space="preserve"><value>While charging and using the PC · {0} days</value></data>
   <data name="ChargeBeyond" xml:space="preserve"><value>Target {0}%: beyond the next 24 hours</value></data>
   <data name="ChargeCollecting" xml:space="preserve"><value>Learning charging speed</value></data>
@@ -66,7 +74,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="ContextDisplayGraph" xml:space="preserve"><value>Display state</value></data>
   <data name="ContextDisplayHelp" xml:space="preserve"><value>Windows session display state. Gaps and mixed five-minute bins remain unknown; not a per-monitor measurement.</value></data>
   <data name="ContextGraphsHelp" xml:space="preserve"><value>Observed five-minute averages, not forecasts. Missing data and long gaps stay empty. Hover to inspect; click to pin a diamond, and click outside to clear.</value></data>
-  <data name="ContextHelp" xml:space="preserve"><value>Aggregate CPU load/frequency, memory, battery watts, display state, brightness, power profile and available temperatures. No process names or online telemetry. Missing sensors stay unavailable; ACPI zones are not CPU temperature. More data does not guarantee better accuracy.</value></data>
+  <data name="ContextHelp" xml:space="preserve"><value>CPU load/frequency, memory, battery watts, display, brightness, power profile and available temperatures. App names require the separate optional recording below. No online telemetry. Missing sensors stay unavailable; ACPI zones are not CPU temperature. More data does not guarantee better accuracy.</value></data>
   <data name="ContextHistoryHours" xml:space="preserve"><value>History charts (hours)</value></data>
   <data name="ContextInterval" xml:space="preserve"><value>System context interval (seconds)</value></data>
   <data name="ContextIntervalHelp" xml:space="preserve"><value>30–120 seconds; battery history keeps its own one-minute cadence. Longer intervals reduce polling.</value></data>
@@ -180,6 +188,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="PanelSizeReset" xml:space="preserve"><value>Reset size</value></data>
   <data name="PanelSizeTitle" xml:space="preserve"><value>Panel size</value></data>
   <data name="PanelWidth" xml:space="preserve"><value>Width</value></data>
+  <data name="PersonalForecastSource" xml:space="preserve"><value>Personalised forecast · continued active use</value></data>
   <data name="PluggedIn" xml:space="preserve"><value>Power adapter connected</value></data>
   <data name="PowerSource" xml:space="preserve"><value>Power source: {0}</value></data>
   <data name="PrefAbout" xml:space="preserve"><value>About</value></data>
@@ -354,6 +363,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="UpdateStarting" xml:space="preserve"><value>Starting the installer…</value></data>
   <data name="UpdatedAt" xml:space="preserve"><value>at {0}</value></data>
   <data name="UpdatesTitle" xml:space="preserve"><value>Updates</value></data>
+  <data name="UseCalibration" xml:space="preserve"><value>Learn from past forecast errors</value></data>
   <data name="UseContext" xml:space="preserve"><value>Use historical sensors in Timestral (experimental)</value></data>
   <data name="VersionLine" xml:space="preserve"><value>Version {0}</value></data>
   <data name="WindowsLine" xml:space="preserve"><value>Windows: {0} of continuous use at the current rate</value></data>

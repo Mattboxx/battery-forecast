@@ -160,7 +160,21 @@ originali. Copyright e attribuzioni sono conservati nel pacchetto.
 Se Battery Forecast ti è utile puoi sostenerlo su **[Ko-fi](https://ko-fi.com/mattboxx)**. Segnalazioni e idee
 nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
-## Novità della 0.9.2: dati preparati meglio
+## Novità della 0.9.2: imparare da condizioni d’uso simili
+
+- **App ricorrenti e relativo carico:** attiva la raccolta facoltativa in **Dati e privacy** per conservare
+  localmente nomi degli eseguibili, carico CPU misurato e memoria di lavoro. Timestral riceve canali storici
+  distinti per un massimo di sei app osservate attualmente e per combinazioni ricorrenti. Le associazioni
+  di consumo indicano watt dell’intero PC in condizioni simili, non watt misurati per singolo processo.
+- **Imparare dagli errori:** la correzione locale facoltativa confronta previsioni originali salvate con letture
+  successive continue, in condizioni simili di batteria, CPU, schermo e carico delle app. Richiede almeno otto
+  confronti non sovrapposti in tre sessioni, corregge il ritmo previsto al massimo del ±25% e si può disattivare
+  o azzerare. Restano salvate curva originale e curva emessa; i pesi del modello non cambiano.
+- **Sospensione e ibernazione:** alla ripresa vengono invalidate le stime precedenti, comprese quelle ancora
+  in calcolo. Il tempo senza osservazioni durante l’ibernazione non diventa uso attivo senza consumo. Le ore
+  previste indicano uso continuato del PC; lo schermo spento resta distinto dalla sospensione.
+- **Zoom in Andamento:** rotella sul punto d’interesse, tasto centrale per spostarsi e comandi + / − / ripristina.
+  La scala percentuale si adatta all’intervallo visibile, senza ricalcolare il modello.
 
 Corretta la raccolta della luminosità: un sensore termico assente non blocca gli altri. Le medie della
 batteria e dei sensori pesano il tempo rappresentato, evitando che letture diagnostiche ravvicinate
@@ -175,6 +189,11 @@ la previsione salvata con le letture successive nella pagina **Andamento**. Per 
 servono almeno sei bin variabili da cinque minuti, circa mezz’ora. I sensori non supportati restano assenti.
 Il nuovo schema 7 non è leggibile dalla 0.9.1: prima di tornare a una versione precedente, conserva una
 copia di `%LOCALAPPDATA%\BatteryForecast`, eseguita dopo aver chiuso l’app.
+
+L’attività futura delle app resta sconosciuta. La correzione richiede nuovi confronti dopo l’aggiornamento e
+può restare inattiva se il carico cambia spesso. Una correzione più rapida può accorciare l’orizzonte supportato
+dal grafico. I test verificano funzionamento e scarti esclusi, senza misurare un miglioramento scientifico
+dell’accuratezza. [Dettagli del metodo](FORECAST_METHOD.md).
 
 ## Più controllo e contesto
 
@@ -211,7 +230,7 @@ copia di `%LOCALAPPDATA%\BatteryForecast`, eseguita dopo aver chiuso l’app.
   energetico e temperature disponibili. Timestral riceve canali storici utilizzabili e il pannello dice
   quali ha usato. Sensori mancanti restano non disponibili; zona ACPI, CPU e batteria sono distinte.
   La temperatura CPU richiede un provider compatibile già installato. Nessun driver, elevazione,
-  nome di processo, telemetria online o valore futuro inventato.
+  telemetria online o valore futuro inventato. I nomi degli eseguibili richiedono la raccolta app facoltativa.
 - **Personalizzazione e strumenti:** orario silenzioso, soglie avvisi manuali, grafico facoltativo,
   mantenimento aperto, CSV batteria/contesto e diagnostica ZIP locale senza storico/log.
 
