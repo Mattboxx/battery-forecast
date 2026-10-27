@@ -23,7 +23,7 @@
       <a class="hide-xs" href="#download">Download</a>
       <a class="hide-s" href="#how">How it works</a>
       <a class="hide-s" href="#privacy">Privacy</a>
-      <a class="support" href="https://ko-fi.com/mattboxx" rel="noopener">
+      <a class="support" href="#support-options" data-support aria-haspopup="dialog" aria-controls="support-options">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
         Support me</a>
       <a class="hide-xs" href="https://github.com/Mattboxx/battery-forecast" rel="noopener">GitHub ↗</a>
@@ -284,11 +284,51 @@
         <div>The code’s MIT license does not replace third-party terms. The model weights have a company/employer revenue condition (global consolidated monthly revenue exceeding USD 20 million in the preceding month).
         <a href="https://github.com/Mattboxx/battery-forecast/blob/main/licenses/vendor/Timestral-28M-LICENSE.txt">Read the full model terms</a> · <a href="https://github.com/Mattboxx/battery-forecast/blob/main/docs/LICENSE_AUDIT.md">Distribution audit</a>.</div>
         <div>Native runtimes also have supplier terms (including Intel OpenMP/oneMKL on x64, ArmPL on ARM64 and Microsoft Visual C++). The installer includes their original agreements and offline notices.</div>
-        <div>Ko-fi donations to Mattboxx fund this independent Windows port, not the original authors.</div>
+        <div>Donations through GitHub Sponsors or Ko-fi go to Mattboxx and fund this independent Windows port, not the original authors.</div>
       </div>
-      <a class="kofi" href="https://ko-fi.com/mattboxx" rel="noopener">♥ Support on Ko-fi</a>
+      <a class="support-button" href="#support-options" data-support aria-haspopup="dialog" aria-controls="support-options">♥ Support this project</a>
     </div>
   </footer>
+
+  <!-- Without JavaScript the same choices remain visible below the footer. -->
+  <dialog id="support-options" class="dl support-dialog" aria-labelledby="support-title" aria-describedby="support-description" open>
+    <form method="dialog" class="dl-close-form"><button class="dl-x" aria-label="Close support options">✕</button></form>
+    <img class="dl-icon" src="assets/icon.svg" alt="" width="56" height="56">
+    <h2 id="support-title" tabindex="-1">Support Battery Forecast</h2>
+    <p class="dl-sub" id="support-description">Choose where you’d like to support this independent Windows port.</p>
+    <div class="dl-choices">
+      <a class="dl-card support-choice" href="https://github.com/sponsors/Mattboxx" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        <b>GitHub Sponsors <span aria-hidden="true">↗</span></b>
+        <small>Support my open-source work through GitHub.</small>
+      </a>
+      <a class="dl-card support-choice" href="https://ko-fi.com/mattboxx" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h12v9a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4zM16 8h2a3 3 0 0 1 0 6h-2M3 22h15"/><path d="m7 11 3 3 3-3"/></svg>
+        <b>Ko-fi <span aria-hidden="true">↗</span></b>
+        <small>Leave a tip or support the project through Ko-fi.</small>
+      </a>
+    </div>
+    <p class="dl-hint">Both support Mattboxx’s Windows port. Your chosen platform opens in a new tab.</p>
+  </dialog>
+
+  <script>
+    (() => {
+      const dialog = document.getElementById('support-options');
+      if (typeof dialog.showModal !== 'function') return;
+      dialog.close(); // Progressive enhancement: hide the inline fallback once the dialog is usable.
+      document.querySelectorAll('[data-support]').forEach(link => link.addEventListener('click', event => {
+        event.preventDefault();
+        if (!dialog.open) dialog.showModal();
+        document.getElementById('support-title').focus({ preventScroll: true });
+      }));
+      dialog.addEventListener('click', event => {
+        if (event.target !== dialog) return;
+        const bounds = dialog.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right ||
+            event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+      });
+    })();
+  </script>
 
   <!-- scelta dell'architettura: solo su PC; su telefono i pulsanti aprono la pagina delle release -->
   <dialog id="dl" class="dl" aria-labelledby="dl-title">

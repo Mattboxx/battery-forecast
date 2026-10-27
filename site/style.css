@@ -135,7 +135,7 @@ details p { color: var(--muted); margin: 10px 0 0; }
 footer { border-top: 1px solid var(--line); padding: 40px 0 60px; color: var(--muted); font-size: 14px; }
 footer .row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
 footer a { color: var(--muted); }
-.kofi { display: inline-flex; gap: 8px; align-items: center; padding: 10px 16px; border-radius: 12px; text-decoration: none;
+.support-button { display: inline-flex; gap: 8px; align-items: center; padding: 10px 16px; border-radius: 12px; text-decoration: none;
   color: var(--heart) !important; border: 1px solid var(--line); background: var(--surface); font-weight: 600; }
 
 /* comparsa discreta durante lo scorrimento; niente animazioni se l'utente le ha ridotte */
@@ -230,3 +230,14 @@ footer a { color: var(--muted); }
   .dl-card { transition: none; }
 }
 @media (max-width: 560px) { .dl { padding: 30px 20px 24px; } .dl-choices { grid-template-columns: 1fr; } }
+
+/* Same two support choices on desktop, touch devices and the no-script fallback. */
+.support-dialog { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+.support-dialog[open]:not(:modal) { position: relative; margin: 32px auto; }
+.support-dialog[open]:not(:modal) .dl-close-form { display: none; }
+.support-dialog h2:focus { outline: none; }
+.support-choice { text-decoration: none; text-align: left; align-items: flex-start; }
+.support-choice svg { stroke: var(--heart); }
+.support-choice:hover, .support-choice:focus-visible { border-color: var(--heart); }
+.support-choice b { display: flex; align-items: center; gap: 10px; }
+.support-choice b span { color: var(--muted); font-size: 16px; font-weight: 400; }

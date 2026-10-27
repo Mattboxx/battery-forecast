@@ -15,7 +15,8 @@
   <a href="https://mattboxx.github.io/battery-forecast/"><b>Sito</b></a> ·
   <a href="https://github.com/Mattboxx/battery-forecast/releases"><b>Download</b></a> ·
   <a href="../README.md">English</a> ·
-  <a href="https://ko-fi.com/mattboxx">♥ Supporta su Ko-fi</a>
+  <a href="https://github.com/sponsors/Mattboxx">♥ GitHub Sponsors</a> ·
+  <a href="https://ko-fi.com/mattboxx">Ko-fi</a>
 </p>
 
 <p align="center">
@@ -152,12 +153,13 @@ combinate. Leggi i [termini originali completi](../licenses/vendor/Timestral-28M
 l’[audit di distribuzione](LICENSE_AUDIT.md). Nessuna certificazione generale di conformità è dichiarata.
 
 Battery Forecast è un adattamento indipendente, non un prodotto ufficiale o approvato da Matteo
-Bonfanti o Mistral AI. Le donazioni Ko-fi a Mattboxx sostengono il porting Windows, non gli autori
+Bonfanti o Mistral AI. Le donazioni a Mattboxx tramite GitHub Sponsors o Ko-fi sostengono il porting Windows, non gli autori
 originali. Copyright e attribuzioni sono conservati nel pacchetto.
 
 ## Sostegno
 
-Se Battery Forecast ti è utile puoi sostenerlo su **[Ko-fi](https://ko-fi.com/mattboxx)**. Segnalazioni e idee
+Se Battery Forecast ti è utile puoi sostenerlo tramite **[GitHub Sponsors](https://github.com/sponsors/Mattboxx)**
+o **[Ko-fi](https://ko-fi.com/mattboxx)**. Segnalazioni e idee
 nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
 ## Novità della 0.9.2: imparare da condizioni d’uso simili

@@ -14,7 +14,8 @@
   <a href="https://mattboxx.github.io/battery-forecast/"><b>Website</b></a> ·
   <a href="https://github.com/Mattboxx/battery-forecast/releases"><b>Download</b></a> ·
   <a href="docs/README.it.md">Italiano</a> ·
-  <a href="https://ko-fi.com/mattboxx">♥ Support on Ko-fi</a>
+  <a href="https://github.com/sponsors/Mattboxx">♥ GitHub Sponsors</a> ·
+  <a href="https://ko-fi.com/mattboxx">Ko-fi</a>
 </p>
 
 <p align="center">
@@ -22,6 +23,7 @@
   <img alt="x64 and ARM64" src="https://img.shields.io/badge/arch-x64%20%7C%20ARM64-3D2F7A">
   <a href="https://github.com/Mattboxx/battery-forecast/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Mattboxx/battery-forecast?include_prereleases&color=B45A0A"></a>
   <a href="LICENSE"><img alt="Project code: MIT; bundled components have separate terms" src="https://img.shields.io/badge/code-MIT-167351"></a>
+  <a href="https://github.com/sponsors/Mattboxx"><img alt="GitHub Sponsors" src="https://img.shields.io/badge/GitHub_Sponsors-support-EA4AAA?logo=githubsponsors&logoColor=white"></a>
   <a href="https://ko-fi.com/mattboxx"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-support-C2416B?logo=kofi&logoColor=white"></a>
 </p>
 
@@ -202,12 +204,13 @@ Read the [original terms](licenses/vendor/Timestral-28M-LICENSE.txt) and [distri
 The MIT license applies to project code for which the contributors hold the relevant rights.
 
 Battery Forecast is an independent adaptation and is not an official or endorsed product of Matteo
-Bonfanti or Mistral AI. Donations to Mattboxx on Ko-fi fund this Windows port; they are not donations
+Bonfanti or Mistral AI. Donations to Mattboxx through GitHub Sponsors or Ko-fi fund this Windows port; they are not donations
 to the original authors. Their copyright and attribution notices are preserved in every package.
 
 ## Support
 
-If Battery Forecast is useful to you, you can support its development on **[Ko-fi](https://ko-fi.com/mattboxx)**.
+If Battery Forecast is useful to you, you can support its development through
+**[GitHub Sponsors](https://github.com/sponsors/Mattboxx)** or **[Ko-fi](https://ko-fi.com/mattboxx)**.
 Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
 ## New in 0.9.2: learn from comparable use
