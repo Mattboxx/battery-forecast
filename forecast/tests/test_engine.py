@@ -81,7 +81,7 @@ def test_worker_process_round_trip_and_exit_on_eof():
         assert err["type"] == "error" and err["code"] == "bad_json"
         t0 = time.perf_counter()
         ok = json.loads(p.stdout.readline())
-        assert ok["type"] == "forecast" and ok["id"] == 1
+        assert ok["type"] == "forecast" and ok["id"] == 1, ok
         print(f"\nstartup {ready['startup_ms']} ms, round trip {1000 * (time.perf_counter() - t0):.0f} ms, "
               f"interno {ok['elapsed_ms']} ms")
         p.stdin.close()
@@ -119,3 +119,24 @@ def test_forecast_steps_start_five_minutes_after_actual_request_not_bin_boundary
     assert result["curve"][0]["t"] == NOW+299+300
     assert result["curve"][-1]["t"] == NOW+299+86400
     assert result["context_end_utc"] == NOW+299
+
+
+def test_real_model_receives_original_observation_mask_and_boundary_gaps(engine,monkeypatch):
+    from battery_forecast import protocol
+    seen={}
+    original=engine.fc.forecast
+    def record(*args,**kwargs):
+        seen['target']=args[0].copy()
+        seen.update(kwargs)
+        return original(*args,**kwargs)
+    monkeypatch.setattr(engine.fc,'forecast',record)
+    rows=[[NOW-i*300,60+i*.2,0,i!=4] for i in range(12,-1,-1) if i!=6]
+    req=request(samples=rows,discontinuities_utc=[NOW-1800])
+    result=engine.predict(protocol.parse_request(json.dumps(req).encode()))
+    mask=seen['observation_mask']
+    assert mask.shape==(1,1,13)
+    assert not mask[0,0,6] and not mask[0,0,8] and mask[0,0,-1]
+    assert np.isnan(seen['target'][0,0,6])  # no interpolation through known interruption
+    assert np.isfinite(seen['target'][0,0,8])  # held value is present but explicitly unobserved
+    assert len(result['curve'])==288
+    assert result["context_end_utc"] == NOW

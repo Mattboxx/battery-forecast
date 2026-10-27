@@ -10,14 +10,23 @@ public class ProtocolTests
     public void Request_has_version_unix_seconds_and_compact_samples()
     {
         var now = DateTimeOffset.FromUnixTimeSeconds(1_800_000_000);
-        var line = Protocol.EncodeRequest(3, new ForecastRequest(now, 55.5, false, 5, [new(1_799_999_700, 56.123, 0), new(1_799_999_400, null, null)]));
+        var line = Protocol.EncodeRequest(3, new ForecastRequest(now, 55.5, false, 5, [new(1_799_999_700, 56.123, 0), new(1_799_999_400, null, null,Observed:false)]));
         var o = JsonNode.Parse(line)!.AsObject();
         Assert.Equal(1, (int)o["protocol_version"]!);
         Assert.Equal(1_800_000_000.0, (double)o["now_utc"]!);
         Assert.Equal(0, (int)o["ac"]!);
-        Assert.Equal("[1799999700,56.12,0]", o["samples"]![0]!.ToJsonString());
-        Assert.Equal("[1799999400,null,null]", o["samples"]![1]!.ToJsonString());
+        Assert.Equal("[1799999700,56.12,0,true]", o["samples"]![0]!.ToJsonString());
+        Assert.Equal("[1799999400,null,null,false]", o["samples"]![1]!.ToJsonString());
         Assert.DoesNotContain('\n', line);
+    }
+
+    [Fact]
+    public void BoundaryExtensionIsOrderedDistinctAndContainsNoFutureEvents()
+    {
+        var now=DateTimeOffset.FromUnixTimeSeconds(1800000000);
+        var request=new ForecastRequest(now,60,false,5,[],Discontinuities:[now,now.AddSeconds(-5),now,now.AddSeconds(1)]);
+        var json=JsonNode.Parse(Protocol.EncodeRequest(1,request))!;
+        Assert.Equal("[1799999995,1800000000]",json["discontinuities_utc"]!.ToJsonString());
     }
 
     [Fact]
@@ -145,7 +154,8 @@ public class ForecastWorkerTests
             return new ModelSample(start + 300 * i, plugged ? 90 : Math.Max(5, 100 - (i % 288) * 0.5), plugged ? 1 : 0);
         }).ToList();
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        var r = await w.ForecastAsync(new ForecastRequest(now, 80, false, 5, history));
+        history[10]=history[10] with { Observed=false };
+        var r = await w.ForecastAsync(new ForecastRequest(now, 80, false, 5, history,Discontinuities:[now.AddMinutes(-10)]));
         Assert.Equal("timestral", r.Source);
         Assert.Equal(288, r.Curve.Count);
         var held = await w.ForecastAsync(new ForecastRequest(now, 80, true, 5, history));      // collegato, carica ferma

@@ -258,7 +258,8 @@ public sealed class ForecastCoordinator : IDisposable
             var history = store.ModelSamples(origin - HistoryDays, origin);
             var r = await engine.ForecastAsync(new ForecastRequest(s.TimestampUtc, level, s.OnAc, reserve, history,
                 options.UseSystemContext && options.CollectSystemContext ? store.ModelCovariates(origin-HistoryDays,origin, currentBatteryOnly: true) : null,
-                Charge: charge, TargetPct: reserve)).ConfigureAwait(false);
+                Charge: charge, TargetPct: reserve,
+                Discontinuities:store.ModelDiscontinuities(origin-HistoryDays,origin))).ConfigureAwait(false);
             var view = ForecastView.From(r);
             lock (gate)
             {

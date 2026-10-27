@@ -178,6 +178,14 @@ a qualifying 30-minute session must actually span 30 minutes. Fallback extrapola
 slope from the latest contiguous phase, without joining separate AC visits. Immediate readings win
 over stored duplicates in recent-rate estimates.
 
+Development following 0.9.1 additionally sends known suspend/resume, app exit/start, adapter and battery
+replacement boundaries to the engine. They block target/context interpolation, session continuity and
+the engine's recent-rate fallback. Means straddling a boundary are excluded; the current battery reading
+remains the anchor. Screen off is not suspension. The original target-observation mask is passed to
+Timestral: held/interpolated target bins have zero observation weight and cannot qualify observed
+sessions. Functional tests cover the protocol and a real model call; predictive superiority remains
+unmeasured. See [calculation method](FORECAST_METHOD.md) for time weighting and legacy data handling.
+
 These are functional correctness changes checked with regression tests and the real inference engine.
 Scientific comparisons are postponed at the user's request; superiority and accuracy are unmeasured.
 

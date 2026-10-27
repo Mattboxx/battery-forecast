@@ -36,8 +36,15 @@ public static class Protocol
         };
         var samples = new JsonArray();
         foreach (var s in r.History)
-            samples.Add(new JsonArray(s.Ts, s.Level is double l ? Math.Round(l, 2) : null, s.Ac));
+            samples.Add(new JsonArray(s.Ts, s.Level is double l ? Math.Round(l, 2) : null, s.Ac, s.Observed));
         o["samples"] = samples;
+        if(r.Discontinuities is { Count:>0 })
+        {
+            var boundaries=new JsonArray();
+            foreach(var t in r.Discontinuities.Where(t=>t<=r.Now).Distinct().Order())
+                boundaries.Add(t.ToUnixTimeMilliseconds()/1000.0);
+            o["discontinuities_utc"]=boundaries;
+        }
         if(r.PastCovariates is { Count: >0 })
         {
             var context=new JsonObject();
@@ -77,7 +84,7 @@ public static class Protocol
 /// <summary>Charge = scenario "resto collegato" fino a <see cref="TargetPct"/>; altrimenti "senza ricarica" fino alla riserva.</summary>
 public sealed record ForecastRequest(DateTimeOffset Now, double Level, bool? OnAc, double ReservePct,
     IReadOnlyList<Storage.ModelSample> History, IReadOnlyDictionary<string,IReadOnlyList<Storage.ModelCovariate>>? PastCovariates = null,
-    bool Charge = false, double TargetPct = 80);
+    bool Charge = false, double TargetPct = 80, IReadOnlyList<DateTimeOffset>? Discontinuities = null);
 
 public abstract record WorkerMessage(long? Id);
 public sealed record WorkerReady(string ModelId, string ModelRevision, int StartupMs) : WorkerMessage((long?)null);

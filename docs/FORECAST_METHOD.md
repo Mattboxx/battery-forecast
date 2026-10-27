@@ -19,6 +19,20 @@ periods cannot always be distinguished from dropped samples; this policy is not 
 Observed hours and coverage are counted before interpolation. Thirty-minute sessions must span
 thirty minutes, rather than counting six grid points as thirty minutes.
 
+Recorded suspend/resume, app exit/start, adapter transitions and detected battery replacement are
+explicit boundaries sent to the engine. Interpolation, session counts and recent-rate fallback cannot
+join opposite sides. Bins straddling a boundary are discarded because their means cannot separate
+the phases; the fresh current battery reading remains the anchor. Historical context in a straddling
+bin stays missing, even if the current battery anchor is available. Display-off/dim notifications are
+not suspension boundaries: collection can continue while the screen is off.
+
+The original-observation mask survives resampling and interpolation. A hold-only/interpolated target
+bin does not increase observed hours or qualify a continuous session; Timestral receives the mask
+through its native `observation_mask` argument and gives such target positions zero observation weight.
+Qualifying sessions require contiguous original observed bins over at least thirty minutes. Short numeric
+sensor interpolation remains a declared estimate and is also blocked by boundaries. No future sensor
+observations are introduced.
+
 New context rows preserve the CPU counter interval, exact reading timestamp, collection trigger and
 optional-probe acquisition time (SQLite schema 6). CPU averages are weighted by their measured durations,
 split at bin boundaries, using only completed measurements available at the request origin. Intervals
@@ -31,6 +45,12 @@ recorded interruption or 150 seconds, whichever comes first. Means divide by sup
 than row count, so diagnostic bursts do not gain extra votes. This is an explicit resampling assumption,
 not a claim that an instantaneous reading was continuously measured. A final point with zero duration
 can anchor its bin. Historic CPU charts may use legacy point support; they are not duration measurements.
+
+The JSON Lines v1 request accepts additive optional fields: a fourth boolean `observed` element on each
+`samples` row (legacy triples default to true), and `discontinuities_utc`, a sorted set of UTC timestamps
+bounded at the request origin. The engine rejects nonfinite/invalid boundaries. The app and engine must
+be packaged from matching sources to enforce these rules; older engines cannot implement new rules
+merely by accepting unknown JSON fields. SQLite schema 6 adds metadata without rewriting old samples.
 
 Optional context includes battery watts, CPU load/frequency, memory, available temperatures/brightness,
 power profile and Windows session display state. Missing sensors are not replaced by estimates.

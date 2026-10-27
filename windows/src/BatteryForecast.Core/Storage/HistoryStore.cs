@@ -6,7 +6,7 @@ using BatteryForecast.Core.Telemetry;
 namespace BatteryForecast.Core.Storage;
 
 /// <summary>Un passo a 5 minuti come lo legge il motore: livello medio e alimentatore se collegato in quel passo.</summary>
-public readonly record struct ModelSample(long Ts, double? Level, int? Ac);
+public readonly record struct ModelSample(long Ts, double? Level, int? Ac, bool Observed = true);
 public readonly record struct ModelCovariate(long Ts,double? Value);
 
 /// <summary>
@@ -249,6 +249,11 @@ public sealed partial class HistoryStore : IDisposable
         }
     }
 
+    public IReadOnlyList<DateTimeOffset> ModelDiscontinuities(DateTimeOffset since,DateTimeOffset until)
+    {
+        lock(gate) return AggregationBarriers(since,until).Select(t=>DateTimeOffset.FromUnixTimeSeconds((long)t)).ToList();
+    }
+
     // MARK: campioni
 
     /// <summary>Aggiunge una lettura. Un secondo già registrato viene ignorato (nessun duplicato).</summary>
@@ -258,6 +263,7 @@ public sealed partial class HistoryStore : IDisposable
         lock (gate)
         {
             var epoch = CurrentEpoch(s.DesignMWh);
+            var previousEpoch = Scalar("SELECT battery_epoch FROM battery_samples ORDER BY ts DESC LIMIT 1") as long?;
             using var cmd = db.CreateCommand();
             cmd.CommandText = """
                 INSERT OR IGNORE INTO battery_samples
@@ -278,7 +284,10 @@ public sealed partial class HistoryStore : IDisposable
             cmd.Parameters.AddWithValue("$epoch", epoch);
             cmd.Parameters.AddWithValue("$measured",Seconds(s.TimestampUtc));
             cmd.Parameters.AddWithValue("$kind",collectionKind);
-            return cmd.ExecuteNonQuery() == 1;
+            var inserted=cmd.ExecuteNonQuery()==1;
+            if(inserted && previousEpoch is { } previous && previous!=epoch)
+                AppendEvent(s.TimestampUtc,"battery_changed");
+            return inserted;
         }
     }
 
@@ -319,7 +328,7 @@ public sealed partial class HistoryStore : IDisposable
             var bins=new TemporalBins(2,[1],Seconds(since),end,AggregationBarriers(since,until ?? DateTimeOffset.MaxValue));
             for(int i=0;i<readings.Count;i++)
                 bins.Point(readings[i].T,i+1<readings.Count?readings[i+1].T:end,readings[i].Values);
-            return bins.Rows().Select(row=>new ModelSample(row.Ts,row.Values[0],row.Values[1] is { } ac ? (int)ac : null)).ToList();
+            return bins.Rows().Select(row=>new ModelSample(row.Ts,row.Values[0],row.Values[1] is { } ac ? (int)ac : null,bins.IsObserved(row.Ts,0))).ToList();
         }
     }
 

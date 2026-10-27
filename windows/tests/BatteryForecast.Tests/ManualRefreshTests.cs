@@ -54,6 +54,9 @@ public class ManualRefreshTests
         {
             using var store = new HistoryStore(path);
             store.AppendContext(new(clock.GetUtcNow().AddMinutes(-5), CpuPct: 37,CpuIntervalStartUtc:clock.GetUtcNow().AddMinutes(-6)));
+            store.AppendEvent(clock.GetUtcNow().AddMinutes(-2),"resume");
+            store.AppendEvent(clock.GetUtcNow().AddMinutes(-1),"display_0");
+            store.AppendEvent(clock.GetUtcNow().AddMinutes(1),"app_exit");
             using var collector = new Collector(new Battery(clock), store, clock);
             var engine = new WaitingEngine();
             using var coordinator = new ForecastCoordinator(collector, store, engine,
@@ -64,6 +67,7 @@ public class ManualRefreshTests
             for (int i = 0; i < 5; i++) coordinator.RecalculateNow();
             await Task.Delay(100);
             Assert.Equal(1, engine.Calls);
+            Assert.Equal(new[]{clock.GetUtcNow().AddMinutes(-2),clock.GetUtcNow()},request.Discontinuities!);
             if (useContext) Assert.Equal(37, Assert.Single(request.PastCovariates!["cpu_pct"],row=>row.Value is not null).Value);
             else Assert.Null(request.PastCovariates);
             engine.Finished.SetResult(new ForecastResponse

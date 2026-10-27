@@ -79,5 +79,32 @@ public class TemporalAggregationTests : IDisposable
         Assert.All(store.ModelCovariates(zero,zero.AddSeconds(60))["cpu_pct"],v=>Assert.Null(v.Value));
     }
 
+    [Fact]
+    public void HeldSupportAcrossABinEdgeDoesNotBecomeAnOriginalObservation()
+    {
+        using var store=new HistoryStore(path);
+        store.Append(new(zero.AddSeconds(290),ChargeState.Discharging,80,false));
+        store.Append(new(zero.AddSeconds(600),ChargeState.Discharging,77,false));
+        var rows=store.ModelSamples(zero,zero.AddSeconds(600));
+        Assert.Equal(3,rows.Count);
+        Assert.True(rows[0].Observed); Assert.False(rows[1].Observed); Assert.True(rows[2].Observed);
+        Assert.Equal(80,rows[1].Level); // retained value is labelled as supported, not measured
+    }
+
+    [Fact]
+    public void ModelBoundariesIncludeReplacementButExcludeDisplayAndFutureEvents()
+    {
+        using var store=new HistoryStore(path);
+        store.Append(new(zero,ChargeState.Discharging,80,false,DesignMWh:50000));
+        store.Append(new(zero.AddMinutes(10),ChargeState.Discharging,80,false,DesignMWh:60000));
+        store.AppendEvent(zero.AddMinutes(1),"display_0");
+        var kinds=new[]{"suspend","resume","app_exit","app_start","ac_disconnected","ac_connected"};
+        for(int i=0;i<kinds.Length;i++) store.AppendEvent(zero.AddMinutes(i+2),kinds[i]);
+        store.AppendEvent(zero.AddMinutes(12),"suspend");
+        var edges=store.ModelDiscontinuities(zero,zero.AddMinutes(10));
+        Assert.Equal(7,edges.Count);Assert.Equal(zero.AddMinutes(10),edges[^1]);
+        Assert.DoesNotContain(zero.AddMinutes(1),edges);
+    }
+
     public void Dispose() { foreach(var f in new[]{path,path+"-wal",path+"-shm"})File.Delete(f); }
 }

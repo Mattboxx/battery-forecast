@@ -26,12 +26,17 @@ def _continuous_rate(s: series.Series, ac_state: int, steps: int) -> float | Non
         return None
     stop = np.flatnonzero(~valid)
     start = int(stop[-1]) + 1 if len(stop) else 0
-    lv = lv[start:]
-    if len(lv) < max(3, steps // 2):
+    if s.break_before is not None:
+        boundaries=np.flatnonzero(s.break_before[-steps:])
+        if len(boundaries): start=max(start,int(boundaries[-1]))
+    indices=np.arange(len(lv))[start:]
+    if s.observed is not None:
+        indices=indices[s.observed[-steps:][indices]]
+    if len(indices) < max(3, steps // 2):
         return None
     # Pairwise slopes suppress a single rounded or noisy endpoint. No future sensor assumptions.
     slopes = [(float(lv[j]) - float(lv[i])) / ((j-i)*STEP_SECONDS/3600)
-              for i in range(len(lv)) for j in range(i+2, len(lv))]
+              for i in indices for j in indices if j-i>=2]
     if not slopes:
         return None
     slope = float(np.median(slopes))
@@ -116,7 +121,7 @@ class Engine:
 
     def predict(self, req: dict) -> dict:
         t0 = time.perf_counter()
-        s = series.build(req["samples"], req["now"], req["level"], req["ac"])
+        s = series.build(req["samples"], req["now"], req["level"], req["ac"],discontinuities=req.get("discontinuities",()))
         h = req["horizon"]
         charge = req["scenario"] == "charge"
         # Covariata nota del futuro: lo scenario. "no_charge" = alimentatore scollegato, "charge" = collegato.
@@ -124,6 +129,7 @@ class Engine:
         past, categories, context_features = series.past_covariates(req.get("past_covariates", {}), s)
         with self._torch.inference_mode():
             q = self.fc.forecast(s.level[None, None], prediction_length=h,
+                                 observation_mask=s.observed[None,None],
                                  known_covariates=known[None, None], past_covariates=past,
                                  categorical_past_covariates=categories).quantiles[0, 0].numpy()
         # The current anchor is the request time, not the beginning of its historical bin.

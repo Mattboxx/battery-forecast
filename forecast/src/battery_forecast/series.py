@@ -29,6 +29,9 @@ class Series:
     observed_hours: float = 0.0   # actual observed grid points, before interpolation
     origin: float | None = None
     charge_sessions: int = 0     # tratti continui con alimentatore, almeno 30 minuti e 2 punti di carica guadagnati
+    observed: np.ndarray | None = None  # original observations, never interpolation/hold-only bins
+    break_before: np.ndarray | None = None
+    barrier_bins: np.ndarray | None = None  # partial bins that cannot separate both sides of a break
 
     @property
     def end(self) -> float:
@@ -38,24 +41,25 @@ class Series:
 
 def build(samples, now: float, level_now: float, ac_now: int | None,
           step: int = STEP_SECONDS, max_gap: int = MAX_GAP_STEPS,
-          max_days: float = MAX_CONTEXT_DAYS) -> Series:
+          max_days: float = MAX_CONTEXT_DAYS, discontinuities=()) -> Series:
     """`samples`: sequenza di (ts UTC in secondi, livello 0–100 o None, ac 0/1 o None)."""
-    arr = np.array([(float(t), np.nan if l is None else float(l), np.nan if a is None else float(a))
-                    for t, l, a in samples] or np.empty((0, 3)), dtype=np.float64).reshape(-1, 3)
-    ts, lv, ac = arr[:, 0], arr[:, 1], arr[:, 2]
+    arr = np.array([(float(row[0]), np.nan if row[1] is None else float(row[1]),
+                     np.nan if row[2] is None else float(row[2]), float(row[3]) if len(row)>3 else 1.)
+                    for row in samples] or np.empty((0, 4)), dtype=np.float64).reshape(-1, 4)
+    ts, lv, ac, original = arr.T
     keep = np.isfinite(ts) & (ts <= now) & (ts > now - max_days * 86400)
     lv = np.where((lv >= 0) & (lv <= 100), lv, np.nan)          # fuori scala = lettura non valida
     ac = np.where((ac == 0) | (ac == 1), ac, np.nan)
-    ts, lv, ac = ts[keep], lv[keep], ac[keep]
+    ts, lv, ac, original = ts[keep], lv[keep], ac[keep], original[keep]
     order = np.argsort(ts, kind="stable")
-    ts, lv, ac = ts[order], lv[order], ac[order]
+    ts, lv, ac, original = ts[order], lv[order], ac[order], original[order]
 
     end_bin = int(now // step)
     first_bin = int(ts[0] // step) if len(ts) else end_bin
     n = end_bin - first_bin + 1
     bins = (ts // step).astype(np.int64) - first_bin
 
-    # livello: media dei campioni validi del passo; alimentazione: ultimo valore noto del passo
+    # C# sends one time-weighted value per bin; direct raw callers retain bin means.
     sums = np.bincount(bins, weights=np.nan_to_num(lv), minlength=n)
     counts = np.bincount(bins, weights=np.isfinite(lv).astype(float), minlength=n)
     level = np.full(n, np.nan)
@@ -70,12 +74,29 @@ def build(samples, now: float, level_now: float, ac_now: int | None,
     same = (all_count > 0) & (ac_count == all_count) & (ac_min == ac_max)
     acs[same] = ac_min[same]       # mixed/unknown states are not a single observed scenario
 
+    breaks=np.zeros(n,dtype=bool)
+    contaminated=np.zeros(n,dtype=bool)
+    for t in discontinuities:
+        if not np.isfinite(t) or t>now:
+            continue
+        index=int(np.floor(t/step))-first_bin
+        if 0<=index<n:
+            breaks[index]=True
+            if t>(first_bin+index)*step:
+                contaminated[index]=True
+                if index+1<n: breaks[index+1]=True
+    # A mean from a bin straddling an interruption has no unambiguous power phase.
+    level[contaminated]=np.nan
+    acs[contaminated]=np.nan
+
     level[-1] = level_now
     acs[-1] = float(ac_now) if ac_now in (0, 1) else np.nan
-    observed = np.isfinite(level)
+    original_counts=np.bincount(bins,weights=(original==1)&np.isfinite(lv),minlength=n)
+    observed = np.isfinite(level) & (original_counts>0)
+    observed[-1]=np.isfinite(level_now)  # the actual reading is always an observation
 
-    acs = _fill_short_gaps_ac(acs, level, max_gap)
-    level = _fill_short_gaps(level, acs, max_gap)
+    acs = _fill_short_gaps_ac(acs, level, max_gap, breaks)
+    level = _fill_short_gaps(level, acs, max_gap, breaks)
 
     obs = np.flatnonzero(observed)
     span = (obs[-1] - obs[0]) if len(obs) else 0
@@ -85,10 +106,11 @@ def build(samples, now: float, level_now: float, ac_now: int | None,
         ac=acs.astype(np.float32),
         observed_days=round(span * step / 86400, 2),
         coverage=round(len(obs) / (span + 1), 3) if len(obs) else 0.0,
-        discharge_sessions=_count_sessions(level, acs, min_steps=max(1, 1800 // step)),
+        discharge_sessions=_count_sessions(np.where(observed,level,np.nan), acs, min_steps=max(1, 1800 // step), breaks=breaks),
         observed_hours=max(0, len(obs) - 1) * step / 3600,
         origin=now,
-        charge_sessions=_count_charge_sessions(level, acs, min_steps=max(1, 1800 // step)),
+        charge_sessions=_count_charge_sessions(np.where(observed,level,np.nan), acs, min_steps=max(1, 1800 // step), breaks=breaks),
+        observed=observed,break_before=breaks,barrier_bins=contaminated,
     )
 
 
@@ -101,11 +123,13 @@ def _runs_of_nan(x: np.ndarray):
             yield int(a), int(b)
 
 
-def _fill_short_gaps(level: np.ndarray, ac: np.ndarray, max_gap: int) -> np.ndarray:
+def _fill_short_gaps(level: np.ndarray, ac: np.ndarray, max_gap: int, breaks=None) -> np.ndarray:
     """Interpolazione lineare dei buchi brevi, se l'alimentazione ai due lati è la stessa."""
     out = level.copy()
     for a, b in _runs_of_nan(level):
         if b - a + 1 > max_gap:
+            continue
+        if breaks is not None and breaks[a:b+1].any():
             continue
         if not (np.isfinite(ac[a - 1]) and np.all(ac[a - 1:b + 1] == ac[a - 1])):
             continue                                            # in mezzo c'è stata una ricarica
@@ -113,31 +137,36 @@ def _fill_short_gaps(level: np.ndarray, ac: np.ndarray, max_gap: int) -> np.ndar
     return out
 
 
-def _fill_short_gaps_ac(ac: np.ndarray, level: np.ndarray, max_gap: int) -> np.ndarray:
+def _fill_short_gaps_ac(ac: np.ndarray, level: np.ndarray, max_gap: int, breaks=None) -> np.ndarray:
     """Lo stato dell'alimentatore si propaga solo dentro i buchi brevi con lo stesso stato ai lati."""
     out = ac.copy()
     for a, b in _runs_of_nan(ac):
-        if b - a + 1 <= max_gap and ac[a - 1] == ac[b] and not np.isfinite(level[a:b]).any():
+        if (b - a + 1 <= max_gap and ac[a - 1] == ac[b] and not np.isfinite(level[a:b]).any()
+                and (breaks is None or not breaks[a:b+1].any())):
             out[a:b] = ac[b]
     return out
 
 
-def _count_charge_sessions(level: np.ndarray, ac: np.ndarray, min_steps: int) -> int:
+def _phase_runs(valid, breaks=None):
+    cuts=np.zeros(len(valid),dtype=bool) if breaks is None else breaks
+    starts=np.flatnonzero(valid & (np.r_[True,~valid[:-1]] | cuts))
+    ends=np.flatnonzero(valid & (np.r_[~valid[1:],True] | np.r_[cuts[1:],False]))+1
+    return zip(starts,ends)
+
+
+def _count_charge_sessions(level: np.ndarray, ac: np.ndarray, min_steps: int, breaks=None) -> int:
     """Ricariche osservate: tratti con alimentatore lunghi abbastanza e in cui il livello è davvero salito."""
     plugged = (ac == 1) & np.isfinite(level)
-    edges = np.diff(np.concatenate([[0], plugged.astype(np.int8), [0]]))
     n = 0
-    for a, b in zip(np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)):
+    for a, b in _phase_runs(plugged,breaks):
         if b - a - 1 >= min_steps and np.nanmax(level[a:b]) - level[a] >= 2:
             n += 1
     return n
 
 
-def _count_sessions(level: np.ndarray, ac: np.ndarray, min_steps: int) -> int:
+def _count_sessions(level: np.ndarray, ac: np.ndarray, min_steps: int, breaks=None) -> int:
     on_battery = (ac == 0) & np.isfinite(level)
-    edges = np.diff(np.concatenate([[0], on_battery.astype(np.int8), [0]]))
-    lengths = np.flatnonzero(edges == -1) - np.flatnonzero(edges == 1)
-    return int((lengths - 1 >= min_steps).sum())
+    return int(sum(b-a-1>=min_steps for a,b in _phase_runs(on_battery,breaks)))
 
 
 CONTEXT_RANGES = {
@@ -184,13 +213,16 @@ def past_covariates(data: dict, context: Series):
             np.maximum.at(maximum, bins, values)
             channel[minimum != maximum] = np.nan
         observed = np.isfinite(channel)
+        if context.barrier_bins is not None:
+            channel[context.barrier_bins]=np.nan
+            observed=np.isfinite(channel)
         if observed.sum() < 6 or np.nanstd(channel) < 1e-5:
             continue
         if name in {"power_profile", "display_state"}:
             # The C# bin is missing when multiple profiles were observed in that bin.
             categorical.append(channel)
         else:
-            channel = _fill_short_gaps(channel, context.ac, MAX_GAP_STEPS)
+            channel = _fill_short_gaps(channel, context.ac, MAX_GAP_STEPS, context.break_before)
             numeric.append(channel)
         names.append(name)
     return (np.asarray(numeric, dtype=np.float32)[None] if numeric else None,

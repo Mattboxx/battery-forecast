@@ -11,6 +11,7 @@ internal sealed class TemporalBins(int channels, int[] categories, double since,
         internal readonly double[] Sum = new double[channels], Weight = new double[channels];
         internal readonly double?[] Point = new double?[channels];
         internal readonly bool[] Seen = new bool[channels], Mixed = new bool[channels];
+        internal readonly bool[] Observed = new bool[channels];
         internal double? Value(int c) => Mixed[c] ? null : Weight[c]>0 ? Sum[c]/Weight[c] : Point[c];
     }
     Bin Get(double t)
@@ -30,6 +31,7 @@ internal sealed class TemporalBins(int channels, int[] categories, double since,
         var bin=Get(t);
         for(int c=0;c<channels;c++)
         {
+            if(values[c] is { } v && double.IsFinite(v)) bin.Observed[c]=true;
             if(categorical.Contains(c)) Category(bin,c,values[c]);
             else if(c!=intervalChannel) bin.Point[c]=values[c];
         }
@@ -62,6 +64,7 @@ internal sealed class TemporalBins(int channels, int[] categories, double since,
     }
     internal IEnumerable<(long Ts,double?[] Values)> Rows() => bins.Select(pair =>
         (pair.Key,Enumerable.Range(0,channels).Select(pair.Value.Value).ToArray()));
+    internal bool IsObserved(long ts,int channel) => bins.TryGetValue(ts,out var bin) && bin.Observed[channel];
 
     internal static int UpperBound(IReadOnlyList<double> values,double t)
     {

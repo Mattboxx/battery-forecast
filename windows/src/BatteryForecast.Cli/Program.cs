@@ -55,11 +55,13 @@ switch (cmd)
         if (now.LevelPct is not double level) { Console.Error.WriteLine("nessuna percentuale disponibile"); return 2; }
 
         List<ModelSample> history = [];
+        IReadOnlyList<DateTimeOffset> discontinuities = [];
         List<BatterySample> recent = [now];
         if (Opt("--db") is { } db)
         {
             using var store = new HistoryStore(db);
-            history = store.ModelSamples(now.TimestampUtc.AddDays(-110));
+            history = store.ModelSamples(now.TimestampUtc.AddDays(-110),now.TimestampUtc);
+            discontinuities=store.ModelDiscontinuities(now.TimestampUtc.AddDays(-110),now.TimestampUtc);
             recent = [.. store.Samples(now.TimestampUtc.AddHours(-1)), now];
         }
 
@@ -74,7 +76,7 @@ switch (cmd)
         await worker.WarmUpAsync();
         var startup = t0.Elapsed;
         t0.Restart();
-        var f = await worker.ForecastAsync(new ForecastRequest(now.TimestampUtc, level, now.OnAc, 5, history));
+        var f = await worker.ForecastAsync(new ForecastRequest(now.TimestampUtc, level, now.OnAc, 5, history,Discontinuities:discontinuities));
         var call = t0.Elapsed;
         Console.WriteLine($"motore {worker.Info?.ModelId}@{worker.Info?.ModelRevision?[..7]} · avvio {startup.TotalSeconds:0.0} s · previsione {call.TotalMilliseconds:0} ms (interno {f.ElapsedMs} ms)");
         Console.WriteLine($"qualità {f.Quality.State}: {f.Quality.ObservedDays} giorni, {f.Quality.DischargeSessions} sessioni, copertura {f.Quality.Coverage:P0}");

@@ -74,12 +74,23 @@ def parse_request(line: bytes) -> dict:
             "scenario": req.get("scenario", "no_charge"),
             # l'app manda target_pct: null nello scenario di scarica
             "target": float(80 if req.get("target_pct") is None else req["target_pct"]),
-            "samples": [(s[0], s[1], s[2] if len(s) > 2 else None) for s in req.get("samples", [])],
+            "samples": [(s[0], s[1], s[2] if len(s) > 2 else None, s[3] if len(s)>3 else True) for s in req.get("samples", [])],
         }
     except (KeyError, TypeError, ValueError, IndexError) as e:
         raise ProtocolError("bad_request", f"campo mancante o non valido: {e}") from None
     if int(req.get("step_seconds", STEP_SECONDS)) != STEP_SECONDS:
         raise ProtocolError("bad_request", f"step_seconds deve essere {STEP_SECONDS}")
+    if not math.isfinite(out["now"]) or any(not isinstance(s[3],bool) for s in out["samples"]):
+        raise ProtocolError("bad_request", "invalid origin or observation flag")
+    boundaries=req.get("discontinuities_utc",[])
+    if not isinstance(boundaries,list) or len(boundaries)>40000:
+        raise ProtocolError("bad_request", "invalid discontinuities_utc")
+    try:
+        if any(isinstance(t,bool) or not isinstance(t,(float,int)) or not math.isfinite(t) for t in boundaries):
+            raise ValueError("expected finite UTC timestamps")
+        out["discontinuities"]=sorted({float(t) for t in boundaries if t<=out["now"]})
+    except (TypeError,ValueError,OverflowError) as e:
+        raise ProtocolError("bad_request", f"invalid discontinuities_utc: {e}") from None
     if not 0 <= out["level"] <= 100 or not 0 <= out["reserve"] < 100:
         raise ProtocolError("bad_request", "livello o riserva fuori scala")
     if not 1 <= out["horizon"] <= HORIZON_STEPS:
