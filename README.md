@@ -167,7 +167,7 @@ forecast\.venv\Scripts\python -m pytest -q forecast
 dotnet run --project windows\src\BatteryForecast.App -- --demo
 
 # full offline package and installer in artifacts\
-powershell -NoProfile -File tools\package.ps1 -Version 0.9.1
+powershell -NoProfile -File tools\package.ps1 -Version 0.9.2
 ```
 
 ARM64 installers are built natively on Windows ARM by the [release workflow](.github/workflows/release.yml),
@@ -209,6 +209,22 @@ to the original authors. Their copyright and attribution notices are preserved i
 
 If Battery Forecast is useful to you, you can support its development on **[Ko-fi](https://ko-fi.com/mattboxx)**.
 Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/battery-forecast/issues).
+
+## New in 0.9.2: better prepared local data
+
+Optional brightness collection now works independently of unavailable temperature providers. Battery
+and sensor history is weighted by represented time, so rapid diagnostic readings do not distort the
+five-minute means. Known sleep/wake and app interruptions stop interpolation and session continuity;
+held/interpolated target points are explicitly masked for Timestral. These are functional corrections,
+not a measured prediction-accuracy improvement.
+
+To try it with your own PC, install the update normally: existing battery history and preferences are
+retained. In **Data and privacy**, enable context collection and its use by the model; optional probes
+also enable supported brightness/temperature readings. Leave the tray app running during normal use
+and use **Recalculate now**, then compare the saved forecast with later observations in **Battery trend**.
+New CPU intervals need at least six varying five-minute bins (about thirty minutes). Unsupported sensors
+remain unavailable. Schema 6 cannot be read by 0.9.1; keep a backup of `%LOCALAPPDATA%\BatteryForecast`
+before downgrading.
 
 ## New in 0.9.1: more control and context
 

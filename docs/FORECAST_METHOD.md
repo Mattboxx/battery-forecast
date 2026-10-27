@@ -1,6 +1,6 @@
 # Battery Forecast: calculation method
 
-Status: experimental, local inference. This describes development following version 0.9.1.
+Status: experimental, local inference. This describes version 0.9.2.
 The current changes correct functional defects; they do not establish predictive superiority.
 Scientific backtesting is postponed at the user's request.
 

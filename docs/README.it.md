@@ -4,6 +4,7 @@
 
 <h1 align="center">Battery Forecast</h1>
 
+
 <p align="center">
   <b>Quanto durerà davvero oggi la batteria del tuo portatile Windows?</b><br>
   Una previsione con l'intelligenza artificiale che impara come usi il PC, e gira tutta sul PC.<br>
@@ -158,6 +159,22 @@ originali. Copyright e attribuzioni sono conservati nel pacchetto.
 
 Se Battery Forecast ti è utile puoi sostenerlo su **[Ko-fi](https://ko-fi.com/mattboxx)**. Segnalazioni e idee
 nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
+
+## Novità della 0.9.2: dati preparati meglio
+
+Corretta la raccolta della luminosità: un sensore termico assente non blocca gli altri. Le medie della
+batteria e dei sensori pesano il tempo rappresentato, evitando che letture diagnostiche ravvicinate
+alterino il trend. Sospensione, ripresa e riavvio dell’app interrompono interpolazioni e sessioni;
+Timestral distingue i punti reali da quelli ricostruiti. Sono correzioni funzionali, senza promesse di
+maggiore accuratezza non misurata.
+
+Per provarla sul tuo PC, installa l’aggiornamento: storico e preferenze restano conservati. In **Dati e
+privacy** abilita raccolta e utilizzo dei dati di sistema; le sonde facoltative includono luminosità e
+temperature supportate. Lascia l’app attiva durante l’uso normale, premi **Ricalcola ora** e confronta
+la previsione salvata con le letture successive nella pagina **Andamento**. Per i nuovi intervalli CPU
+servono almeno sei bin variabili da cinque minuti, circa mezz’ora. I sensori non supportati restano assenti.
+Il nuovo schema 6 non è leggibile dalla 0.9.1: prima di tornare a una versione precedente, conserva una
+copia di `%LOCALAPPDATA%\BatteryForecast`, eseguita dopo aver chiuso l’app.
 
 ## Più controllo e contesto
 
