@@ -32,7 +32,7 @@ def test_interpolated_bins_do_not_qualify_as_observed_session():
     s=series.build(rows,1800,74,0)
     assert np.isfinite(s.level).all()  # values can be interpolated, provenance is retained
     assert s.observed.sum()==4 and s.discharge_sessions==0
-    assert s.observed_hours==pytest.approx(.25)
+    assert s.observed_hours==0  # isolated observations do not establish continuous observed duration
 
 
 def test_hold_only_bins_are_not_observations_and_current_reading_remains_observed():

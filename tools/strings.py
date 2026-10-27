@@ -163,6 +163,8 @@ S = {
     "HabitualRechargeNoRate": ("You usually plug in around {0}: past that point your habits say nothing about use on battery.",
                                "Di solito colleghi l'alimentatore verso le {0}: oltre, le abitudini non dicono quanto consumeresti a batteria."),
     "SourceHabits": ("Learns from your use · {0} days of history", "Impara dal tuo utilizzo · {0} giorni di storia"),
+    "ActiveUseSource": ("While using the PC · {0} days of history", "Durante l’uso del PC · {0} giorni di storia"),
+    "ChargeActiveUseSource": ("While charging and using the PC · {0} days", "Durante la carica e l’uso del PC · {0} giorni"),
     "SourceLearning": ("Still learning your habits · {0} days of history", "Sto ancora imparando le tue abitudini · {0} giorni di storia"),
     "SourceRecentOnly": ("Estimate from recent use: not enough history for the habit forecast yet", "Stima dal consumo recente: lo storico non basta ancora per la previsione sulle abitudini"),
     "Collecting": ("Collecting data", "Raccolta dati in corso"),

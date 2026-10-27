@@ -16,7 +16,8 @@ states, or an unknown state, remains unknown. The last value is the actual curre
 Missing bins interpolate only when endpoints are at most ten minutes apart and power state is known
 and consistent throughout. Longer gaps and unknown power states are preserved. Short unrecorded sleep
 periods cannot always be distinguished from dropped samples; this policy is not a sleep detector.
-Observed hours and coverage are counted before interpolation. Thirty-minute sessions must span
+Observed hours count adjacent original observations in the same continuous phase, before interpolation;
+isolated observations do not establish observed duration. Coverage counts original bins. Thirty-minute sessions must span
 thirty minutes, rather than counting six grid points as thirty minutes.
 
 Recorded suspend/resume, app exit/start, adapter transitions and detected battery replacement are
@@ -65,6 +66,21 @@ scenario: remain unplugged or remain plugged in. The app does not retrain the we
 P10/P50/P90 level curves and applies the documented physical direction, range and ordering constraints.
 Future points start five minutes after the actual request time and end 24 hours after it. Historical bins
 retain their UTC grid; the current point and all future labels share the request-time anchor.
+
+The model's time basis is **continued active use**. At its input boundary, long stretches without battery
+or context observations are packed into one explicit missing separator between observed operating
+blocks. Known breaks also insert separators. Every target, adapter, numeric/categorical channel and
+observation mask uses exactly the same packing indices. Calendar timestamps and raw history remain
+unchanged in storage and comparisons. Sleeping eight versus twenty hours between otherwise identical
+observed blocks therefore cannot, by itself, extend the active-use forecast. This is a functional
+invariance tested with the real model, not measured predictive accuracy. Awake idle observations are
+retained. No battery consumption or measurements during sleep are fabricated.
+
+Suspend/resume invalidates displayed and cached forecasts; a response from before the break cannot
+overwrite them after waking. Passive Windows elapsed/unbiased clocks additionally detect missed
+sleep/hibernation notifications, observation gaps and UTC clock adjustments. Collection pauses on a
+suspend notification and resets counters on wake. The recent-use estimate starts after the last break;
+it may need fresh readings before it is available. Screen-off alone is not suspension.
 
 When the model instead predicts a habitual recharge or unplug, the existing declared extrapolation
 continues from that boundary. Its fallback rate now uses a Theil–Sen-style median pairwise slope from

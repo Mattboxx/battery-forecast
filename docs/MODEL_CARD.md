@@ -186,6 +186,14 @@ Timestral: held/interpolated target bins have zero observation weight and cannot
 sessions. Functional tests cover the protocol and a real model call; predictive superiority remains
 unmeasured. See [calculation method](FORECAST_METHOD.md) for time weighting and legacy data handling.
 
+The active-use model input packs unobserved inactive stretches into missing separators, aligning all
+channels and masks. Forecast hours mean continued active use from now; calendar history and issued
+timestamps remain unchanged. Otherwise identical observed blocks with eight or twenty hours of
+hibernation produce identical model arrays and level curves in a functional regression. Actual awake
+idle observations are kept. No sleep consumption is invented. Native elapsed/unbiased clocks detect
+missed sleep/hibernate events and clock changes; old cached or in-flight forecasts are invalidated on
+continuity breaks. Physical sleep/hibernate tests on individual laptops remain necessary.
+
 These are functional correctness changes checked with regression tests and the real inference engine.
 Scientific comparisons are postponed at the user's request; superiority and accuracy are unmeasured.
 

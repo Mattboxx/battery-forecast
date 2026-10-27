@@ -2,6 +2,8 @@
 
 ## 0.9.2
 
+- Invalidate pre-sleep cached/in-flight forecasts, detect missed wake/hibernation notifications with passive Windows clocks, and keep active-use model time independent of unobserved sleep duration. Preserve raw calendar history; retain genuine awake idle readings.
+
 - Restore optional WMI brightness collection and isolate sensor failures, without adding drivers or dependencies.
 - Use time-weighted battery and context history instead of giving diagnostic bursts extra weight. Preserve exact reading times, CPU counter intervals and collection triggers in SQLite schema 6.
 - Keep older history; legacy CPU readings without recorded intervals remain available in history/exports but are excluded from model input until new valid intervals are collected.

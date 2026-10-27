@@ -237,7 +237,7 @@ public static class PanelPresenter
             Busy = s.Updating,
             Stale = !s.ChargeForecastFresh,
             Source = EstimateSource.Habits,
-            SourceLine = L.F(cf.Quality == HistoryQuality.Ok ? "ChargeHabitsSource" : "ChargeLearningSource", Days(cf.ObservedDays)),
+            SourceLine = L.F(cf.TimeBasis=="active_use" ? "ChargeActiveUseSource" : cf.Quality == HistoryQuality.Ok ? "ChargeHabitsSource" : "ChargeLearningSource", Days(cf.ObservedDays)),
             RechargeLine = unplug,
             RecentLine = recent,
             Chart = cf,
@@ -303,7 +303,7 @@ public static class PanelPresenter
     static PanelModel HabitHeadline(PanelModel m, ForecastView f, DashboardState s, TimeZoneInfo zone)
     {
         var now = s.Now;
-        var source = L.F(f.Quality == HistoryQuality.Ok ? "SourceHabits" : "SourceLearning", Days(f.ObservedDays));
+        var source = L.F(f.TimeBasis=="active_use" ? "ActiveUseSource" : f.Quality == HistoryQuality.Ok ? "SourceHabits" : "SourceLearning", Days(f.ObservedDays));
         var recharge = f.HabitualRecharge is { } hr
             ? L.F(f.ExtrapolatedFrom is null ? "HabitualRechargeNoRate" : "HabitualRecharge", Clock(Round5(hr), zone)) : null;
         m = m with { Source = EstimateSource.Habits, SourceLine = source, RechargeLine = recharge };

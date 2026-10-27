@@ -14,6 +14,7 @@ public sealed record ForecastView(
     DateTimeOffset? HabitualRecharge = null, DateTimeOffset? ExtrapolatedFrom = null)
 {
     public IReadOnlyList<string> ContextFeatures { get; init; } = [];
+    public string TimeBasis { get; init; } = "calendar";
     /// <summary>Previsione di carica ("resto collegato"): ReservePct è allora l'obiettivo di carica.</summary>
     public bool IsCharge { get; init; }
     /// <summary>In carica: ora in cui di solito si stacca l'alimentatore, secondo il modello.</summary>
@@ -36,6 +37,7 @@ public sealed record ForecastView(
         Opt(r.HabitualRechargeUtc), Opt(r.ExtrapolatedFromUtc))
     {
         ContextFeatures = r.ContextFeatures,
+        TimeBasis = r.TimeBasis,
         IsCharge = r.Scenario == "charge",
         HabitualUnplug = Opt(r.HabitualUnplugUtc),
     };

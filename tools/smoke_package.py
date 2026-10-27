@@ -59,7 +59,7 @@ def run(root, arch):
     forecast = next(x for x in messages if x["type"] == "forecast" and x["id"]==42)
     preparation = next(x for x in messages if x["type"] == "forecast" and x["id"]==43)
     assert preparation["quality"]["discharge_sessions"]==0, preparation["quality"]
-    assert preparation["quality"]["observed_hours"]==.25, preparation["quality"]
+    assert preparation["quality"]["observed_hours"]==0, preparation["quality"]
     assert len(preparation["curve"])==288
     assert forecast["id"] == 42 and len(forecast["curve"]) == 288
     assert forecast["model_revision"] == info["revision"]

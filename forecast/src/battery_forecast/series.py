@@ -107,7 +107,7 @@ def build(samples, now: float, level_now: float, ac_now: int | None,
         observed_days=round(span * step / 86400, 2),
         coverage=round(len(obs) / (span + 1), 3) if len(obs) else 0.0,
         discharge_sessions=_count_sessions(np.where(observed,level,np.nan), acs, min_steps=max(1, 1800 // step), breaks=breaks),
-        observed_hours=max(0, len(obs) - 1) * step / 3600,
+        observed_hours=float(np.count_nonzero(observed[1:] & observed[:-1] & ~breaks[1:])) * step / 3600,
         origin=now,
         charge_sessions=_count_charge_sessions(np.where(observed,level,np.nan), acs, min_steps=max(1, 1800 // step), breaks=breaks),
         observed=observed,break_before=breaks,barrier_bins=contaminated,
@@ -227,3 +227,39 @@ def past_covariates(data: dict, context: Series):
         names.append(name)
     return (np.asarray(numeric, dtype=np.float32)[None] if numeric else None,
             np.asarray(categorical, dtype=np.float64)[None] if categorical else None, names)
+
+
+def active_inputs(context: Series, numeric=None, categorical=None):
+    """Pack observed operating blocks with explicit missing separators, not hours of inactivity.
+
+    Future steps represent continued active use. Calendar history and provenance remain in Series;
+    only model arrays are packed, using exactly the same indices for every channel. Empty runs are
+    not zero drain observations. No battery loss or sensor measurements are invented across a break.
+    """
+    observed=context.observed if context.observed is not None else np.isfinite(context.level)
+    supported=observed.copy()
+    for rows in (numeric,categorical):
+        if rows is not None: supported |= np.isfinite(rows).any(axis=(0,1))
+    cuts=context.break_before if context.break_before is not None else np.zeros(len(supported),dtype=bool)
+    selected=[]
+    i=0
+    while i<len(supported):
+        if not supported[i]:
+            end=i+1
+            while end<len(supported) and not supported[end]: end+=1
+            if end-i>MAX_GAP_STEPS or cuts[i:min(end+1,len(cuts))].any():
+                if selected and selected[-1]!=-1: selected.append(-1)
+            else:
+                selected.extend(range(i,end))
+            i=end
+            continue
+        if cuts[i] and selected and selected[-1]!=-1: selected.append(-1)
+        selected.append(i);i+=1
+    indices=np.asarray(selected,dtype=np.int64)
+    missing=indices<0
+    def take(values):
+        if values is None: return None
+        result=values[...,np.maximum(indices,0)].copy()
+        result[...,missing]=False if result.dtype==bool else np.nan
+        return result
+    return take(context.level),take(context.ac),take(observed),take(numeric),take(categorical)

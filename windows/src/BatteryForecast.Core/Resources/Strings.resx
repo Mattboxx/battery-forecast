@@ -8,6 +8,7 @@
   <data name="About" xml:space="preserve"><value>about {0}</value></data>
   <data name="AboutRange" xml:space="preserve"><value>about {0} · indicative range {1}–{2}</value></data>
   <data name="AboutText" xml:space="preserve"><value>Battery Forecast {0}. Forecasts run locally with {1}. Derived from Till Dusk by Matteo Bonfanti (MIT).</value></data>
+  <data name="ActiveUseSource" xml:space="preserve"><value>While using the PC · {0} days of history</value></data>
   <data name="AdvancedSensors" xml:space="preserve"><value>Collect optional temperature and brightness sensors</value></data>
   <data name="AdvancedSensorsHelp" xml:space="preserve"><value>Optional firmware/WMI probes. CPU, memory and battery power and display state remain available when off.</value></data>
   <data name="AlertMinutesCustom" xml:space="preserve"><value>Alert minutes (comma separated; empty = off)</value></data>
@@ -19,6 +20,7 @@
   <data name="Battery" xml:space="preserve"><value>Battery</value></data>
   <data name="Beyond" xml:space="preserve"><value>Beyond the next {0} hours</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calculating the forecast…</value></data>
+  <data name="ChargeActiveUseSource" xml:space="preserve"><value>While charging and using the PC · {0} days</value></data>
   <data name="ChargeBeyond" xml:space="preserve"><value>Target {0}%: beyond the next 24 hours</value></data>
   <data name="ChargeCollecting" xml:space="preserve"><value>Learning charging speed</value></data>
   <data name="ChargeCollectingHelp" xml:space="preserve"><value>Not enough continuous charging data for the {0}% target yet. The final charging phase may slow down.</value></data>

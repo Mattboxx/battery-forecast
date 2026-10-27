@@ -99,6 +99,8 @@ public sealed class ForecastCoordinator : IDisposable
     ForecastView? chargeForecast, heldForecast;
     DateTimeOffset? lastHeldRun;
     bool updating, pendingForce, manualRead;
+    bool pendingEvent;
+    long operatingEpoch,inFlightEpoch;
     EngineState engineState = EngineState.Off;
     string? engineError;
     DashboardState? state;
@@ -129,6 +131,7 @@ public sealed class ForecastCoordinator : IDisposable
         forecast = LoadCache();
         lastRun = forecast?.Generated;
         collector.Sampled += OnSampled;
+        collector.Interrupted += OnInterrupted;
         collector.Start();          // prima lettura: pubblica lo stato e, a batteria, avvia il motore e la previsione
     }
 
@@ -148,8 +151,7 @@ public sealed class ForecastCoordinator : IDisposable
 
     public void Resumed() => Task.Run(() =>
     {
-        collector.OnResume();
-        Request(Trigger.Event);
+        if(collector.OnResume()) Request(Trigger.Event);
     });
 
     /// <summary>Le preferenze sono cambiate (riserva, obiettivo): la cache con un'altra riserva non vale più.</summary>
@@ -191,6 +193,7 @@ public sealed class ForecastCoordinator : IDisposable
 
     void OnSampled(BatterySample s, PowerChange change)
     {
+        if(change!=PowerChange.None) OnInterrupted("adapter",s.TimestampUtc);
         if (s.OnAc == true)
             lock (gate) lastAcSeen = s.TimestampUtc;
         else if (s.OnAc == false)
@@ -198,6 +201,20 @@ public sealed class ForecastCoordinator : IDisposable
         Publish();
         lock (gate) if (manualRead) return;
         Request(change == PowerChange.None ? Trigger.Background : Trigger.Event);
+    }
+
+    void OnInterrupted(string kind,DateTimeOffset at)
+    {
+        lock(gate)
+        {
+            operatingEpoch++;
+            forecast=chargeForecast=heldForecast=null;
+            lastRun=lastChargeRun=lastHeldRun=null;
+            pendingEvent|=updating;
+            if(cachePath is not null)
+                try { File.Delete(cachePath); } catch(Exception e) when(e is IOException or UnauthorizedAccessException) { }
+        }
+        Publish();
     }
 
     void SetEngine(EngineState s, string? error)
@@ -209,7 +226,7 @@ public sealed class ForecastCoordinator : IDisposable
     void Request(Trigger trigger)
     {
         var s = collector.Current;
-        if (engine is null || s is not { LevelPct: double level }) return;
+        if (engine is null || collector.IsSuspended || s is not { LevelPct: double level }) return;
         // in scarica la previsione fino alla riserva; in carica, finché l'obiettivo non è raggiunto, quella di carica;
         // collegato con la carica ferma, quella "se stacchi adesso"
         Mode mode;
@@ -221,11 +238,13 @@ public sealed class ForecastCoordinator : IDisposable
         var auto = Automatic(settings().Refresh, s.BatterySaver == true);
         if (trigger != Trigger.User && auto is null) return;       // solo su richiesta dell'utente
         var force = trigger != Trigger.Background;
+        long requestEpoch;
         lock (gate)
         {
             if (updating)
             {
                 pendingForce |= trigger == Trigger.User;
+                pendingEvent |= trigger==Trigger.Event && inFlightEpoch!=operatingEpoch;
                 return;
             }
             if (!force)
@@ -235,6 +254,7 @@ public sealed class ForecastCoordinator : IDisposable
                 if (!(age >= auto!.Value.Every || (drift >= auto.Value.Drift && age >= DriftMinAge))) return;
             }
             updating = true;
+            requestEpoch=inFlightEpoch=operatingEpoch;
             switch (mode)
             {
                 case Mode.Charge: lastChargeRun = now; break;
@@ -243,10 +263,10 @@ public sealed class ForecastCoordinator : IDisposable
             }
         }
         Publish();
-        _ = RunAsync(s, level, now, mode);
+        _ = RunAsync(s, level, now, mode,requestEpoch);
     }
 
-    async Task RunAsync(BatterySample s, double level, DateTimeOffset started, Mode mode)
+    async Task RunAsync(BatterySample s, double level, DateTimeOffset started, Mode mode,long requestEpoch)
     {
         var charge = mode == Mode.Charge;
         var options = settings();
@@ -263,6 +283,7 @@ public sealed class ForecastCoordinator : IDisposable
             var view = ForecastView.From(r);
             lock (gate)
             {
+                if(requestEpoch!=operatingEpoch) view=null;
                 // Cambiata l'alimentazione mentre si calcolava: la risposta descrive uno scenario che non c'è più.
                 if (mode == Mode.Discharge && lastAcSeen is { } ac && ac >= started) view = null;
                 if (charge && lastBatterySeen is { } bat && bat >= started) view = null;
@@ -277,7 +298,7 @@ public sealed class ForecastCoordinator : IDisposable
             }
             if (view is not null)
             {
-                if (mode == Mode.Discharge) SaveCache(r);
+                lock(gate) if (mode == Mode.Discharge && requestEpoch==operatingEpoch) SaveCache(r);
                 try
                 {
                     var source = mode switch { Mode.Charge => r.Source + ":charge", Mode.Held => r.Source + ":held", _ => r.Source };
@@ -295,15 +316,17 @@ public sealed class ForecastCoordinator : IDisposable
         {
             lock (gate) (engineState, engineError) = (EngineState.Unavailable, e.GetType().Name);
         }
-        bool again;
+        bool again,eventAgain;
         lock (gate)
         {
             updating = false;
             again = pendingForce;
             pendingForce = false;
+            eventAgain=pendingEvent;pendingEvent=false;
         }
         Publish();
         if (again) Request(Trigger.User);
+        else if(eventAgain) Request(Trigger.Event);
     }
 
     /// <summary>Ricompone lo stato dall'ultima lettura e lo notifica.</summary>
@@ -374,8 +397,14 @@ public sealed class ForecastCoordinator : IDisposable
 
     RecentEstimate? SafeRecent(BatterySample s, double reserve, DateTimeOffset now)
     {
-        if (!s.IsDischarging) return null;
-        try { return RecentRate.Estimate([.. store.Samples(now - RecentLookback, now), s], reserve); }
+        if (!s.IsDischarging || collector.IsSuspended || now-s.TimestampUtc>TimeSpan.FromMinutes(2)) return null;
+        try
+        {
+            var since=now-RecentLookback;
+            var breaks=store.ModelDiscontinuities(since,now);
+            if(breaks.Count>0) since=breaks[^1];
+            return RecentRate.Estimate([.. store.Samples(since, now), s], reserve);
+        }
         catch (Microsoft.Data.Sqlite.SqliteException) { return RecentRate.Estimate([s], reserve); }
     }
 
@@ -410,7 +439,8 @@ public sealed class ForecastCoordinator : IDisposable
                 try { store.PreserveCachedForecast(r, DateTimeOffset.FromUnixTimeMilliseconds((long)(r.GeneratedAtUtc * 1000))); }
                 catch (Microsoft.Data.Sqlite.SqliteException) { }
             }
-            return ForecastView.From(r);
+            // Preserve the genuine legacy curve above, but never reuse its old time basis as a new estimate.
+            return r.Source=="timestral" && r.TimeBasis!="active_use" ? null : ForecastView.From(r);
         }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException) { return null; }
     }
@@ -422,5 +452,5 @@ public sealed class ForecastCoordinator : IDisposable
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
     }
 
-    public void Dispose() => collector.Sampled -= OnSampled;
+    public void Dispose() { collector.Sampled -= OnSampled;collector.Interrupted-=OnInterrupted; }
 }

@@ -94,6 +94,7 @@ public sealed record WorkerForecast(long? Id, ForecastResponse Response) : Worke
 
 public sealed record ForecastResponse
 {
+    public string TimeBasis { get; init; } = "calendar";
     public double GeneratedAtUtc { get; init; }
     public double ContextEndUtc { get; init; }
     public string Source { get; init; } = "";

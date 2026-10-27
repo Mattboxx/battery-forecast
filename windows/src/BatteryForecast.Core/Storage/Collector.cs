@@ -23,8 +23,13 @@ public sealed class Collector : IDisposable
     ITimer? timer, contextTimer;
     bool? lastOnAc;
     bool disposed;
+    bool suspended;
+    readonly SamplingContinuity continuity=new();
+    readonly Func<OperatingClockReading?> operatingClock;
+    DateTimeOffset? lastResume;
+    double? lastResumeBias;
 
-    public Collector(IBatteryProvider provider, HistoryStore store, TimeProvider? clock = null, TimeSpan? interval = null, ISystemContextProvider? context = null, Func<bool>? collectContext = null, Func<int>? contextIntervalSeconds = null)
+    public Collector(IBatteryProvider provider, HistoryStore store, TimeProvider? clock = null, TimeSpan? interval = null, ISystemContextProvider? context = null, Func<bool>? collectContext = null, Func<int>? contextIntervalSeconds = null, Func<OperatingClockReading?>? operatingClock = null)
     {
         this.contextIntervalSeconds = contextIntervalSeconds ?? (() => 60);
         this.context = context;
@@ -32,6 +37,7 @@ public sealed class Collector : IDisposable
         this.provider = provider;
         this.store = store;
         this.clock = clock ?? TimeProvider.System;
+        this.operatingClock=operatingClock ?? (ReferenceEquals(this.clock,TimeProvider.System) ? OperatingClock.Read : () => null);
         this.interval = interval ?? TimeSpan.FromSeconds(60);
     }
 
@@ -40,6 +46,8 @@ public sealed class Collector : IDisposable
 
     /// <summary>Dopo ogni lettura; l'argomento dice se l'alimentatore è cambiato rispetto alla precedente.</summary>
     public event Action<BatterySample, PowerChange>? Sampled;
+    public event Action<string,DateTimeOffset>? Interrupted;
+    public bool IsSuspended { get { lock(gate) return suspended; } }
 
     public void Start()
     {
@@ -55,9 +63,19 @@ public sealed class Collector : IDisposable
     {
         BatterySample s;
         PowerChange change;
+        SamplingBreak? interruption;
         lock (gate)
         {
             if (disposed) return Current ?? throw new ObjectDisposedException(nameof(Collector));
+            var now=clock.GetUtcNow();var os=operatingClock();
+            interruption=continuity.Observe(now,os);
+            if(suspended && interruption is null) return Current ?? throw new InvalidOperationException("Suspended before first sample");
+            if(interruption is { } boundary)
+            {
+                suspended=false;context?.ResetIntervals();lastContextRead=null;CurrentContext=null;
+                TryEventAt(boundary.From,"sampling_gap_start");TryEventAt(boundary.Until,boundary.Kind);
+                lastResume=now;lastResumeBias=os is { } time ? time.ElapsedSeconds-time.AwakeSeconds : null;
+            }
             s = provider.Read();
             Current = s;
             change = s.OnAc switch
@@ -76,6 +94,7 @@ public sealed class Collector : IDisposable
             }
             catch (Microsoft.Data.Sqlite.SqliteException) { /* disco pieno o file bloccato: la lettura resta valida */ }
         }
+        if(interruption is { } broken) Interrupted?.Invoke(broken.Kind,s.TimestampUtc);
         Sampled?.Invoke(s, change);
         return s;
     }
@@ -104,7 +123,7 @@ public sealed class Collector : IDisposable
     {
         lock (gate)
         {
-            if (disposed) return;
+            if (disposed || suspended) return;
             try { UpdateContext(); }
             catch (Microsoft.Data.Sqlite.SqliteException) { }
             finally { contextTimer?.Change(ContextInterval, Timeout.InfiniteTimeSpan); }
@@ -115,7 +134,7 @@ public sealed class Collector : IDisposable
     {
         lock (gate)
         {
-            if (disposed || !collectContext() || state is < 0 or > 2) return;
+            if (disposed || suspended || !collectContext() || state is < 0 or > 2) return;
             try
             {
                 store.AppendEvent(clock.GetUtcNow(), "display_" + state);
@@ -125,20 +144,44 @@ public sealed class Collector : IDisposable
         }
     }
 
-    public void OnSuspend() { lock(gate) { context?.ResetIntervals(); TryEvent("suspend"); } }
-
-    public void OnResume()
+    public void OnSuspend()
     {
-        TryEvent("resume");
-        lock(gate) context?.ResetIntervals();
-        Sample(collectionKind: "resume");
+        DateTimeOffset now;
+        lock(gate)
+        {
+            if(disposed || suspended) return;
+            suspended=true;context?.ResetIntervals();CurrentContext=null;now=clock.GetUtcNow();TryEventAt(now,"suspend");
+        }
+        Interrupted?.Invoke("suspend",now);
+    }
+
+    public bool OnResume()
+    {
+        DateTimeOffset now;
+        lock(gate)
+        {
+            if(disposed) return false;
+            now=clock.GetUtcNow();var os=operatingClock();
+            var bias=os is { } t ? t.ElapsedSeconds-t.AwakeSeconds : (double?)null;
+            if(!suspended && lastResume is { } at && (bias is { } b && lastResumeBias is { } prior ? Math.Abs(b-prior)<1 : now-at<TimeSpan.FromSeconds(5))) return false;
+            suspended=false;lastResume=now;lastResumeBias=bias;continuity.Reset();
+            context?.ResetIntervals();lastContextRead=null;CurrentContext=null;TryEventAt(now,"resume");
+        }
+        Interrupted?.Invoke("resume",now);
+        Sample(forceContext:true,collectionKind: "resume");
+        return true;
     }
 
     public void OnExit() => TryEvent("app_exit");
 
     void TryEvent(string kind)
     {
-        try { store.AppendEvent(clock.GetUtcNow(), kind); }
+        TryEventAt(clock.GetUtcNow(),kind);
+    }
+
+    void TryEventAt(DateTimeOffset at,string kind)
+    {
+        try { store.AppendEvent(at, kind); }
         catch (Microsoft.Data.Sqlite.SqliteException) { }
     }
 

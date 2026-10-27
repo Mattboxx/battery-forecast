@@ -197,6 +197,11 @@ public partial class App : Application
         {
             const int WM_CLOSE = 0x10, WM_QUERYENDSESSION = 0x11, WM_ENDSESSION = 0x16;
             if (msg == 0x218 && w.ToInt32() == 0x8013) displayNotification?.OnMessage(l);
+            if(msg==0x218 && !demo)
+            {
+                if(w.ToInt32()==4) collector?.OnSuspend();
+                else if(w.ToInt32()==0x12) Coordinator?.Resumed(); // includes unattended wake and hibernation
+            }
             switch (msg)
             {
                 case 0x0312 when w.ToInt32() == GlobalHotkey.Id:

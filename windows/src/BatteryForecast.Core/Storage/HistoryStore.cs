@@ -237,16 +237,7 @@ public sealed partial class HistoryStore : IDisposable
 
     public List<DateTimeOffset> Discontinuities(DateTimeOffset since)
     {
-        lock (gate)
-        {
-            using var cmd = db.CreateCommand();
-            cmd.CommandText = "SELECT ts FROM power_events WHERE ts >= $ts AND kind IN ('suspend','resume','app_exit','app_start','ac_connected') ORDER BY ts";
-            cmd.Parameters.AddWithValue("$ts", since.ToUnixTimeSeconds());
-            using var r = cmd.ExecuteReader();
-            var result = new List<DateTimeOffset>();
-            while (r.Read()) result.Add(DateTimeOffset.FromUnixTimeSeconds(r.GetInt64(0)));
-            return result;
-        }
+        return [..ModelDiscontinuities(since,DateTimeOffset.MaxValue)];
     }
 
     public IReadOnlyList<DateTimeOffset> ModelDiscontinuities(DateTimeOffset since,DateTimeOffset until)
@@ -371,7 +362,7 @@ public sealed partial class HistoryStore : IDisposable
     List<double> AggregationBarriers(DateTimeOffset since,DateTimeOffset until)
     {
         using var cmd=db.CreateCommand();
-        cmd.CommandText="SELECT DISTINCT ts FROM power_events WHERE ts >= $since AND ts <= $until AND kind IN ('suspend','resume','app_exit','app_start','ac_connected','ac_disconnected','battery_changed','context_disabled','context_enabled') ORDER BY ts";
+        cmd.CommandText="SELECT DISTINCT ts FROM power_events WHERE ts >= $since AND ts <= $until AND kind IN ('suspend','resume','resume_detected','sampling_gap_start','sampling_gap','clock_changed','app_exit','app_start','ac_connected','ac_disconnected','battery_changed','context_disabled','context_enabled') ORDER BY ts";
         cmd.Parameters.AddWithValue("$since",since.ToUnixTimeSeconds());cmd.Parameters.AddWithValue("$until",Seconds(until));
         using var reader=cmd.ExecuteReader(); var result=new List<double>();
         while(reader.Read()) result.Add(reader.GetDouble(0));

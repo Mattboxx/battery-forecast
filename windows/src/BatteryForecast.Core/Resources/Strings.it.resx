@@ -8,6 +8,7 @@
   <data name="About" xml:space="preserve"><value>circa {0}</value></data>
   <data name="AboutRange" xml:space="preserve"><value>circa {0} · fascia indicativa {1}–{2}</value></data>
   <data name="AboutText" xml:space="preserve"><value>Battery Forecast {0}. Le previsioni girano in locale con {1}. Derivato da Till Dusk di Matteo Bonfanti (MIT).</value></data>
+  <data name="ActiveUseSource" xml:space="preserve"><value>Durante l’uso del PC · {0} giorni di storia</value></data>
   <data name="AdvancedSensors" xml:space="preserve"><value>Raccogli temperature e luminosità disponibili</value></data>
   <data name="AdvancedSensorsHelp" xml:space="preserve"><value>Sonde facoltative del firmware/WMI. Se disattive, restano CPU, memoria, watt della batteria e stato dello schermo.</value></data>
   <data name="AlertMinutesCustom" xml:space="preserve"><value>Minuti degli avvisi (separati da virgola; vuoto = disattivato)</value></data>
@@ -19,6 +20,7 @@
   <data name="Battery" xml:space="preserve"><value>Batteria</value></data>
   <data name="Beyond" xml:space="preserve"><value>Oltre le prossime {0} ore</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calcolo della previsione…</value></data>
+  <data name="ChargeActiveUseSource" xml:space="preserve"><value>Durante la carica e l’uso del PC · {0} giorni</value></data>
   <data name="ChargeBeyond" xml:space="preserve"><value>Obiettivo {0}%: oltre le prossime 24 ore</value></data>
   <data name="ChargeCollecting" xml:space="preserve"><value>Raccolta dati di ricarica</value></data>
   <data name="ChargeCollectingHelp" xml:space="preserve"><value>Dati di ricarica continua ancora insufficienti per l’obiettivo {0}%. La fase finale può rallentare.</value></data>

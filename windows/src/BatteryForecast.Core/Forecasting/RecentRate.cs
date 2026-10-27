@@ -16,7 +16,7 @@ public static class RecentRate
 {
     public static readonly TimeSpan Window = TimeSpan.FromMinutes(30);
     static readonly TimeSpan PowerWindow = TimeSpan.FromMinutes(10);
-    static readonly TimeSpan MaxSampleGap = TimeSpan.FromMinutes(10);
+    static readonly TimeSpan MaxSampleGap = TimeSpan.FromMinutes(3);
     static readonly TimeSpan MinSlopeSpan = TimeSpan.FromMinutes(15);
     const double MinDropPct = 2;          // una differenza dell'1% è rumore di quantizzazione
     const int MinPowerSamples = 3;

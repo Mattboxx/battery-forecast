@@ -125,11 +125,12 @@ class Engine:
         h = req["horizon"]
         charge = req["scenario"] == "charge"
         # Covariata nota del futuro: lo scenario. "no_charge" = alimentatore scollegato, "charge" = collegato.
-        known = np.concatenate([s.ac, np.full(h, 1.0 if charge else 0.0, np.float32)])
         past, categories, context_features = series.past_covariates(req.get("past_covariates", {}), s)
+        active_level,active_ac,active_mask,past,categories=series.active_inputs(s,past,categories)
+        known = np.concatenate([active_ac, np.full(h, 1.0 if charge else 0.0, np.float32)])
         with self._torch.inference_mode():
-            q = self.fc.forecast(s.level[None, None], prediction_length=h,
-                                 observation_mask=s.observed[None,None],
+            q = self.fc.forecast(active_level[None, None], prediction_length=h,
+                                 observation_mask=active_mask[None,None],
                                  known_covariates=known[None, None], past_covariates=past,
                                  categorical_past_covariates=categories).quantiles[0, 0].numpy()
         # The current anchor is the request time, not the beginning of its historical bin.
@@ -159,7 +160,10 @@ class Engine:
             "target_pct": req["target"] if charge else None,
             "level": req["level"],
             "context_features": context_features,
+            "time_basis": "active_use",
             "quality": {
+                "model_context_steps":len(active_level),
+                "calendar_context_steps":len(s.level),
                 "state": quality_state(s, req["scenario"]),
                 "observed_days": s.observed_days,
                 "observed_hours": s.observed_hours,
