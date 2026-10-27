@@ -5,11 +5,16 @@ namespace BatteryForecast.Core.Telemetry;
 public sealed record SystemSample(DateTimeOffset TimestampUtc, double? CpuPct = null, double? CpuMHz = null,
     double? MemoryPct = null, double? CpuTemperatureC = null, double? BatteryTemperatureC = null,
     double? ThermalZoneC = null, double? BrightnessPct = null, double? DischargeW = null,
-    double? ChargeW = null, double? PowerProfile = null, string Source = "windows-api", double? DisplayState = null);
+    double? ChargeW = null, double? PowerProfile = null, string Source = "windows-api", double? DisplayState = null,
+    DateTimeOffset? CpuIntervalStartUtc = null, string CollectionKind = "unspecified", DateTimeOffset? OptionalObservedUtc = null);
 
 public sealed record ContextHistory(long Samples, DateTimeOffset? LastSaved, IReadOnlyDictionary<string, long> Observations);
 
-public interface ISystemContextProvider { SystemSample Read(BatterySample battery); }
+public interface ISystemContextProvider
+{
+    SystemSample Read(BatterySample battery);
+    void ResetIntervals() { }
+}
 
 public static class SensorMath
 {

@@ -44,14 +44,14 @@ public sealed class Collector : IDisposable
     public void Start()
     {
         store.AppendEvent(clock.GetUtcNow(), "app_start");
-        Sample();
-        timer = clock.CreateTimer(_ => Sample(), null, interval, interval);
+        Sample(collectionKind: "startup");
+        timer = clock.CreateTimer(_ => Sample(collectionKind: "scheduled"), null, interval, interval);
         if (context is not null)
             contextTimer = clock.CreateTimer(_ => ContextTick(), null, ContextInterval, Timeout.InfiniteTimeSpan);
     }
 
     /// <summary>Lettura immediata: cambio di alimentazione, ripresa, apertura del pannello.</summary>
-    public BatterySample Sample(bool forceContext = false)
+    public BatterySample Sample(bool forceContext = false, string collectionKind = "diagnostic")
     {
         BatterySample s;
         PowerChange change;
@@ -69,8 +69,8 @@ public sealed class Collector : IDisposable
             if (s.OnAc is bool ac) lastOnAc = ac;
             try
             {
-                store.Append(s);
-                UpdateContext(s, forceContext);
+                store.Append(s,collectionKind);
+                UpdateContext(s, forceContext, collectionKind);
                 if (change != PowerChange.None)
                     store.AppendEvent(s.TimestampUtc, change == PowerChange.Connected ? "ac_connected" : "ac_disconnected");
             }
@@ -82,18 +82,19 @@ public sealed class Collector : IDisposable
 
     TimeSpan ContextInterval => TimeSpan.FromSeconds(Math.Clamp(contextIntervalSeconds(), 30, 120));
 
-    void UpdateContext(BatterySample? battery = null, bool force = false)
+    void UpdateContext(BatterySample? battery = null, bool force = false, string collectionKind = "scheduled")
     {
         if (context is null || !collectContext())
         {
             CurrentContext = null;
             lastContextRead = null;
+            context?.ResetIntervals();
             return;
         }
         var now = clock.GetUtcNow();
         // A small tolerance avoids losing an entire sample to ordinary timer jitter.
         if (!force && lastContextRead is { } at && now - at + TimeSpan.FromMilliseconds(250) < ContextInterval) return;
-        CurrentContext = context.Read(battery ?? provider.Read());
+        CurrentContext = context.Read(battery ?? provider.Read()) with { CollectionKind = collectionKind };
         lastContextRead = now;
         contextTimer?.Change(ContextInterval, Timeout.InfiniteTimeSpan);
         store.AppendContext(CurrentContext);
@@ -118,18 +119,19 @@ public sealed class Collector : IDisposable
             try
             {
                 store.AppendEvent(clock.GetUtcNow(), "display_" + state);
-                UpdateContext(force: true);
+                UpdateContext(force: true,collectionKind: "display");
             }
             catch (Microsoft.Data.Sqlite.SqliteException) { }
         }
     }
 
-    public void OnSuspend() => TryEvent("suspend");
+    public void OnSuspend() { lock(gate) { context?.ResetIntervals(); TryEvent("suspend"); } }
 
     public void OnResume()
     {
         TryEvent("resume");
-        Sample();
+        lock(gate) context?.ResetIntervals();
+        Sample(collectionKind: "resume");
     }
 
     public void OnExit() => TryEvent("app_exit");

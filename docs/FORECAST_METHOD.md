@@ -1,6 +1,6 @@
 # Battery Forecast: calculation method
 
-Status: experimental, local inference. This describes version 0.9.1.
+Status: experimental, local inference. This describes development following version 0.9.1.
 The current changes correct functional defects; they do not establish predictive superiority.
 Scientific backtesting is postponed at the user's request.
 
@@ -11,13 +11,26 @@ optional system context only up to that reading's timestamp, using the recorded 
 when a design-capacity change has identified a replacement. Older observations remain in local history
 and exports. Detection by design capacity cannot identify every replacement with an identical battery.
 
-Historical battery values are averaged on a five-minute UTC grid. An interval containing both adapter
+Historical battery values use time-weighted means on a five-minute UTC grid. An interval containing both adapter
 states, or an unknown state, remains unknown. The last value is the actual current reading.
 Missing bins interpolate only when endpoints are at most ten minutes apart and power state is known
 and consistent throughout. Longer gaps and unknown power states are preserved. Short unrecorded sleep
 periods cannot always be distinguished from dropped samples; this policy is not a sleep detector.
 Observed hours and coverage are counted before interpolation. Thirty-minute sessions must span
 thirty minutes, rather than counting six grid points as thirty minutes.
+
+New context rows preserve the CPU counter interval, exact reading timestamp, collection trigger and
+optional-probe acquisition time (SQLite schema 6). CPU averages are weighted by their measured durations,
+split at bin boundaries, using only completed measurements available at the request origin. Intervals
+longer than 150 seconds or spanning a recorded interruption are excluded. Legacy CPU rows without
+intervals remain in storage/exports and can appear in history, but are excluded from model input.
+No historical counter intervals are invented during migration.
+
+Instantaneous battery/context readings use a bounded hold until the next reading, request origin,
+recorded interruption or 150 seconds, whichever comes first. Means divide by supported time rather
+than row count, so diagnostic bursts do not gain extra votes. This is an explicit resampling assumption,
+not a claim that an instantaneous reading was continuously measured. A final point with zero duration
+can anchor its bin. Historic CPU charts may use legacy point support; they are not duration measurements.
 
 Optional context includes battery watts, CPU load/frequency, memory, available temperatures/brightness,
 power profile and Windows session display state. Missing sensors are not replaced by estimates.

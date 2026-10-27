@@ -33,13 +33,13 @@ public class TelemetryTests
             using(var initial=new HistoryStore(path)) initial.Append(new(now,ChargeState.Discharging,80,false));
             using(var raw=new SqliteConnection($"Data Source={path};Pooling=False"))
             {
-                raw.Open();using var cmd=raw.CreateCommand();cmd.CommandText="DROP TABLE context_samples;DROP TABLE forecast_snapshots;PRAGMA user_version=2;";cmd.ExecuteNonQuery();
+                raw.Open();using var cmd=raw.CreateCommand();cmd.CommandText=LegacySchema.DropTemporalMetadata+"DROP TABLE context_samples;DROP TABLE forecast_snapshots;PRAGMA user_version=2;";cmd.ExecuteNonQuery();
             }
             using(var store=new HistoryStore(path))
             {
                 Assert.Single(store.Samples(now));
-                store.AppendContext(new(now,CpuPct:30,MemoryPct:60,DischargeW:12.5,PowerProfile:0));
-                store.AppendContext(new(now.AddMinutes(1),CpuPct:50,MemoryPct:62,DischargeW:13.5,PowerProfile:2));
+                store.AppendContext(new(now.AddMinutes(1),CpuPct:30,MemoryPct:60,DischargeW:12.5,PowerProfile:0,CpuIntervalStartUtc:now));
+                store.AppendContext(new(now.AddMinutes(2),CpuPct:50,MemoryPct:62,DischargeW:13.5,PowerProfile:2,CpuIntervalStartUtc:now.AddMinutes(1)));
                 var data=store.ModelCovariates(now,now.AddMinutes(5));
                 Assert.Equal(40,Assert.Single(data["cpu_pct"]).Value);
                 Assert.Null(Assert.Single(data["cpu_temp_c"]).Value);

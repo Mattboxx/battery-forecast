@@ -383,7 +383,7 @@ public partial class PreferencesWindow : Window
         {
             var end = DateTimeOffset.UtcNow;
             var start = end.AddHours(-app.Settings.ContextHistoryHours);
-            var series = store.ModelCovariates(start, end);
+            var series = store.ModelCovariates(start, end, includeLegacyCpu: true);
             var state = app.Coordinator?.State;
             var forecast = state?.Phase switch
             {

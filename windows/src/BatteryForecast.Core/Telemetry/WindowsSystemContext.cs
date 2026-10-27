@@ -28,12 +28,16 @@ public sealed class WindowsSystemContext : ISystemContextProvider
     {
         var now = clock.GetUtcNow();
         double? cpu = null;
+        DateTimeOffset? cpuStart = null;
         if (GetSystemTimes(out var idle, out var kernel, out var user))
         {
             var total = kernel+user;
             if (previousIdle is { } pi && previousTotal is { } pt && previousCpu is { } at &&
                 now-at >= TimeSpan.FromSeconds(1) && now-at <= TimeSpan.FromMinutes(10))
+            {
                 cpu = SensorMath.CpuPercent(pi,pt,idle,total);
+                if(cpu is not null) cpuStart=at;
+            }
             if (previousCpu is null || now-previousCpu >= TimeSpan.FromSeconds(1))
             { previousIdle=idle; previousTotal=total; previousCpu=now; }
         }
@@ -59,6 +63,7 @@ public sealed class WindowsSystemContext : ISystemContextProvider
             finally { LocalFree(guidPtr); }
         }
         OptionalSensors sensors;
+        DateTimeOffset? sensorAt=null;
         lock(optionalGate)
         {
             if (!collectAdvanced())
@@ -70,6 +75,7 @@ public sealed class WindowsSystemContext : ISystemContextProvider
             else
             {
                 sensors = optionalAt is { } at && now-at <= TimeSpan.FromMinutes(2) ? optional : new();
+                if(optionalAt is { } measured && now-measured<=TimeSpan.FromMinutes(2)) sensorAt=measured;
                 if ((optionalAt is null || now-optionalAt >= TimeSpan.FromSeconds(50)) && Interlocked.CompareExchange(ref optionalBusy,1,0)==0)
                 {
                     // One background request maximum, even if a firmware/WMI provider is slow.
@@ -90,8 +96,11 @@ public sealed class WindowsSystemContext : ISystemContextProvider
             }
         }
         return new(now,cpu,mhz,memoryPct,sensors.CpuC,sensors.BatteryC,sensors.ZoneC,sensors.Brightness,
-            battery.DischargePowerMW/1000.0,battery.ChargingPowerMW/1000.0,profile, DisplayState: displayState());
+            battery.DischargePowerMW/1000.0,battery.ChargingPowerMW/1000.0,profile, DisplayState: displayState(),
+            CpuIntervalStartUtc:cpuStart,OptionalObservedUtc:sensorAt);
     }
+
+    public void ResetIntervals() { previousIdle=null; previousTotal=null; previousCpu=null; }
 
     internal static double[] Query(string ns,string query,string property)
     {

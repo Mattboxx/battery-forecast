@@ -43,7 +43,7 @@ public class DisplayStateTests
             {
                 db.Open();
                 using var cmd = db.CreateCommand();
-                cmd.CommandText = "ALTER TABLE context_samples DROP COLUMN display_state; DROP TABLE forecast_snapshots; PRAGMA user_version=3;";
+                cmd.CommandText = LegacySchema.DropTemporalMetadata+"ALTER TABLE context_samples DROP COLUMN display_state; DROP TABLE forecast_snapshots; PRAGMA user_version=3;";
                 cmd.ExecuteNonQuery();
             }
             using (var store = new HistoryStore(path))
@@ -60,8 +60,8 @@ public class DisplayStateTests
                 Assert.Equal(4, store.ExportContextCsv(csv));
                 var lines = csv.ToString().Split('\n', StringSplitOptions.RemoveEmptyEntries);
                 Assert.Contains("display_state,source", lines[0]);
-                Assert.EndsWith(",,old", lines[1].Trim());
-                Assert.EndsWith(",1,new", lines[2].Trim());
+                Assert.Contains(",,old,", lines[1]);
+                Assert.Contains(",1,new,", lines[2]);
             }
         }
         finally { foreach (var p in new[] { path, path + "-wal", path + "-shm" }) File.Delete(p); }

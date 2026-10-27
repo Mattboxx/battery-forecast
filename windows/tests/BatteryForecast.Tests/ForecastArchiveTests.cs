@@ -54,7 +54,7 @@ public class ForecastArchiveTests : IDisposable
         using (var db = new SqliteConnection($"Data Source={path};Pooling=False"))
         {
             db.Open(); using var cmd=db.CreateCommand();
-            cmd.CommandText="DROP TABLE forecast_snapshots;PRAGMA user_version=4;";cmd.ExecuteNonQuery();
+            cmd.CommandText=LegacySchema.DropTemporalMetadata+"DROP TABLE forecast_snapshots;PRAGMA user_version=4;";cmd.ExecuteNonQuery();
         }
         using var migrated=new HistoryStore(path);
         Assert.Single(migrated.Samples(Samples.T0));

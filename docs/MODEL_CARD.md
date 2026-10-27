@@ -110,8 +110,8 @@ result set compatible with .NET enumeration. The diagnostic CLI reports per-prob
 from readings. A local hardware check confirmed brightness collection; temperature availability still
 depends on installed providers, firmware and permissions. No accuracy gain is inferred from this check.
 
-Sensor context is stored separately in SQLite schema 5, under the same retention/deletion settings.
-Five-minute means align to the battery grid; mixed power-profile/display bins are missing. Six observed bins
+Sensor context is stored separately in SQLite schema 6, under the same retention/deletion settings.
+Five-minute time-weighted means align to the battery grid; mixed power-profile/display bins are missing. Six observed bins
 and nonconstant values are required per channel. Numeric gaps up to ten minutes can interpolate when
 AC state is unchanged. Longer gaps stay missing. Profiles are categorical, with no interpolation.
 The fixed Timestral API receives numeric `past_covariates` and categorical
@@ -119,6 +119,13 @@ The fixed Timestral API receives numeric `past_covariates` and categorical
 temperatures are not assumed known in the future. Only the chosen adapter scenario remains a known
 future covariate. `context_features` in each response/cache identifies channels actually passed to the
 model. Collection and model use can be switched off separately in Preferences.
+
+New rows preserve CPU interval start and exact reading time, collection trigger and optional-probe
+acquisition time. Only completed CPU intervals of at most 150 seconds are integrated; intervals crossing
+known interruptions are rejected. Legacy CPU rows without intervals are retained for export/history but
+excluded from model inputs. Instantaneous readings have bounded support to the next reading, origin,
+interruption or 150 seconds. These explicit resampling rules prevent bursts from being weighted by row
+count; they do not establish a predictive accuracy gain. See [calculation method](FORECAST_METHOD.md).
 
 A real-model functional test checks that sensor arrays reach the forecaster with historical dimensions.
 This establishes integration, **not an accuracy improvement**. Rolling-origin comparisons with and

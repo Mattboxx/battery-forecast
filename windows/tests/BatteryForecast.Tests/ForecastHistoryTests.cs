@@ -34,14 +34,14 @@ public class ForecastHistoryTests
             store.Append(Samples.Discharging(0, 90));
             store.Append(Samples.OnAc(1, 89));
             store.Append(Samples.Discharging(2, 88));
-            store.AppendContext(new(Samples.T0, CpuPct: 20));
-            store.AppendContext(new(Samples.T0.AddMinutes(2), CpuPct: 100));
+            store.AppendContext(new(Samples.T0, MemoryPct: 20));
+            store.AppendContext(new(Samples.T0.AddMinutes(2), MemoryPct: 100));
             var earlier = Assert.Single(store.ModelSamples(Samples.T0, Samples.T0));
             Assert.Equal(90, earlier.Level);
             Assert.Equal(0, earlier.Ac);
             var later = Assert.Single(store.ModelSamples(Samples.T0, Samples.T0.AddMinutes(2)));
             Assert.Null(later.Ac);
-            Assert.Equal(20, Assert.Single(store.ModelCovariates(Samples.T0, Samples.T0)["cpu_pct"]).Value);
+            Assert.Equal(20, Assert.Single(store.ModelCovariates(Samples.T0, Samples.T0)["memory_pct"]).Value);
             Assert.Equal(3, store.Samples(Samples.T0).Count); // no history was removed
         });
     }
@@ -52,14 +52,14 @@ public class ForecastHistoryTests
         WithStore(store =>
         {
             store.Append(Samples.Discharging(0, 90, design: 50000));
-            store.AppendContext(new(Samples.T0, CpuPct: 20));
+            store.AppendContext(new(Samples.T0, MemoryPct: 20));
             store.Append(Samples.Discharging(10, 70, design: 60000));
-            store.AppendContext(new(Samples.T0.AddMinutes(10), CpuPct: 80));
+            store.AppendContext(new(Samples.T0.AddMinutes(10), MemoryPct: 80));
             var before = Assert.Single(store.ModelSamples(Samples.T0, Samples.T0.AddMinutes(5)));
             var after = Assert.Single(store.ModelSamples(Samples.T0, Samples.T0.AddMinutes(10)));
             Assert.Equal(90, before.Level);
             Assert.Equal(70, after.Level);
-            Assert.Equal(80, Assert.Single(store.ModelCovariates(Samples.T0, Samples.T0.AddMinutes(10), currentBatteryOnly: true)["cpu_pct"]).Value);
+            Assert.Equal(80, Assert.Single(store.ModelCovariates(Samples.T0, Samples.T0.AddMinutes(10), currentBatteryOnly: true)["memory_pct"]).Value);
             Assert.Equal(2, store.Samples(Samples.T0).Count);
             Assert.Equal(2, store.ModelCovariates(Samples.T0, Samples.T0.AddMinutes(10))["cpu_pct"].Count);
         });
