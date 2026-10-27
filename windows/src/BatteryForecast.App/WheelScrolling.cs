@@ -20,6 +20,10 @@ static class WheelScrolling
     static void OnWheel(object sender, MouseWheelEventArgs e)
     {
         var sv = (ScrollViewer)sender;
+        // Let the chart receive the bubbling wheel event before its parent scrolls the page.
+        for(var node=e.OriginalSource as DependencyObject;node is not null&&node!=sv;
+            node=node is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(node) : LogicalTreeHelper.GetParent(node))
+            if(node is ComparisonChart chart && chart.IsPlotPoint(e.GetPosition(chart))) return;
         // l'evento scende dall'esterno verso l'interno: lo prende solo il contenitore scorrevole più vicino al puntatore
         if (e.Handled || sv.CanContentScroll || Innermost(e.OriginalSource as DependencyObject, sv) != sv) return;
         sv.ScrollToVerticalOffset(Math.Clamp(sv.VerticalOffset - e.Delta * PixelsPerDelta, 0, sv.ScrollableHeight));

@@ -56,7 +56,7 @@ sealed class ComparisonChart : FrameworkElement
         MouseWheel+=(_,e)=>
         {
             var p=e.GetPosition(this);
-            if(p.X<0||p.X>ActualWidth-Right||p.Y<Top||p.Y>ActualHeight-Bottom) return;
+            if(!IsPlotPoint(p)) return;
             Zoom(Math.Pow(1.25,e.Delta/120.0),p.X/Math.Max(1,ActualWidth-Right));e.Handled=true;
         };
         MouseDown+=(_,e)=>
@@ -90,6 +90,8 @@ sealed class ComparisonChart : FrameworkElement
             e.Handled = true;
         };
     }
+
+    internal bool IsPlotPoint(Point p)=>p.X>=0&&p.X<=ActualWidth-Right&&p.Y>=Top&&p.Y<=ActualHeight-Bottom;
 
     public void SetData(ForecastSnapshot? saved, IReadOnlyList<BatterySample> samples,
         IReadOnlyList<DateTimeOffset> interruptions, DateTimeOffset at)
