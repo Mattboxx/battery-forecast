@@ -2,6 +2,8 @@
 
 ## 0.9.2
 
+- Zoom Battery trend around the mouse pointer, pan with the middle button, and reset with visible controls or the keyboard. The percentage scale adapts to the visible range; curve visibility choices and original pinned references remain independent of model calculation.
+
 - Invalidate pre-sleep cached/in-flight forecasts, detect missed wake/hibernation notifications with passive Windows clocks, and keep active-use model time independent of unobserved sleep duration. Preserve raw calendar history; retain genuine awake idle readings.
 
 - Restore optional WMI brightness collection and isolate sensor failures, without adding drivers or dependencies.

@@ -18,7 +18,11 @@ sealed class ComparisonChart : FrameworkElement
     ForecastSnapshot? snapshot;
     ForecastView? forecast;
     bool showObserved = true, showPredicted = true;
-    DateTimeOffset from, until, now;
+    readonly TimeViewport viewport=new(TimeSpan.FromMinutes(15));
+    DateTimeOffset from=>viewport.From;
+    DateTimeOffset until=>viewport.Until;
+    DateTimeOffset now;
+    Point? dragging;
     DateTimeOffset? hover, pinned;
     const double Top = 10, Right = 42, Bottom = 27;
     static readonly DependencyPropertyKey HoverTextKey = DependencyProperty.RegisterReadOnly(nameof(HoverText), typeof(string), typeof(ComparisonChart), new PropertyMetadata(null));
@@ -27,6 +31,9 @@ sealed class ComparisonChart : FrameworkElement
     public static readonly DependencyProperty PinnedTextProperty = PinnedTextKey.DependencyProperty;
     public string? HoverText => (string?)GetValue(HoverTextProperty);
     public string? PinnedText => (string?)GetValue(PinnedTextProperty);
+    static readonly DependencyPropertyKey ViewportTextKey=DependencyProperty.RegisterReadOnly(nameof(ViewportText),typeof(string),typeof(ComparisonChart),new PropertyMetadata(null));
+    public static readonly DependencyProperty ViewportTextProperty=ViewportTextKey.DependencyProperty;
+    public string? ViewportText=>(string?)GetValue(ViewportTextProperty);
 
     public ComparisonChart()
     {
@@ -36,11 +43,29 @@ sealed class ComparisonChart : FrameworkElement
         Cursor = Cursors.Cross;
         MouseMove += (_, e) =>
         {
+            if(dragging is { } previous && e.MiddleButton==MouseButtonState.Pressed)
+            {
+                var p=e.GetPosition(this);
+                viewport.Pan((previous.X-p.X)/Math.Max(1,ActualWidth-Right));dragging=p;UpdateViewport();
+            }
             hover = Position(e.GetPosition(this));
             SetValue(HoverTextKey, hover is { } t && t != pinned ? Caption(t) : null);
             InvalidateVisual();
         };
         MouseLeave += (_, _) => { hover = null; SetValue(HoverTextKey, null); InvalidateVisual(); };
+        MouseWheel+=(_,e)=>
+        {
+            var p=e.GetPosition(this);
+            if(p.X<0||p.X>ActualWidth-Right||p.Y<Top||p.Y>ActualHeight-Bottom) return;
+            Zoom(Math.Pow(1.25,e.Delta/120.0),p.X/Math.Max(1,ActualWidth-Right));e.Handled=true;
+        };
+        MouseDown+=(_,e)=>
+        {
+            if(e.ChangedButton!=MouseButton.Middle) return;
+            dragging=e.GetPosition(this);CaptureMouse();Cursor=Cursors.ScrollWE;e.Handled=true;
+        };
+        MouseUp+=(_,e)=> { if(e.ChangedButton==MouseButton.Middle) ReleaseMouseCapture(); };
+        LostMouseCapture+=(_,_)=> { dragging=null;Cursor=Cursors.Cross; };
         MouseLeftButtonDown += (_, e) =>
         {
             Focus();
@@ -53,6 +78,9 @@ sealed class ComparisonChart : FrameworkElement
         IsVisibleChanged += (_, _) => { if (!IsVisible) ClearSelection(); };
         KeyDown += (_, e) =>
         {
+            if(e.Key is Key.Add or Key.OemPlus) { Zoom(1.25);e.Handled=true;return; }
+            if(e.Key is Key.Subtract or Key.OemMinus) { Zoom(1/1.25);e.Handled=true;return; }
+            if(e.Key is Key.D0 or Key.NumPad0) { ResetZoom();e.Handled=true;return; }
             var current = hover ?? now;
             hover = e.Key switch { Key.Left => current.AddMinutes(-5), Key.Right => current.AddMinutes(5), Key.Home => from, Key.End => until, _ => null };
             if (hover is not { } t) return;
@@ -71,7 +99,7 @@ sealed class ComparisonChart : FrameworkElement
         forecast = saved?.View;
         actual = samples.OrderBy(s => s.TimestampUtc).ToArray();
         breaks = interruptions;
-        now = at; from = at.AddHours(-12); until = at.AddHours(12);
+        now = at; viewport.SetBounds(at.AddHours(-12),at.AddHours(12),reset:!sameForecast);UpdateViewport();
         if (!sameForecast) ClearSelection();
         else
         {
@@ -87,6 +115,15 @@ sealed class ComparisonChart : FrameworkElement
         if (showObserved == observed && showPredicted == predicted) return;
         showObserved = observed; showPredicted = predicted;
         ClearSelection();
+    }
+
+    public void Zoom(double factor,double anchor=.5) { viewport.Zoom(factor,anchor);UpdateViewport(); }
+    public void ResetZoom() { viewport.Reset();UpdateViewport(); }
+    void UpdateViewport()
+    {
+        hover=null;SetValue(HoverTextKey,null);
+        SetValue(ViewportTextKey,L.F("TrendViewport",from.ToLocalTime().ToString("dd/MM HH:mm",L.Culture),until.ToLocalTime().ToString("dd/MM HH:mm",L.Culture)));
+        InvalidateVisual();
     }
 
     public void ClearSelection()
@@ -137,11 +174,23 @@ sealed class ComparisonChart : FrameworkElement
         FormattedText Text(string s, string color = "TextTertiary") => new(s, L.Culture, FlowDirection.LeftToRight,
             new Typeface("Segoe UI"), 11, B(color), VisualTreeHelper.GetDpi(this).PixelsPerDip);
         double X(DateTimeOffset t) => (t-from).TotalSeconds / (until-from).TotalSeconds * width;
-        double Y(double p) => Top + (100-Math.Clamp(p,0,100))/100*height;
-        foreach (double v in new[] { 0.0, 25, 50, 75, 100 })
+        double low=0,high=100;
+        if(viewport.IsZoomed)
+        {
+            var values=new List<double>();
+            if(showObserved) values.AddRange(actual.Where(s=>s.TimestampUtc>=from && s.TimestampUtc<=until && s.LevelPct is not null).Select(s=>s.LevelPct!.Value));
+            if(showPredicted && forecast is { } visible) values.AddRange(visible.Curve.Where(p=>p.T>=from&&p.T<=until).SelectMany(p=>new[]{p.P10,p.P90}));
+            if(values.Count>0)
+            {
+                low=Math.Max(0,Math.Floor((values.Min()-2)/5)*5);high=Math.Min(100,Math.Ceiling((values.Max()+2)/5)*5);
+                if(high-low<5) { low=Math.Max(0,high-5);high=Math.Min(100,low+5); }
+            }
+        }
+        double Y(double p) => Top+(high-p)/(high-low)*height;
+        foreach (double v in Enumerable.Range(0,5).Select(i=>low+i*(high-low)/4))
         {
             dc.DrawLine(new Pen(B("Grid"),1),new(0,Y(v)),new(width,Y(v)));
-            dc.DrawText(Text($"{v:0}%"),new(width+6,Y(v)-7));
+            dc.DrawText(Text($"{v:0.#}%"),new(width+6,Y(v)-7));
         }
         dc.PushClip(new RectangleGeometry(new Rect(0,Top,width,height)));
         if (showPredicted && forecast is { } f)
@@ -205,7 +254,10 @@ sealed class ComparisonChart : FrameworkElement
         }
         if (!showObserved && !showPredicted)
             dc.DrawText(Text(L.T("TrendNoCurves")),new Point(10,Top+height/2));
-        var nowLabel=Text(L.T("TrendNow"));
-        dc.DrawText(nowLabel,new(Math.Clamp(X(now)-nowLabel.Width/2,0,Math.Max(0,width-nowLabel.Width)),Top+2));
+        if(now>=from && now<=until)
+        {
+            var nowLabel=Text(L.T("TrendNow"));
+            dc.DrawText(nowLabel,new(Math.Clamp(X(now)-nowLabel.Width/2,0,Math.Max(0,width-nowLabel.Width)),Top+2));
+        }
     }
 }

@@ -208,3 +208,8 @@ A point difference is shown only against an observation after issue time and ins
 Power-scenario changes and interruptions are flagged. The chart covers the previous/next 12 hours;
 its selector lists up to 100 recent responses from the last 24 hours. This is an exploratory individual
 comparison, not scientific validation, a calibrated error score or evidence of predictive superiority.
+
+Battery trend supports pointer-anchored wheel zoom down to fifteen minutes, bounded middle-button
+panning and +/-/reset controls (keyboard +, −, 0). The visible percentage scale adapts when zoomed.
+Refreshing the same saved forecast preserves the viewport; selecting a different one resets it.
+Navigation changes no stored observations, issued curves or model calculations.

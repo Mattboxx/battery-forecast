@@ -369,6 +369,10 @@ public partial class PreferencesWindow : Window
         LoadContextHistory();
     }
 
+    void TrendZoomIn_Click(object sender,RoutedEventArgs e)=>TrendChart.Zoom(1.5);
+    void TrendZoomOut_Click(object sender,RoutedEventArgs e)=>TrendChart.Zoom(1/1.5);
+    void TrendZoomReset_Click(object sender,RoutedEventArgs e)=>TrendChart.ResetZoom();
+
     async void RefreshSensors_Click(object sender, RoutedEventArgs e)
     {
         RefreshSensors.IsEnabled = false;

@@ -131,7 +131,13 @@
                             </StackPanel>
                         </CheckBox>
                     </WrapPanel>
-                    <TextBlock Text="{app:T TrendWindow}" Style="{StaticResource RowHelp}"/>
+                    <WrapPanel Margin="0,4,0,8">
+                        <Button Content="+" Click="TrendZoomIn_Click" AutomationProperties.Name="{app:T TrendZoomIn}" Padding="12,4" Margin="0,0,6,0"/>
+                        <Button Content="−" Click="TrendZoomOut_Click" AutomationProperties.Name="{app:T TrendZoomOut}" Padding="12,4" Margin="0,0,6,0"/>
+                        <Button Content="{app:T TrendZoomReset}" Click="TrendZoomReset_Click" Padding="12,4"/>
+                    </WrapPanel>
+                    <TextBlock Text="{Binding ViewportText, ElementName=TrendChart}" Style="{StaticResource RowHelp}"/>
+                    <TextBlock Text="{app:T TrendZoomHelp}" Style="{StaticResource RowHelp}"/>
                     <TextBlock Text="{Binding HoverText, ElementName=TrendChart}" MinHeight="30" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondary}" Margin="0,6,0,0"/>
                     <app:ComparisonChart x:Name="TrendChart" AutomationProperties.Name="{app:T SecTrend}"/>
                     <TextBlock Text="{Binding PinnedText, ElementName=TrendChart}" MinHeight="30" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondary}"/>

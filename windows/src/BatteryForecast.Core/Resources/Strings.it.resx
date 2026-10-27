@@ -313,8 +313,13 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="TrendRefresh" xml:space="preserve"><value>Aggiorna grafico</value></data>
   <data name="TrendSavedForecast" xml:space="preserve"><value>Previsione salvata</value></data>
   <data name="TrendSource" xml:space="preserve"><value>Lettura del {0} · {1} · {2}. Stima sperimentale.</value></data>
+  <data name="TrendViewport" xml:space="preserve"><value>Intervallo visibile: {0} — {1}</value></data>
   <data name="TrendWaiting" xml:space="preserve"><value>In attesa di letture successive all’emissione di questa previsione. Lo storico osservato resta visibile.</value></data>
   <data name="TrendWindow" xml:space="preserve"><value>Ultime 12 ore e prossime 12 ore · livello batteria (%)</value></data>
+  <data name="TrendZoomHelp" xml:space="preserve"><value>Rotella per ingrandire sul puntatore; trascina con il tasto centrale per spostarti. Tastiera: + / −, 0 per ripristinare. La scala percentuale si adatta allo zoom.</value></data>
+  <data name="TrendZoomIn" xml:space="preserve"><value>Ingrandisci andamento batteria</value></data>
+  <data name="TrendZoomOut" xml:space="preserve"><value>Riduci andamento batteria</value></data>
+  <data name="TrendZoomReset" xml:space="preserve"><value>Ripristina zoom</value></data>
   <data name="Unavailable" xml:space="preserve"><value>Previsione non disponibile</value></data>
   <data name="Until" xml:space="preserve"><value>Fino alle {0}</value></data>
   <data name="UntilDay" xml:space="preserve"><value>Fino a {0}</value></data>
