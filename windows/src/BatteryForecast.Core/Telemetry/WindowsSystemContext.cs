@@ -15,7 +15,7 @@ public sealed class WindowsSystemContext : ISystemContextProvider
     int optionalBusy;
     readonly Lock optionalGate = new();
     OptionalSensors optional = new();
-    sealed record OptionalSensors(double? CpuC = null, double? BatteryC = null, double? ZoneC = null, double? Brightness = null);
+    public IReadOnlyDictionary<string,string> OptionalSensorErrors { get { lock(optionalGate) return optional.Errors; } }
 
     public WindowsSystemContext(TimeProvider? clock = null, Func<bool>? collectAdvanced = null, Func<double?>? displayState = null)
     {
@@ -77,8 +77,12 @@ public sealed class WindowsSystemContext : ISystemContextProvider
                     {
                         try
                         {
-                            var fresh=ReadOptional();
+                            var fresh=OptionalSensors.Read(Query, BatteryTemperatureProbe.ReadMaximum);
                             lock(optionalGate) { if (collectAdvanced()) { optional=fresh; optionalAt=this.clock.GetUtcNow(); } }
+                        }
+                        catch(Exception e) when (e is not OutOfMemoryException)
+                        {
+                            lock(optionalGate) { optional=new(Errors: new Dictionary<string,string> { ["probe"]=e.GetType().Name }); optionalAt=this.clock.GetUtcNow(); }
                         }
                         finally { Interlocked.Exchange(ref optionalBusy,0); }
                     });
@@ -89,24 +93,7 @@ public sealed class WindowsSystemContext : ISystemContextProvider
             battery.DischargePowerMW/1000.0,battery.ChargingPowerMW/1000.0,profile, DisplayState: displayState());
     }
 
-    static OptionalSensors ReadOptional()
-    {
-        double? cpu = null;
-        foreach(var ns in new[] {@"root\LibreHardwareMonitor", @"root\OpenHardwareMonitor"})
-        {
-            var values=Query(ns,"SELECT Value FROM Sensor WHERE SensorType='Temperature' AND (Name LIKE '%CPU Package%' OR Name LIKE '%CPU Core%')","Value");
-            if(values.Length>0) { cpu=values.Max(); break; }
-        }
-        if(cpu is not (>= -30 and <= 130)) cpu=null;
-        var zones=Query(@"root\WMI","SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature","CurrentTemperature")
-            .Select(v => v>=0 && v<=uint.MaxValue ? SensorMath.KelvinTenthsToCelsius((uint)v) : null).Where(v => v is not null).ToArray();
-        var brightness=Query(@"root\WMI","SELECT CurrentBrightness FROM WmiMonitorBrightness WHERE Active=True","CurrentBrightness")
-            .Where(v=>v is >=0 and <=100).ToArray();
-        return new(cpu,BatteryTemperatureProbe.ReadMaximum(),zones.Length>0 ? zones.Max() : null,
-            brightness.Length>0 ? brightness.Average() : null);
-    }
-
-    static double[] Query(string ns,string query,string property)
+    internal static double[] Query(string ns,string query,string property)
     {
         object? locator=null,service=null,result=null;
         try
@@ -114,18 +101,27 @@ public sealed class WindowsSystemContext : ISystemContextProvider
             var type=Type.GetTypeFromProgID("WbemScripting.SWbemLocator");
             if(type is null)return [];
             locator=Activator.CreateInstance(type);
-            service=((dynamic)locator!).ConnectServer(".",ns,null,null,null,null,128,null);
-            result=((dynamic)service!).ExecQuery(query,"WQL",48);
+            // Missing variants preserve COM defaults. Null is not an omitted optional argument.
+            service=((dynamic)locator!).ConnectServer(".",ns,Type.Missing,Type.Missing,Type.Missing,Type.Missing,128,Type.Missing);
+            // .NET's IEnumerable adapter rewinds the enumerator; forward-only results cannot do that.
+            result=((dynamic)service!).ExecQuery(query,"WQL",16);
             var values=new List<double>();
             foreach(object row in (IEnumerable)result!)
             {
-                try { var v=Convert.ToDouble(((dynamic)row).Properties_.Item(property).Value,System.Globalization.CultureInfo.InvariantCulture); if(double.IsFinite(v))values.Add(v); }
-                finally { Release(row); }
+                object? properties=null,item=null;
+                try
+                {
+                    properties=((dynamic)row).Properties_;
+                    item=((dynamic)properties).Item(property);
+                    object? raw=((dynamic)item).Value;
+                    if(raw is null || raw is DBNull) continue;
+                    var v=Convert.ToDouble(raw,System.Globalization.CultureInfo.InvariantCulture);
+                    if(double.IsFinite(v))values.Add(v);
+                }
+                finally { Release(item); Release(properties); Release(row); }
             }
             return [..values];
         }
-        catch(Exception e) when(e is COMException or UnauthorizedAccessException or Microsoft.CSharp.RuntimeBinder.RuntimeBinderException or InvalidCastException or FormatException)
-        { return []; }
         finally { Release(result); Release(service); Release(locator); }
     }
     static void Release(object? value) { if(value is not null && Marshal.IsComObject(value))Marshal.ReleaseComObject(value); }

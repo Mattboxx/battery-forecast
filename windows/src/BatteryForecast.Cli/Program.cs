@@ -29,6 +29,7 @@ switch (cmd)
         SystemSample reading=context.Read(battery.Read());
         for(int i=0;i<3;i++) { await Task.Delay(1000); reading=context.Read(battery.Read()); }
         Console.WriteLine(JsonSerializer.Serialize(reading,json));
+        Console.Error.WriteLine(JsonSerializer.Serialize(new { optional_sensor_errors=context.OptionalSensorErrors },json));
         return 0;
     }
 

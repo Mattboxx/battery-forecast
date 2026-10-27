@@ -104,6 +104,12 @@ OpenHardwareMonitor/LibreHardwareMonitor WMI provider. ACPI thermal zones are a 
 are never labelled CPU or battery temperature. Missing, unsupported or access-denied data stays null.
 No kernel driver, elevated helper, process names, window titles or online telemetry are introduced.
 
+Optional probes are isolated: an unavailable WMI provider or a denied thermal query does not block
+brightness or the battery-class temperature probe. WMI uses omitted COM parameters and a rewindable
+result set compatible with .NET enumeration. The diagnostic CLI reports per-probe failures separately
+from readings. A local hardware check confirmed brightness collection; temperature availability still
+depends on installed providers, firmware and permissions. No accuracy gain is inferred from this check.
+
 Sensor context is stored separately in SQLite schema 5, under the same retention/deletion settings.
 Five-minute means align to the battery grid; mixed power-profile/display bins are missing. Six observed bins
 and nonconstant values are required per channel. Numeric gaps up to ten minutes can interpolate when
