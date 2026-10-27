@@ -59,9 +59,10 @@ public class DisplayStateTests
                 using var csv = new StringWriter();
                 Assert.Equal(4, store.ExportContextCsv(csv));
                 var lines = csv.ToString().Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                Assert.Contains("display_state,source", lines[0]);
-                Assert.Contains(",,old,", lines[1]);
-                Assert.Contains(",1,new,", lines[2]);
+                var columns=lines[0].Trim().Split(',');
+                var source=Array.IndexOf(columns,"source");var display=Array.IndexOf(columns,"display_state");
+                Assert.Equal("old",lines[1].Split(',')[source]);Assert.Equal("",lines[1].Split(',')[display]);
+                Assert.Equal("new",lines[2].Split(',')[source]);Assert.Equal("1",lines[2].Split(',')[display]);
             }
         }
         finally { foreach (var p in new[] { path, path + "-wal", path + "-shm" }) File.Delete(p); }

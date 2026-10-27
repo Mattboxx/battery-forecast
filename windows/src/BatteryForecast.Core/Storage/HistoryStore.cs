@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using BatteryForecast.Core.Battery;
 using BatteryForecast.Core.Telemetry;
@@ -15,7 +16,7 @@ public readonly record struct ModelCovariate(long Ts,double? Value);
 /// </summary>
 public sealed partial class HistoryStore : IDisposable
 {
-    public const int SchemaVersion = 6;
+    public const int SchemaVersion = 7;
     readonly SqliteConnection db;
     readonly Lock gate = new();
 
@@ -111,62 +112,81 @@ public sealed partial class HistoryStore : IDisposable
                 """,tx);
             tx.Commit();
         }
+        if(version<7)
+        {
+            using var tx=db.BeginTransaction();
+            Exec("""
+                ALTER TABLE context_samples ADD COLUMN process_cpu_pct REAL NULL;
+                ALTER TABLE context_samples ADD COLUMN process_memory_mb REAL NULL;
+                ALTER TABLE context_samples ADD COLUMN workload_profile REAL NULL;
+                ALTER TABLE context_samples ADD COLUMN processes_json TEXT NULL;
+                ALTER TABLE context_samples ADD COLUMN process_start REAL NULL;
+                PRAGMA user_version=7;
+                """,tx);
+            tx.Commit();
+        }
     }
 
-    static readonly string[] ContextColumns = ["cpu_pct","cpu_mhz","memory_pct","cpu_temp_c","battery_temp_c","thermal_zone_c","brightness_pct","discharge_w","charge_w","power_profile","display_state"];
+    static readonly string[] ContextColumns = ["cpu_pct","cpu_mhz","memory_pct","cpu_temp_c","battery_temp_c","thermal_zone_c","brightness_pct","discharge_w","charge_w","power_profile","display_state","process_cpu_pct","process_memory_mb","workload_profile"];
 
     public void AppendContext(SystemSample sample)
     {
         lock(gate)
         {
             using var cmd=db.CreateCommand();
-            cmd.CommandText=$"INSERT OR IGNORE INTO context_samples (ts,{string.Join(',',ContextColumns)},source,cpu_start,measured_at,collection_kind,optional_observed_at) VALUES ($ts,$v0,$v1,$v2,$v3,$v4,$v5,$v6,$v7,$v8,$v9,$v10,$source,$cpu_start,$measured,$kind,$optional)";
+            cmd.CommandText=$"INSERT OR IGNORE INTO context_samples (ts,{string.Join(',',ContextColumns)},source,cpu_start,measured_at,collection_kind,optional_observed_at,process_start,processes_json) VALUES ($ts,{string.Join(',',Enumerable.Range(0,ContextColumns.Length).Select(i=>$"$v{i}"))},$source,$cpu_start,$measured,$kind,$optional,$process_start,$processes)";
             cmd.Parameters.AddWithValue("$ts",sample.TimestampUtc.ToUnixTimeSeconds());
             var values=new double?[] { sample.CpuPct,sample.CpuMHz,sample.MemoryPct,sample.CpuTemperatureC,sample.BatteryTemperatureC,
-                sample.ThermalZoneC,sample.BrightnessPct,sample.DischargeW,sample.ChargeW,sample.PowerProfile,sample.DisplayState is 0 or 1 or 2 ? sample.DisplayState : null };
+                sample.ThermalZoneC,sample.BrightnessPct,sample.DischargeW,sample.ChargeW,sample.PowerProfile,sample.DisplayState is 0 or 1 or 2 ? sample.DisplayState : null,
+                sample.ProcessCpuPct,sample.ProcessMemoryMB,sample.WorkloadProfile };
             for(int i=0;i<values.Length;i++)cmd.Parameters.AddWithValue($"$v{i}",values[i] is double v && double.IsFinite(v)?v:DBNull.Value);
             cmd.Parameters.AddWithValue("$source",sample.Source);
             cmd.Parameters.AddWithValue("$cpu_start",sample.CpuIntervalStartUtc is { } start ? Seconds(start) : DBNull.Value);
             cmd.Parameters.AddWithValue("$measured",Seconds(sample.TimestampUtc));
             cmd.Parameters.AddWithValue("$kind",sample.CollectionKind);
             cmd.Parameters.AddWithValue("$optional",sample.OptionalObservedUtc is { } optional ? Seconds(optional) : DBNull.Value);
+            cmd.Parameters.AddWithValue("$process_start",sample.ProcessIntervalStartUtc is { } processStart ? Seconds(processStart) : DBNull.Value);
+            cmd.Parameters.AddWithValue("$processes",sample.ProcessLoads is { Count:>0 } ? JsonSerializer.Serialize(sample.ProcessLoads) : DBNull.Value);
             cmd.ExecuteNonQuery();
         }
     }
 
-    public Dictionary<string,IReadOnlyList<ModelCovariate>> ModelCovariates(DateTimeOffset since, DateTimeOffset until, bool currentBatteryOnly = false, bool includeLegacyCpu = false)
+    public Dictionary<string,IReadOnlyList<ModelCovariate>> ModelCovariates(DateTimeOffset since, DateTimeOffset until, bool currentBatteryOnly = false, bool includeLegacyCpu = false,bool includeApps = false)
     {
         lock(gate)
         {
             using var cmd=db.CreateCommand();
-            cmd.CommandText=$"SELECT COALESCE(measured_at,ts), {string.Join(',',ContextColumns)},cpu_start,optional_observed_at FROM context_samples WHERE ts >= $since AND COALESCE(measured_at,ts) <= $until AND ($current=0 OR ts >= COALESCE((SELECT MIN(ts) FROM battery_samples WHERE battery_epoch>0 AND battery_epoch=(SELECT battery_epoch FROM battery_samples WHERE ts <= $until ORDER BY ts DESC LIMIT 1)), $since)) ORDER BY ts";
+            cmd.CommandText=$"SELECT COALESCE(measured_at,ts), {string.Join(',',ContextColumns)},cpu_start,optional_observed_at,process_start FROM context_samples WHERE ts >= $since AND COALESCE(measured_at,ts) <= $until AND ($current=0 OR ts >= COALESCE((SELECT MIN(ts) FROM battery_samples WHERE battery_epoch>0 AND battery_epoch=(SELECT battery_epoch FROM battery_samples WHERE ts <= $until ORDER BY ts DESC LIMIT 1)), $since)) ORDER BY ts";
             cmd.Parameters.AddWithValue("$since",since.ToUnixTimeSeconds());
             cmd.Parameters.AddWithValue("$until",Seconds(until));
             cmd.Parameters.AddWithValue("$current",currentBatteryOnly ? 1 : 0);
             using var reader=cmd.ExecuteReader();
-            var readings=new List<(double T,double?[] Values,double? Start)>();
+            var readings=new List<(double T,double?[] Values,double? Start,double? ProcessStart)>();
             while(reader.Read())
             {
                 var values=Enumerable.Range(1,ContextColumns.Length).Select(i=>NullD(reader,i)).ToArray();
                 double t=reader.GetDouble(0);
                 // Cached optional observations carry their real acquisition time, never a fresh timestamp.
-                if(NullD(reader,13) is { } at && (t-at>120 || at>t))
+                if(NullD(reader,ContextColumns.Length+2) is { } at && (t-at>120 || at>t))
                     foreach(int c in new[]{3,4,5,6}) values[c]=null;
-                readings.Add((t,values,NullD(reader,12)));
+                readings.Add((t,values,NullD(reader,ContextColumns.Length+1),NullD(reader,ContextColumns.Length+3)));
             }
             reader.Close();
-            var bins=new TemporalBins(ContextColumns.Length,[9,10],Seconds(since),Seconds(until),AggregationBarriers(since,until));
+            var bins=new TemporalBins(ContextColumns.Length,[9,10,13],Seconds(since),Seconds(until),AggregationBarriers(since,until));
             for(int i=0;i<readings.Count;i++)
             {
                 var r=readings[i];
                 bins.Point(r.T,i+1<readings.Count?readings[i+1].T:Seconds(until),r.Values,
-                    intervalChannel:r.Start is not null || !includeLegacyCpu ? 0 : -1);
+                    intervalChannel:r.Start is not null || !includeLegacyCpu ? 0 : -1,secondIntervalChannel:11);
                 if(r.Start is { } start) bins.Interval(0,start,r.T,r.Values[0]);
+                if(r.ProcessStart is { } processStart) bins.Interval(11,processStart,r.T,r.Values[11]);
             }
             var rows=ContextColumns.ToDictionary(c=>c,_=>new List<ModelCovariate>());
             foreach(var (ts,values) in bins.Rows())
                 for(int i=0;i<ContextColumns.Length;i++) rows[ContextColumns[i]].Add(new(ts,values[i]));
-            return rows.ToDictionary(x=>x.Key,x=>(IReadOnlyList<ModelCovariate>)x.Value);
+            var result=rows.ToDictionary(x=>x.Key,x=>(IReadOnlyList<ModelCovariate>)x.Value);
+            if(includeApps) foreach(var (key,values) in AppCovariates(since,until,currentBatteryOnly)) result[key]=values;
+            return result;
         }
     }
 
@@ -189,9 +209,9 @@ public sealed partial class HistoryStore : IDisposable
     {
         lock(gate)
         {
-            using var cmd=db.CreateCommand();cmd.CommandText=$"SELECT ts,{string.Join(',',ContextColumns)},source,cpu_start,measured_at,collection_kind,optional_observed_at FROM context_samples ORDER BY ts";
+            using var cmd=db.CreateCommand();cmd.CommandText=$"SELECT ts,{string.Join(',',ContextColumns)},source,cpu_start,measured_at,collection_kind,optional_observed_at,process_start,processes_json FROM context_samples ORDER BY ts";
             using var reader=cmd.ExecuteReader();
-            writer.WriteLine("timestamp_utc,"+string.Join(',',ContextColumns)+",source,cpu_interval_start_unix,measured_at_unix,collection_kind,optional_observed_at_unix");
+            writer.WriteLine("timestamp_utc,"+string.Join(',',ContextColumns)+",source,cpu_interval_start_unix,measured_at_unix,collection_kind,optional_observed_at_unix,process_interval_start_unix,processes_json");
             int count=0;
             while(reader.Read())
             {
@@ -199,7 +219,7 @@ public sealed partial class HistoryStore : IDisposable
                 for(int i=1;i<=ContextColumns.Length;i++)values.Add(reader.IsDBNull(i)?"":reader.GetDouble(i).ToString("0.###",CultureInfo.InvariantCulture));
                 values.Add(reader.GetString(ContextColumns.Length+1));
                 for(int i=ContextColumns.Length+2;i<reader.FieldCount;i++) values.Add(reader.IsDBNull(i)?"":Convert.ToString(reader.GetValue(i),CultureInfo.InvariantCulture)!);
-                writer.WriteLine(string.Join(',',values));count++;
+                writer.WriteLine(string.Join(',',values.Select(v=>v.IndexOfAny([',','"','\r','\n'])>=0?"\""+v.Replace("\"","\"\"")+"\"":v)));count++;
             }
             return count;
         }

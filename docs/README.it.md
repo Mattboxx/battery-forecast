@@ -173,10 +173,16 @@ privacy** abilita raccolta e utilizzo dei dati di sistema; le sonde facoltative 
 temperature supportate. Lascia l’app attiva durante l’uso normale, premi **Ricalcola ora** e confronta
 la previsione salvata con le letture successive nella pagina **Andamento**. Per i nuovi intervalli CPU
 servono almeno sei bin variabili da cinque minuti, circa mezz’ora. I sensori non supportati restano assenti.
-Il nuovo schema 6 non è leggibile dalla 0.9.1: prima di tornare a una versione precedente, conserva una
+Il nuovo schema 7 non è leggibile dalla 0.9.1: prima di tornare a una versione precedente, conserva una
 copia di `%LOCALAPPDATA%\BatteryForecast`, eseguita dopo aver chiuso l’app.
 
 ## Più controllo e contesto
+
+- **Carico delle singole app, facoltativo:** in Dati e privacy puoi attivare la raccolta locale dei nomi degli
+  eseguibili, CPU e memoria di lavoro. Il modello riceve canali storici distinti per le app ricorrenti, senza
+  inventarne l’attività futura. Le associazioni con il consumo indicano watt del PC in condizioni simili,
+  non watt attribuiti alla singola app. Niente titoli, percorsi, argomenti o invio online. I dati seguono la
+  conservazione dello storico e sono inclusi solo nell’esportazione esplicita del contesto.
 
 - **Obiettivi orari facoltativi:** spegni obiettivo serale e altri orari conservando quelli salvati. Stima
   principale e grafico restano disponibili.

@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import math
 
-from .series import CONTEXT_RANGES
+from .series import CONTEXT_RANGES,MAX_CONTEXT_CHANNELS,context_range
 
 from . import DEFAULT_RESERVE, HORIZON_STEPS, PROTOCOL_VERSION, STEP_SECONDS
 
@@ -100,12 +100,12 @@ def parse_request(line: bytes) -> dict:
     if out["scenario"] == "charge" and not 50 <= out["target"] <= 100:
         raise ProtocolError("bad_request", "target_pct deve stare fra 50 e 100")
     context = req.get("past_covariates", {})
-    if not isinstance(context, dict) or len(context) > len(CONTEXT_RANGES):
+    if not isinstance(context, dict) or len(context) > MAX_CONTEXT_CHANNELS:
         raise ProtocolError("bad_request", "past_covariates must contain supported named historical channels")
     parsed = {}
     try:
         for name, pairs in context.items():
-            if name not in CONTEXT_RANGES or not isinstance(pairs, list) or len(pairs) > 40000:
+            if not isinstance(name,str) or context_range(name) is None or not isinstance(pairs, list) or len(pairs) > 40000:
                 raise ValueError("unknown or oversized historical channel")
             clean = []
             for pair in pairs:

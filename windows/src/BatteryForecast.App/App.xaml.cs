@@ -130,7 +130,7 @@ public partial class App : Application
         if (launch is null) log.Write("engine not found next to the app");
         // il motore si chiude un minuto dopo l'ultima previsione: non resta in memoria fra un calcolo e l'altro
         worker = launch is null ? null : new ForecastWorker(launch, new WorkerOptions { IdleLimit = TimeSpan.FromMinutes(1) });
-        collector = new Collector(provider, Store, context: demo ? new Demo.ContextProvider() : new WindowsSystemContext(collectAdvanced: () => Settings.CollectAdvancedSensors, displayState: () => displayState.Value),
+        collector = new Collector(provider, Store, context: demo ? new Demo.ContextProvider() : new WindowsSystemContext(collectAdvanced: () => Settings.CollectAdvancedSensors, displayState: () => displayState.Value,collectProcesses:()=>Settings.CollectProcesses),
             collectContext: () => Settings.CollectSystemContext, contextIntervalSeconds: () => Settings.ContextIntervalSeconds);
         Coordinator = new ForecastCoordinator(collector, Store, worker, () => Settings, paths.LastForecast, demo: demo);
         Coordinator.Changed += s => Dispatcher.BeginInvoke(() => Render(s));
@@ -458,9 +458,11 @@ public partial class App : Application
         if (prev.RetentionDays != Settings.RetentionDays)
             Task.Run(() => Store?.Prune(DateTimeOffset.UtcNow, Settings.RetentionDays));
         var modelChanged = prev.ReservePct != Settings.ReservePct || prev.ChargeTargetPct != Settings.ChargeTargetPct
-            || prev.UseSystemContext != Settings.UseSystemContext || prev.CollectSystemContext != Settings.CollectSystemContext;
+            || prev.UseSystemContext != Settings.UseSystemContext || prev.CollectSystemContext != Settings.CollectSystemContext
+            || prev.CollectProcesses!=Settings.CollectProcesses;
+        if(prev.CollectProcesses!=Settings.CollectProcesses) collector?.ResetContextIntervals();
         if (prev.CollectSystemContext != Settings.CollectSystemContext || prev.CollectAdvancedSensors != Settings.CollectAdvancedSensors
-            || prev.ContextIntervalSeconds != Settings.ContextIntervalSeconds)
+            || prev.ContextIntervalSeconds != Settings.ContextIntervalSeconds || prev.CollectProcesses!=Settings.CollectProcesses)
             _ = Task.Run(() => collector?.Sample(forceContext: true));
         Coordinator?.SettingsChanged(recalculate: modelChanged);
 

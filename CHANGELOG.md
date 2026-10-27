@@ -2,18 +2,20 @@
 
 ## 0.9.2
 
+- Optional local executable workload history with measured per-app CPU and working sets, distinct historical model channels for recurring apps and workload combinations, and matched **whole-PC** power associations. Off by default; no window titles, paths, arguments or invented future app activity. Retention, deletion and explicit CSV export cover the added data.
+
 - Zoom Battery trend around the mouse pointer, pan with the middle button, and reset with visible controls or the keyboard. The percentage scale adapts to the visible range; curve visibility choices and original pinned references remain independent of model calculation.
 
 - Invalidate pre-sleep cached/in-flight forecasts, detect missed wake/hibernation notifications with passive Windows clocks, and keep active-use model time independent of unobserved sleep duration. Preserve raw calendar history; retain genuine awake idle readings.
 
 - Restore optional WMI brightness collection and isolate sensor failures, without adding drivers or dependencies.
-- Use time-weighted battery and context history instead of giving diagnostic bursts extra weight. Preserve exact reading times, CPU counter intervals and collection triggers in SQLite schema 6.
+- Use time-weighted battery and context history instead of giving diagnostic bursts extra weight. Preserve exact reading times, CPU counter intervals and collection triggers in SQLite schema 7.
 - Keep older history; legacy CPU readings without recorded intervals remain available in history/exports but are excluded from model input until new valid intervals are collected.
 - Send known sleep/wake, app restart, adapter and battery-change boundaries to the local engine. Block interpolation and continuous-session counts across them; screen off remains distinct from sleep.
 - Pass the original target-observation mask to Timestral so held/interpolated target points do not count as measurements. Preserve the current reading as the forecast anchor.
 - Verify these rules with functional tests and the real local model. No measured accuracy gain or calibrated uncertainty is claimed. Windows x64 and ARM64 offline installers retain the existing interface, model and component terms.
 
-The existing battery history is retained on upgrade. Schema 6 cannot be opened by 0.9.1: back up local data before downgrading. CPU context needs at least six new nonconstant five-minute bins with recorded intervals (about thirty minutes); older battery/power/memory history remains available.
+The existing battery history is retained on upgrade. Schema 7 cannot be opened by 0.9.1: back up local data before downgrading. CPU context needs at least six new nonconstant five-minute bins with recorded intervals (about thirty minutes); older battery/power/memory history remains available.
 
 ## 0.9.1
 

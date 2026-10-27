@@ -7,9 +7,14 @@ Scientific backtesting is postponed at the user's request.
 ## Inputs at the actual reading time
 
 The app reads battery level, adapter state and available energy/power. It takes battery history and
-optional system context only up to that reading's timestamp, using the recorded current battery epoch
+optional system context only up to the acquisition cutoff, using the recorded current battery epoch
 when a design-capacity change has identified a replacement. Older observations remain in local history
 and exports. Detection by design capacity cannot identify every replacement with an identical battery.
+
+The cutoff is the latest completed battery/context reading available when requesting inference; the
+battery-level anchor may precede the context timestamp by acquisition latency. Inputs after the cutoff
+are excluded, including later readings within the same second. This permits a fresh opt-in app snapshot
+without treating it as if it were observed before the battery read.
 
 Historical battery values use time-weighted means on a five-minute UTC grid. An interval containing both adapter
 states, or an unknown state, remains unknown. The last value is the actual current reading.
@@ -35,7 +40,7 @@ sensor interpolation remains a declared estimate and is also blocked by boundari
 observations are introduced.
 
 New context rows preserve the CPU counter interval, exact reading timestamp, collection trigger and
-optional-probe acquisition time (SQLite schema 6). CPU averages are weighted by their measured durations,
+optional-probe acquisition time (SQLite schema 7). CPU averages are weighted by their measured durations,
 split at bin boundaries, using only completed measurements available at the request origin. Intervals
 longer than 150 seconds or spanning a recorded interruption are excluded. Legacy CPU rows without
 intervals remain in storage/exports and can appear in history, but are excluded from model input.
@@ -51,7 +56,14 @@ The JSON Lines v1 request accepts additive optional fields: a fourth boolean `ob
 `samples` row (legacy triples default to true), and `discontinuities_utc`, a sorted set of UTC timestamps
 bounded at the request origin. The engine rejects nonfinite/invalid boundaries. The app and engine must
 be packaged from matching sources to enforce these rules; older engines cannot implement new rules
-merely by accepting unknown JSON fields. SQLite schema 6 adds metadata without rewriting old samples.
+merely by accepting unknown JSON fields. SQLite schema 7 adds optional process data without rewriting old samples.
+
+Opt-in executable workload recording adds separate historical CPU/memory channels for currently observed
+recurring apps, capped at six apps. CPU uses each process snapshot's actual interval. Individual unknown
+app observations stay missing, without interpolation or invented future activity. Stable identifiers keep
+names local; a categorical app-set profile distinguishes recurring combinations when sufficiently observed.
+Context CSV exports explicitly include retained names; retention/deletion covers them. Matched-load power
+summaries are whole-PC observations, not energy metering of a particular process. See the model card.
 
 Optional context includes battery watts, CPU load/frequency, memory, available temperatures/brightness,
 power profile and Windows session display state. Missing sensors are not replaced by estimates.

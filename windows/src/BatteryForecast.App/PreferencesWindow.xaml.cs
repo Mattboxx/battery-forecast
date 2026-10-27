@@ -43,6 +43,8 @@ public partial class PreferencesWindow : Window
         EveningEnabled.IsChecked = s.EveningTargetEnabled;
         Target.IsEnabled = ExtraTimes.IsEnabled = s.EveningTargetEnabled;
         AdvancedSensors.IsChecked = s.CollectAdvancedSensors;
+        CollectProcesses.IsChecked=s.CollectProcesses;
+        CollectProcesses.IsEnabled=s.CollectSystemContext;
         AdvancedSensors.IsEnabled = s.CollectSystemContext;
         ContextInterval.Text = s.ContextIntervalSeconds.ToString(CultureInfo.InvariantCulture);
         ContextHours.Text = s.ContextHistoryHours.ToString(CultureInfo.InvariantCulture);
@@ -92,7 +94,7 @@ public partial class PreferencesWindow : Window
         ShowUpdate(app.AvailableUpdate);
 
         foreach (var c in new[] { RefreshBox, ThemeBox, LanguageBox, Retention }) c.SelectionChanged += (_, _) => Save();
-        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, OpenOnHover, QuietEnabled, CollectContext, UseContext, EveningEnabled, AdvancedSensors }) c.Click += (_, _) => Save();
+        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, OpenOnHover, QuietEnabled, CollectContext, UseContext, EveningEnabled, AdvancedSensors,CollectProcesses }) c.Click += (_, _) => Save();
         TrayPercent.Click += (_, _) => Save();
         Login.Click += (_, _) =>
         {
@@ -149,6 +151,7 @@ public partial class PreferencesWindow : Window
         {
             EveningTargetEnabled = EveningEnabled.IsChecked == true,
             CollectAdvancedSensors = AdvancedSensors.IsChecked == true,
+            CollectProcesses=CollectProcesses.IsChecked==true,
             CollectSystemContext = CollectContext.IsChecked == true,
             UseSystemContext = UseContext.IsChecked == true,
             ShowChart = ShowChart.IsChecked == true,
@@ -171,7 +174,7 @@ public partial class PreferencesWindow : Window
             },
         });
         NotifyOptions.IsEnabled = NotifyEnabled.IsChecked == true;
-        UseContext.IsEnabled = AdvancedSensors.IsEnabled = CollectContext.IsChecked == true;
+        UseContext.IsEnabled = AdvancedSensors.IsEnabled = CollectProcesses.IsEnabled=CollectContext.IsChecked == true;
         Target.IsEnabled = ExtraTimes.IsEnabled = EveningEnabled.IsChecked == true;
     }
 
@@ -396,6 +399,18 @@ public partial class PreferencesWindow : Window
                 _ => state?.Forecast,
             };
             ContextStatus.Text = ContextPresenter.Present(app.Settings, app.CurrentSystemContext, store.ContextSummary(start), forecast?.ContextFeatures ?? []);
+            if(app.Settings.CollectProcesses && app.Settings.CollectSystemContext && app.CurrentSystemContext is { } currentApps)
+            {
+                var associations=store.ProcessAssociations(currentApps,start,end);
+                if(associations.Count>0)
+                {
+                    ContextStatus.Text+=Environment.NewLine+Environment.NewLine+L.T("AppAssociationHelp");
+                    foreach(var association in associations)
+                        ContextStatus.Text+=Environment.NewLine+(association.MedianPcWatts is { } associatedWatts
+                            ? L.F("AppAssociation",association.Name,associatedWatts.ToString("0.#",L.Culture),association.Windows)
+                            : L.F("AppAssociationCollecting",association.Name,association.Windows));
+                }
+            }
             if (state?.Demo == true) ContextStatus.Text = L.T("DemoContextWarning") + Environment.NewLine + ContextStatus.Text;
             var charge = series["charge_w"].ToDictionary(p => p.Ts, p => p.Value);
             var watts = series["discharge_w"].Select(p => new Core.Storage.ModelCovariate(p.Ts,

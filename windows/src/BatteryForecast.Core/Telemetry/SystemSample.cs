@@ -6,7 +6,9 @@ public sealed record SystemSample(DateTimeOffset TimestampUtc, double? CpuPct = 
     double? MemoryPct = null, double? CpuTemperatureC = null, double? BatteryTemperatureC = null,
     double? ThermalZoneC = null, double? BrightnessPct = null, double? DischargeW = null,
     double? ChargeW = null, double? PowerProfile = null, string Source = "windows-api", double? DisplayState = null,
-    DateTimeOffset? CpuIntervalStartUtc = null, string CollectionKind = "unspecified", DateTimeOffset? OptionalObservedUtc = null);
+    DateTimeOffset? CpuIntervalStartUtc = null, string CollectionKind = "unspecified", DateTimeOffset? OptionalObservedUtc = null,
+    IReadOnlyList<ProcessLoad>? ProcessLoads = null, double? ProcessCpuPct = null,double? ProcessMemoryMB = null,
+    long? WorkloadProfile = null,DateTimeOffset? ProcessIntervalStartUtc = null);
 
 public sealed record ContextHistory(long Samples, DateTimeOffset? LastSaved, IReadOnlyDictionary<string, long> Observations);
 

@@ -48,6 +48,7 @@ public sealed class Collector : IDisposable
     public event Action<BatterySample, PowerChange>? Sampled;
     public event Action<string,DateTimeOffset>? Interrupted;
     public bool IsSuspended { get { lock(gate) return suspended; } }
+    public void ResetContextIntervals() { lock(gate) { context?.ResetIntervals();lastContextRead=null; } }
 
     public void Start()
     {

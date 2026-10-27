@@ -140,3 +140,23 @@ def test_real_model_receives_original_observation_mask_and_boundary_gaps(engine,
     assert np.isfinite(seen['target'][0,0,8])  # held value is present but explicitly unobserved
     assert len(result['curve'])==288
     assert result["context_end_utc"] == NOW
+
+
+def test_real_model_receives_different_app_load_channels_and_recurring_profiles(engine,monkeypatch):
+    from battery_forecast import protocol
+    seen={};original=engine.fc.forecast
+    def record(*args,**kwargs):
+        seen.update(kwargs);return original(*args,**kwargs)
+    monkeypatch.setattr(engine.fc,'forecast',record)
+    req=request(samples=[[NOW-i*300,60+i*.2,0] for i in range(30,-1,-1)])
+    req['past_covariates']={
+        'app_012345abcdef_cpu':[[NOW-i*300,10+i%4*5] for i in range(30,-1,-1)],
+        'app_abcdef012345_cpu':[[NOW-i*300,50-i%5*6] for i in range(30,-1,-1)],
+        'workload_profile':[[NOW-i*300,2**47+(1 if i<15 else 2)] for i in range(30,-1,-1)],
+    }
+    response=engine.predict(protocol.parse_request(json.dumps(req).encode()))
+    assert set(response['context_features'])==set(req['past_covariates'])
+    assert seen['past_covariates'].shape==(1,2,31)
+    assert seen['categorical_past_covariates'].shape==(1,1,31)
+    assert seen['known_covariates'].shape==(1,1,31+288)  # future app/CPU values are not invented
+    assert len(response['curve'])==288

@@ -25,7 +25,7 @@ switch (cmd)
 
     case "sensors":
     {
-        var context=new WindowsSystemContext();
+        var context=new WindowsSystemContext(collectProcesses:()=>args.Contains("--processes"));
         SystemSample reading=context.Read(battery.Read());
         for(int i=0;i<3;i++) { await Task.Delay(1000); reading=context.Read(battery.Read()); }
         Console.WriteLine(JsonSerializer.Serialize(reading,json));

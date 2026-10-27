@@ -9,6 +9,7 @@ Differenze volute rispetto a scripts/battery_now.py (macOS):
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 
 import numpy as np
 
@@ -174,7 +175,18 @@ CONTEXT_RANGES = {
     "cpu_mhz": (0, 20000), "memory_pct": (0, 100), "brightness_pct": (0, 100),
     "cpu_temp_c": (-30, 130), "battery_temp_c": (-30, 130), "thermal_zone_c": (-30, 130),
     "power_profile": (0, 3), "display_state": (0, 2),
+    "process_cpu_pct": (0,100), "process_memory_mb": (0,1048576), "workload_profile": (0,2**48-1),
 }
+CATEGORICAL_CHANNELS={"power_profile","display_state","workload_profile"}
+APP_CHANNEL=re.compile(r"app_[0-9a-f]{12}_(cpu|memory)\Z")
+MAX_CONTEXT_CHANNELS=len(CONTEXT_RANGES)+12
+
+
+def context_range(name):
+    if name in CONTEXT_RANGES: return CONTEXT_RANGES[name]
+    match=APP_CHANNEL.fullmatch(name)
+    if match: return (0,100) if match.group(1)=="cpu" else (0,1048576)
+    return None
 
 
 def past_covariates(data: dict, context: Series):
@@ -186,12 +198,12 @@ def past_covariates(data: dict, context: Series):
     """
     numeric, categorical, names = [], [], []
     n = len(context.level)
-    for name in CONTEXT_RANGES:
+    for name in [*CONTEXT_RANGES,*sorted(k for k in data if k not in CONTEXT_RANGES and context_range(k) is not None)]:
         pairs = data.get(name, [])
         if not pairs:
             continue
         arr = np.asarray([(t, np.nan if v is None else v) for t, v in pairs], dtype=np.float64)
-        lower, upper = CONTEXT_RANGES[name]
+        lower, upper = context_range(name)
         valid = np.isfinite(arr[:, 0]) & np.isfinite(arr[:, 1]) & (arr[:, 1] >= lower) & (arr[:, 1] <= upper)
         arr = arr[valid]
         if not len(arr):
@@ -199,30 +211,34 @@ def past_covariates(data: dict, context: Series):
         bins = np.floor((arr[:, 0] - context.start) / STEP_SECONDS).astype(np.int64)
         keep = (bins >= 0) & (bins < n) & (arr[:, 0] <= (context.origin if context.origin is not None else context.end))
         bins, values = bins[keep], arr[:, 1][keep]
-        if name in {"power_profile", "display_state"}:
+        if name in CATEGORICAL_CHANNELS:
             keep = values == np.floor(values)
             bins, values = bins[keep], values[keep]
         counts = np.bincount(bins, minlength=n)
         sums = np.bincount(bins, weights=values, minlength=n)
-        channel = np.full(n, np.nan, dtype=np.float32)
+        channel = np.full(n, np.nan, dtype=np.float64 if name in CATEGORICAL_CHANNELS else np.float32)
         np.divide(sums, counts, out=channel, where=counts > 0)
-        if name in {"power_profile", "display_state"}:
+        if name in CATEGORICAL_CHANNELS:
             # Never average categorical states when a caller supplies raw observations.
             minimum, maximum = np.full(n, np.inf), np.full(n, -np.inf)
             np.minimum.at(minimum, bins, values)
             np.maximum.at(maximum, bins, values)
             channel[minimum != maximum] = np.nan
+        if name=="workload_profile":
+            codes,frequency=np.unique(channel[np.isfinite(channel)],return_counts=True)
+            channel[~np.isin(channel,codes[frequency>=6])]=np.nan
         observed = np.isfinite(channel)
         if context.barrier_bins is not None:
             channel[context.barrier_bins]=np.nan
             observed=np.isfinite(channel)
         if observed.sum() < 6 or np.nanstd(channel) < 1e-5:
             continue
-        if name in {"power_profile", "display_state"}:
+        if name in CATEGORICAL_CHANNELS:
             # The C# bin is missing when multiple profiles were observed in that bin.
             categorical.append(channel)
         else:
-            channel = _fill_short_gaps(channel, context.ac, MAX_GAP_STEPS, context.break_before)
+            if APP_CHANNEL.fullmatch(name) is None:
+                channel = _fill_short_gaps(channel, context.ac, MAX_GAP_STEPS, context.break_before)
             numeric.append(channel)
         names.append(name)
     return (np.asarray(numeric, dtype=np.float32)[None] if numeric else None,

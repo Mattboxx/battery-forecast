@@ -13,6 +13,9 @@
   <data name="AdvancedSensorsHelp" xml:space="preserve"><value>Optional firmware/WMI probes. CPU, memory and battery power and display state remain available when off.</value></data>
   <data name="AlertMinutesCustom" xml:space="preserve"><value>Alert minutes (comma separated; empty = off)</value></data>
   <data name="AlreadyBelow" xml:space="preserve"><value>Already below the {0}% reserve</value></data>
+  <data name="AppAssociation" xml:space="preserve"><value>{0}: whole PC {1} W · {2} observed five-minute bins</value></data>
+  <data name="AppAssociationCollecting" xml:space="preserve"><value>{0}: collecting comparable observations ({1}/6 bins)</value></data>
+  <data name="AppAssociationHelp" xml:space="preserve"><value>Observed associations at similar app/other-CPU load, app mix and available display conditions. These watts belong to the whole PC, not to one app; they are not a causal attribution.</value></data>
   <data name="ApplyCustom" xml:space="preserve"><value>Save custom settings</value></data>
   <data name="AtTarget" xml:space="preserve"><value>At {0}</value></data>
   <data name="AtTargetTomorrow" xml:space="preserve"><value>Tomorrow at {0}</value></data>
@@ -52,6 +55,8 @@ Indicative range {2}–{3}%</value></data>
   <data name="ChartSummary" xml:space="preserve"><value>Now {0}%. Central estimate: {1}% in 3 hours, {2}% in 6 hours, {3}% in 12 hours. Shaded band: cautious to optimistic estimate.</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>
   <data name="CollectContext" xml:space="preserve"><value>Collect local system context</value></data>
+  <data name="CollectProcesses" xml:space="preserve"><value>Record app workload (optional)</value></data>
+  <data name="CollectProcessesHelp" xml:space="preserve"><value>Off by default. Saves executable names, CPU and working-set memory locally for up to 12 app groups. No window titles, paths or arguments. Included in context CSV and history deletion.</value></data>
   <data name="Collecting" xml:space="preserve"><value>Collecting data</value></data>
   <data name="CollectingDetail" xml:space="preserve"><value>Keep using the PC on battery for a few minutes: the first estimate comes from recent use.</value></data>
   <data name="ContextChannel" xml:space="preserve"><value>{0}: {1} · {2} stored observations</value></data>
@@ -204,6 +209,9 @@ Indicative range {2}–{3}%</value></data>
   <data name="PrefTrayHelp" xml:space="preserve"><value>Windows may hide the icon in the overflow area: drag it next to the clock to keep it visible.</value></data>
   <data name="Preferences" xml:space="preserve"><value>Preferences…</value></data>
   <data name="PrefsTitle" xml:space="preserve"><value>Battery Forecast preferences</value></data>
+  <data name="ProcessReading" xml:space="preserve"><value>{0} · CPU {1}% · working set {2} MB</value></data>
+  <data name="ProcessesOff" xml:space="preserve"><value>App workload recording is off.</value></data>
+  <data name="ProcessesOn" xml:space="preserve"><value>App workload enabled. Recurring app profiles need repeated observations; unknown CPU stays missing. Working sets can count shared memory more than once.</value></data>
   <data name="Profile_0" xml:space="preserve"><value>Balanced</value></data>
   <data name="Profile_1" xml:space="preserve"><value>Performance</value></data>
   <data name="Profile_2" xml:space="preserve"><value>Power saver</value></data>
@@ -242,6 +250,9 @@ Indicative range {2}–{3}%</value></data>
   <data name="SegmentRow" xml:space="preserve"><value>{0}% → {1}% in {2}</value></data>
   <data name="SegmentsNote" xml:space="preserve"><value>Only continuous stretches recorded while Battery Forecast was running: sleep, gaps and the adapter end a stretch. They are not full cycles.</value></data>
   <data name="SegmentsTitle" xml:space="preserve"><value>Observed discharges</value></data>
+  <data name="SensorAppCpu" xml:space="preserve"><value>CPU: {0}</value></data>
+  <data name="SensorAppMemory" xml:space="preserve"><value>Working set: {0}</value></data>
+  <data name="SensorAppPast" xml:space="preserve"><value>Previously observed app workload</value></data>
   <data name="SensorBatteryTemp" xml:space="preserve"><value>Battery {0:0.0} °C</value></data>
   <data name="SensorBrightness" xml:space="preserve"><value>Brightness {0:0}%</value></data>
   <data name="SensorCharge" xml:space="preserve"><value>Charging {0:0.0} W</value></data>
@@ -264,7 +275,10 @@ Indicative range {2}–{3}%</value></data>
   <data name="Sensor_display_state" xml:space="preserve"><value>Display</value></data>
   <data name="Sensor_memory_pct" xml:space="preserve"><value>memory</value></data>
   <data name="Sensor_power_profile" xml:space="preserve"><value>power profile</value></data>
+  <data name="Sensor_process_cpu_pct" xml:space="preserve"><value>Observed app CPU</value></data>
+  <data name="Sensor_process_memory_mb" xml:space="preserve"><value>Observed app working sets</value></data>
   <data name="Sensor_thermal_zone_c" xml:space="preserve"><value>ACPI temperature</value></data>
+  <data name="Sensor_workload_profile" xml:space="preserve"><value>Recurring app profile</value></data>
   <data name="ShowChart" xml:space="preserve"><value>Show forecast chart</value></data>
   <data name="SourceAc" xml:space="preserve"><value>Power adapter</value></data>
   <data name="SourceBattery" xml:space="preserve"><value>Battery</value></data>

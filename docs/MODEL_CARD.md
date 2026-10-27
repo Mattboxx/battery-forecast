@@ -102,7 +102,8 @@ charge/discharge watts, display brightness, power profile and available temperat
 uses the read-only battery-class driver query. CPU temperature is read only from an already installed
 OpenHardwareMonitor/LibreHardwareMonitor WMI provider. ACPI thermal zones are a distinct signal and
 are never labelled CPU or battery temperature. Missing, unsupported or access-denied data stays null.
-No kernel driver, elevated helper, process names, window titles or online telemetry are introduced.
+No kernel driver, elevated helper, window titles, process paths/arguments or online telemetry are introduced.
+Executable names are recorded only when the separate app-workload option is explicitly enabled.
 
 Optional probes are isolated: an unavailable WMI provider or a denied thermal query does not block
 brightness or the battery-class temperature probe. WMI uses omitted COM parameters and a rewindable
@@ -110,7 +111,7 @@ result set compatible with .NET enumeration. The diagnostic CLI reports per-prob
 from readings. A local hardware check confirmed brightness collection; temperature availability still
 depends on installed providers, firmware and permissions. No accuracy gain is inferred from this check.
 
-Sensor context is stored separately in SQLite schema 6, under the same retention/deletion settings.
+Sensor context is stored separately in SQLite schema 7, under the same retention/deletion settings.
 Five-minute time-weighted means align to the battery grid; mixed power-profile/display bins are missing. Six observed bins
 and nonconstant values are required per channel. Numeric gaps up to ten minutes can interpolate when
 AC state is unchanged. Longer gaps stay missing. Profiles are categorical, with no interpolation.
@@ -133,6 +134,33 @@ without context, grouped by laptop/workload and using only observations availabl
 are still required. More channels may help, do nothing or worsen forecasts; no claim is made before
 those measurements exist. Sensor collection overhead and additional inference cost also need field
 measurements. GetSystemTimes reports the active processor group on systems with more than 64 CPUs.
+
+### Optional workload history per executable
+
+App workload recording is off by default and remains local. On enabled context ticks it samples accessible
+process CPU counters and working sets, groups them by executable name and retains up to twelve groups.
+PID/start-time checks prevent reused PIDs from inheriting old CPU usage; those identifiers are not stored.
+CPU is normalized to the machine's logical processor count, uses recorded 1–150 second intervals and
+resets across continuity breaks/opt-out. First, missing, denied or restarted measurements stay unknown.
+Sampling is bounded to 512 processes; protected and short-lived processes may be absent. Working sets
+can count shared memory more than once. The app and packaged inference worker are excluded from app
+profiles, while total PC battery power/CPU still include their real resource use.
+
+The model can receive CPU and memory histories for up to six currently observed apps as separate numeric
+channels with opaque stable identifiers, plus aggregate visible-process load and a recurring top-app-set
+categorical profile. It receives no executable-name text, paths, titles or arguments. Individual app
+absence is missing and is not interpolated into a fictitious load. Channels still need six observed bins
+and variation; each workload-profile code needs six bins. Profile identifiers retain 48-bit precision.
+Future app activity, CPU, GPU and memory are not assumed known. Functional integration with the real
+model is verified; improved accuracy or per-process energy attribution has not been established.
+
+Data and privacy lists current app loads and, after enough comparable observations, median **whole-PC**
+discharge watts for similar app CPU bands, other-CPU load, app mix and available display/brightness state.
+It requires six distinct five-minute bins and excludes interruption bins. This is an observational
+association, never a claim that a process consumed those watts. These summaries are rebuilt from local
+history; process data follows context retention/wipe and appears only in an explicit context CSV export.
+The diagnostic ZIP continues to omit history and process names. Turning the option off also excludes
+stored app channels from subsequent model requests. No sensitive workload detail is added to the popup.
 
 
 ### Inspecting collection without changing the compact popup

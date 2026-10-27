@@ -25,7 +25,7 @@ internal sealed class TemporalBins(int channels, int[] categories, double since,
         if(value is null || (bin.Seen[c] && bin.Point[c]!=value)) bin.Mixed[c]=true;
         bin.Seen[c]=true; bin.Point[c]=value;
     }
-    internal void Point(double t,double end,double?[] values,int intervalChannel=-1)
+    internal void Point(double t,double end,double?[] values,int intervalChannel=-1,int secondIntervalChannel=-1)
     {
         if(t<since || t>until) return;
         var bin=Get(t);
@@ -33,14 +33,14 @@ internal sealed class TemporalBins(int channels, int[] categories, double since,
         {
             if(values[c] is { } v && double.IsFinite(v)) bin.Observed[c]=true;
             if(categorical.Contains(c)) Category(bin,c,values[c]);
-            else if(c!=intervalChannel) bin.Point[c]=values[c];
+            else if(c!=intervalChannel && c!=secondIntervalChannel) bin.Point[c]=values[c];
         }
         end=Math.Min(until,Math.Min(end,t+MaxHoldSeconds));
         // An instant at a barrier belongs to the new phase; never carry an older reading across it.
         int index=UpperBound(barriers,t);
         if(index<barriers.Count) end=Math.Min(end,barriers[index]);
         for(int c=0;c<channels;c++)
-            if(c!=intervalChannel) Integrate(c,t,end,values[c]);
+            if(c!=intervalChannel && c!=secondIntervalChannel) Integrate(c,t,end,values[c]);
     }
     internal void Interval(int channel,double start,double end,double? value)
     {

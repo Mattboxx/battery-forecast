@@ -4,12 +4,14 @@ using BatteryForecast.Core.Battery;
 
 namespace BatteryForecast.Core.Telemetry;
 
-/// <summary>Local aggregate counters only. No processes, titles, identifiers or network traffic.</summary>
+/// <summary>Local counters and explicit opt-in app workloads. No window titles, paths, arguments or network traffic.</summary>
 public sealed class WindowsSystemContext : ISystemContextProvider
 {
     readonly TimeProvider clock;
     readonly Func<bool> collectAdvanced;
     readonly Func<double?> displayState;
+    readonly Func<bool> collectProcesses;
+    readonly ProcessLoadSampler processes=new(new WindowsProcessCounterSource(),Environment.ProcessorCount);
     ulong? previousIdle, previousTotal;
     DateTimeOffset? previousCpu, optionalAt;
     int optionalBusy;
@@ -17,11 +19,12 @@ public sealed class WindowsSystemContext : ISystemContextProvider
     OptionalSensors optional = new();
     public IReadOnlyDictionary<string,string> OptionalSensorErrors { get { lock(optionalGate) return optional.Errors; } }
 
-    public WindowsSystemContext(TimeProvider? clock = null, Func<bool>? collectAdvanced = null, Func<double?>? displayState = null)
+    public WindowsSystemContext(TimeProvider? clock = null, Func<bool>? collectAdvanced = null, Func<double?>? displayState = null,Func<bool>? collectProcesses = null)
     {
         this.clock = clock ?? TimeProvider.System;
         this.collectAdvanced = collectAdvanced ?? (() => true);
         this.displayState = displayState ?? (() => null);
+        this.collectProcesses=collectProcesses ?? (()=>false);
     }
 
     public SystemSample Read(BatterySample battery)
@@ -95,12 +98,21 @@ public sealed class WindowsSystemContext : ISystemContextProvider
                 }
             }
         }
+        ProcessSnapshot? workload=null;
+        if(collectProcesses())
+        {
+            try { workload=processes.Read(now); }
+            catch(Exception e) when(e is System.ComponentModel.Win32Exception or InvalidOperationException or UnauthorizedAccessException) { processes.Reset(); }
+        }
+        else processes.Reset();
+        if(!collectProcesses()) { processes.Reset();workload=null; }
         return new(now,cpu,mhz,memoryPct,sensors.CpuC,sensors.BatteryC,sensors.ZoneC,sensors.Brightness,
             battery.DischargePowerMW/1000.0,battery.ChargingPowerMW/1000.0,profile, DisplayState: displayState(),
-            CpuIntervalStartUtc:cpuStart,OptionalObservedUtc:sensorAt);
+            CpuIntervalStartUtc:cpuStart,OptionalObservedUtc:sensorAt,ProcessLoads:workload?.Loads,ProcessCpuPct:workload?.CpuPct,
+            ProcessMemoryMB:workload?.WorkingSetMB,WorkloadProfile:workload?.Profile,ProcessIntervalStartUtc:workload?.IntervalStart);
     }
 
-    public void ResetIntervals() { previousIdle=null; previousTotal=null; previousCpu=null; }
+    public void ResetIntervals() { previousIdle=null; previousTotal=null; previousCpu=null;processes.Reset(); }
 
     internal static double[] Query(string ns,string query,string property)
     {

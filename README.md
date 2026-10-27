@@ -223,7 +223,7 @@ retained. In **Data and privacy**, enable context collection and its use by the 
 also enable supported brightness/temperature readings. Leave the tray app running during normal use
 and use **Recalculate now**, then compare the saved forecast with later observations in **Battery trend**.
 New CPU intervals need at least six varying five-minute bins (about thirty minutes). Unsupported sensors
-remain unavailable. Schema 6 cannot be read by 0.9.1; keep a backup of `%LOCALAPPDATA%\BatteryForecast`
+remain unavailable. Schema 7 cannot be read by 0.9.1; keep a backup of `%LOCALAPPDATA%\BatteryForecast`
 before downgrading.
 
 ## New in 0.9.1: more control and context
@@ -258,7 +258,10 @@ before downgrading.
   charge/discharge watts, brightness, power profile and temperatures exposed by the device. Timestral
   receives eligible historical sensor channels; the panel names those actually used. Missing sensors stay
   unavailable. CPU temperature needs a compatible provider already installed; an ACPI zone is labelled separately.
-  No driver, administrator helper, process names, online telemetry or future sensor values are introduced.
+  No driver, administrator helper, window titles, process paths/arguments, online telemetry or invented future sensor values are introduced.
+  Optional app-workload recording is off by default: it keeps executable names, CPU and working sets locally,
+  with separate historical model channels for recurring apps and matched whole-PC power summaries. It is
+  an observed association, not a claim of per-process watt measurement. Context CSV/history deletion covers it.
 - **Make it yours:** quiet notification hours, custom alert thresholds, chart visibility and a persistent
   keep-open preference. Export battery/system-context CSV files, or create an
   explicit local diagnostic ZIP that excludes history and logs and is never uploaded automatically.

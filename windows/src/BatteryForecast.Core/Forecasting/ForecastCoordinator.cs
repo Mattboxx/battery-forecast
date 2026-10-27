@@ -270,14 +270,20 @@ public sealed class ForecastCoordinator : IDisposable
     {
         var charge = mode == Mode.Charge;
         var options = settings();
-        var origin = s.TimestampUtc;
+        // All fresh measurements are available by this cutoff; the battery anchor may precede it by milliseconds.
+        var origin = collector.CurrentContext is { } context && context.TimestampUtc>s.TimestampUtc && context.TimestampUtc<=clock.GetUtcNow()
+            ? context.TimestampUtc : s.TimestampUtc;
         var reserve = charge ? options.ChargeTargetPct : options.ReservePct;
         try
         {
             if (!engine!.IsWarm) SetEngine(EngineState.Loading, null);
             var history = store.ModelSamples(origin - HistoryDays, origin);
-            var r = await engine.ForecastAsync(new ForecastRequest(s.TimestampUtc, level, s.OnAc, reserve, history,
-                options.UseSystemContext && options.CollectSystemContext ? store.ModelCovariates(origin-HistoryDays,origin, currentBatteryOnly: true) : null,
+            var modelContext=options.UseSystemContext && options.CollectSystemContext
+                ? store.ModelCovariates(origin-HistoryDays,origin,currentBatteryOnly:true,includeApps:options.CollectProcesses) : null;
+            if(modelContext is not null && !options.CollectProcesses)
+                foreach(var key in new[]{"process_cpu_pct","process_memory_mb","workload_profile"}) modelContext.Remove(key);
+            var r = await engine.ForecastAsync(new ForecastRequest(origin, level, s.OnAc, reserve, history,
+                modelContext,
                 Charge: charge, TargetPct: reserve,
                 Discontinuities:store.ModelDiscontinuities(origin-HistoryDays,origin))).ConfigureAwait(false);
             var view = ForecastView.From(r);
