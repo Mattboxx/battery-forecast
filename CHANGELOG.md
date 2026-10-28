@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.9.4
+## 0.9.5
+
+- Pin the self-contained .NET and Windows Desktop runtimes to the audited 10.0.13 version on both architectures. Newer build-runner SDKs cannot silently change the distributed runtime; license checks continue to reject unreviewed components.
 
 - Keep the AI chart and main duration together, with recent-consumption and Windows estimates inside an optional **Compare other estimates** section. Explain that they are independent calculations and may differ substantially; do not replace one estimate with another to make them match.
 - Keep the recent-consumption estimate as the main fallback when AI history is insufficient, without duplicating it as a comparison. Explain Windows-only estimates while the app is still collecting data.

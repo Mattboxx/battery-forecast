@@ -162,7 +162,7 @@ Se Battery Forecast ti è utile puoi sostenerlo tramite **[GitHub Sponsors](http
 o **[Ko-fi](https://ko-fi.com/mattboxx)**. Segnalazioni e idee
 nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
-## Novità della 0.9.4: previsione chiara e confronti separati
+## Novità della 0.9.5: previsione chiara e confronti separati
 
 Grafico e durata principale descrivono la stessa previsione IA. **Confronta altre stime** apre separatamente
 i calcoli dal consumo recente e da Windows: usano dati e ipotesi diverse e possono divergere molto.

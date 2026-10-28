@@ -201,7 +201,7 @@
     </section>
 
     <section class="wrap reveal">
-      <p class="eyebrow">New in 0.9.4</p>
+      <p class="eyebrow">New in 0.9.5</p>
       <h2>One clear forecast.<br>Comparisons when you want them.</h2>
       <p>The chart and main duration follow the same AI forecast. Open <b>Compare other estimates</b> for the separate recent-consumption and Windows calculations, which can differ substantially. Learning status is explicit, and the time horizon follows the actual curve. Model weights and estimator calculations are unchanged.</p>
     </section>
@@ -382,8 +382,8 @@
       // ripiego se l'API di GitHub non risponde (limite di richieste, rete): l'ultima versione nota
       let release = { assets: {} };
       for (const arch of ['x64', 'arm64']) {
-        const name = `BatteryForecast-Setup-0.9.4-${arch}.exe`;
-        const url = `https://github.com/${repo}/releases/download/v0.9.4/${name}`;
+        const name = `BatteryForecast-Setup-0.9.5-${arch}.exe`;
+        const url = `https://github.com/${repo}/releases/download/v0.9.5/${name}`;
         release.assets[arch] = { url, name, size: 0, sha: url + '.sha256' };
       }
       const loaded = fetch(`https://api.github.com/repos/${repo}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } })

@@ -10,10 +10,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Version>0.9.4</Version>
+    <!-- Keep self-contained runtime packs aligned with the audited notices in tools/licenses.py.
+         A newer SDK/runner must not silently choose another runtime during publishing. -->
+    <TargetLatestRuntimePatch>false</TargetLatestRuntimePatch>
+    <Version>0.9.5</Version>
     <Authors>Mattboxx</Authors>
     <Company>Mattboxx</Company>
     <Copyright>Copyright (c) 2026 Matteo Bonfanti (Till Dusk); Copyright (c) 2026 Mattboxx (Battery Forecast)</Copyright>
     <Product>Battery Forecast</Product>
   </PropertyGroup>
+  <Target Name="PinAuditedRuntimePacks" BeforeTargets="ProcessFrameworkReferences">
+    <ItemGroup>
+      <!-- Scope the pin to runtimes: the Windows SDK reference has its own version. -->
+      <FrameworkReference Update="Microsoft.NETCore.App;Microsoft.WindowsDesktop.App;Microsoft.WindowsDesktop.App.WPF;Microsoft.WindowsDesktop.App.WindowsForms"
+                          RuntimeFrameworkVersion="10.0.13" />
+    </ItemGroup>
+  </Target>
 </Project>

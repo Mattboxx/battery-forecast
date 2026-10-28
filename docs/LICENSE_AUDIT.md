@@ -158,3 +158,13 @@ reusing old notices. `inventory.json` records versions and hashes of the collect
 
 The audit corrects confirmed missing texts, attribution and technical packaging gaps. Source and binary
 verification are distinct; distribution is provisionally assessed subject to the explicit limits above.
+
+### Reproducible runtime selection (0.9.5)
+
+`windows/Directory.Build.props` fixes `RuntimeFrameworkVersion` to `10.0.13` on the
+.NET/Windows Desktop framework references and disables `TargetLatestRuntimePatch`. The
+Windows SDK reference keeps its independently audited version. The self-contained x64 and ARM64 packages must use these audited
+runtime packs even when a runner has a newer SDK. Updating this pin requires reviewing the
+new runtime notices and updating the strict checks in `tools/licenses.py`; those checks are
+not bypassed by the pin. The failed 0.9.4 candidate detected an unreviewed 10.0.14 runtime
+on the ARM64 runner and published no release.

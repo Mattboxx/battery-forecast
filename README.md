@@ -169,7 +169,7 @@ forecast\.venv\Scripts\python -m pytest -q forecast
 dotnet run --project windows\src\BatteryForecast.App -- --demo
 
 # full offline package and installer in artifacts\
-powershell -NoProfile -File tools\package.ps1 -Version 0.9.4
+powershell -NoProfile -File tools\package.ps1 -Version 0.9.5
 ```
 
 ARM64 installers are built natively on Windows ARM by the [release workflow](.github/workflows/release.yml),
@@ -213,7 +213,7 @@ If Battery Forecast is useful to you, you can support its development through
 **[GitHub Sponsors](https://github.com/sponsors/Mattboxx)** or **[Ko-fi](https://ko-fi.com/mattboxx)**.
 Bug reports and ideas are welcome in [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
-## New in 0.9.4: one clear forecast, separate comparisons
+## New in 0.9.5: one clear forecast, separate comparisons
 
 The chart and main duration describe the same AI forecast. **Compare other estimates** opens the
 recent-consumption and Windows calculations separately: they use different inputs and assumptions
