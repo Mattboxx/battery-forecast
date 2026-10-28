@@ -49,7 +49,7 @@ Status: **experimental**. No accuracy figures are claimed until `docs/VALIDATION
   engine is unavailable. When the AI forecast is usable, it is available under **Compare other estimates**.
 - **Windows**: the operating system's own remaining-time estimate, when reported.
 
-Since 0.9.3, these comparisons are collapsed by default, separately from the AI chart and its primary
+Since 0.9.4, these comparisons are collapsed by default, separately from the AI chart and its primary
 duration. They may differ substantially because a projection of recent consumption and a forecast
 conditioned on historical patterns answer different questions. The app does not force agreement or
 claim that one is more accurate without measurements. If recent consumption is the primary fallback,

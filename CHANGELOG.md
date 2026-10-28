@@ -1,12 +1,13 @@
 # Changelog
 
-## 0.9.3
+## 0.9.4
 
 - Keep the AI chart and main duration together, with recent-consumption and Windows estimates inside an optional **Compare other estimates** section. Explain that they are independent calculations and may differ substantially; do not replace one estimate with another to make them match.
 - Keep the recent-consumption estimate as the main fallback when AI history is insufficient, without duplicating it as a comparison. Explain Windows-only estimates while the app is still collecting data.
 - Identify AI forecasts and their learning state explicitly, including continued-active-use forecasts.
 - Derive beyond-horizon wording from the actual remaining chart duration in both charging and discharging, including shortened calibrated curves. Do not promise 24 hours when the chart supports less.
 - Preserve the forecasting model, its weights, local calibration, recorded data and estimator calculations. These changes clarify presentation; no accuracy improvement is claimed.
+- Synchronize history-store disposal with active SQLite readers and transactions, preventing the connection from closing underneath a background operation during shutdown. A controlled regression reproduces the old race before the fix and verifies that active work completes before closing.
 
 ## 0.9.2
 

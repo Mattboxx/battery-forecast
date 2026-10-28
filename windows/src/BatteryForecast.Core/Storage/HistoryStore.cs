@@ -498,5 +498,9 @@ public sealed partial class HistoryStore : IDisposable
         return cmd.ExecuteScalar();
     }
 
-    public void Dispose() => db.Dispose();
+    public void Dispose()
+    {
+        // Closing must share the same gate as readers and transactions still finishing in the background.
+        lock(gate) db.Dispose();
+    }
 }
