@@ -41,13 +41,21 @@ Status: **experimental**. No accuracy figures are claimed until `docs/VALIDATION
   the PC down.
 - Estimated clock times are rounded to 5 minutes.
 
-## Other estimates shown next to it
+## Independent comparison estimates
 
 - **Recent use** (`RecentRate`, C#): energy above the reserve divided by the median discharge power of
   the last 10 minutes, or a robust (Theil–Sen) slope of the percentage over the last continuous
   discharge (≥ 15 minutes and ≥ 2 points). Used on first run, when history is insufficient and when the
-  engine is unavailable, and always shown as a comparison.
+  engine is unavailable. When the AI forecast is usable, it is available under **Compare other estimates**.
 - **Windows**: the operating system's own remaining-time estimate, when reported.
+
+Since 0.9.3, these comparisons are collapsed by default, separately from the AI chart and its primary
+duration. They may differ substantially because a projection of recent consumption and a forecast
+conditioned on historical patterns answer different questions. The app does not force agreement or
+claim that one is more accurate without measurements. If recent consumption is the primary fallback,
+it is not duplicated as an alternative; Windows remains a separate comparison. The AI learning state
+is explicit, and beyond-horizon wording uses the actual remaining curve duration rather than a fixed
+24-hour promise.
 
 ## Known limitations
 

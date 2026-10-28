@@ -1,6 +1,6 @@
 ﻿# Pacchetto completo e offline di Battery Forecast (x64 o arm64, sulla stessa architettura della macchina:
 # PyInstaller impacchetta il Python con cui gira, quindi il motore arm64 si costruisce su Windows ARM).
-#   powershell -NoProfile -File tools\package.ps1 [-Version 0.9.2] [-Arch x64|arm64] [-SkipEngine] [-SkipInstaller]
+#   powershell -NoProfile -File tools\package.ps1 [-Version 0.9.3] [-Arch x64|arm64] [-SkipEngine] [-SkipInstaller]
 #
 # 1. app .NET autonoma (nessun runtime richiesto all'utente)   -> artifacts\BatteryForecast
 # 2. motore PyInstaller (Python, PyTorch CPU, Timestral)        -> artifacts\BatteryForecast\engine
@@ -8,7 +8,7 @@
 # 4. licenze di tutto ciò che si distribuisce                   -> artifacts\BatteryForecast\licenses
 # 5. installer Inno Setup + SHA-256                              -> artifacts\BatteryForecast-Setup-<v>-<arch>.exe
 param(
-    [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.]+)?$')][string]$Version = "0.9.2",
+    [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.]+)?$')][string]$Version = "0.9.3",
     [ValidateSet('x64', 'arm64')][string]$Arch = $(if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }),
     [switch]$SkipEngine,
     [switch]$SkipInstaller

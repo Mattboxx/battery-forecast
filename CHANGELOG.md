@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.3
+
+- Keep the AI chart and main duration together, with recent-consumption and Windows estimates inside an optional **Compare other estimates** section. Explain that they are independent calculations and may differ substantially; do not replace one estimate with another to make them match.
+- Keep the recent-consumption estimate as the main fallback when AI history is insufficient, without duplicating it as a comparison. Explain Windows-only estimates while the app is still collecting data.
+- Identify AI forecasts and their learning state explicitly, including continued-active-use forecasts.
+- Derive beyond-horizon wording from the actual remaining chart duration in both charging and discharging, including shortened calibrated curves. Do not promise 24 hours when the chart supports less.
+- Preserve the forecasting model, its weights, local calibration, recorded data and estimator calculations. These changes clarify presentation; no accuracy improvement is claimed.
+
 ## 0.9.2
 
 - Bounded optional local learning from original saved forecasts and later uninterrupted observations in comparable battery, CPU, display and app-load conditions. Require at least eight disjoint comparisons across three operating sessions, retain both original and issued curves, and offer disable/reset controls. Rate correction is capped at ±25%; it does not retrain Timestral or demonstrate an accuracy gain. A faster correction may shorten the supported forecast horizon.

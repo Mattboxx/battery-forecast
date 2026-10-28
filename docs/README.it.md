@@ -162,6 +162,14 @@ Se Battery Forecast ti è utile puoi sostenerlo tramite **[GitHub Sponsors](http
 o **[Ko-fi](https://ko-fi.com/mattboxx)**. Segnalazioni e idee
 nelle [Issues](https://github.com/Mattboxx/battery-forecast/issues).
 
+## Novità della 0.9.3: previsione chiara e confronti separati
+
+Grafico e durata principale descrivono la stessa previsione IA. **Confronta altre stime** apre separatamente
+i calcoli dal consumo recente e da Windows: usano dati e ipotesi diverse e possono divergere molto.
+L’IA ancora in apprendimento viene indicata esplicitamente. Quando lo storico non basta, il consumo
+recente resta la stima principale. Il testo dell’orizzonte segue la curva effettiva, senza promettere sempre
+24 ore. Pesi del modello e calcoli degli stimatori restano invariati.
+
 ## Novità della 0.9.2: imparare da condizioni d’uso simili
 
 - **App ricorrenti e relativo carico:** attiva la raccolta facoltativa in **Dati e privacy** per conservare

@@ -30,6 +30,9 @@ public sealed record PanelModel
     public bool ShowEveningMarker { get; init; } = true;
     public string? RecentLine { get; init; }
     public string? WindowsLine { get; init; }
+    public bool HasComparisons => !string.IsNullOrWhiteSpace(RecentLine) || !string.IsNullOrWhiteSpace(WindowsLine);
+    public string ComparisonHelp => L.T(Chart is not null ? "OtherEstimatesChartHelp"
+        : Source==EstimateSource.Recent ? "OtherEstimatesRecentHelp" : "OtherEstimatesPendingHelp");
     public bool Stale { get; init; }
     public bool CanRetry { get; init; }
     public string? TargetLabel { get; init; }
@@ -47,8 +50,6 @@ public sealed record PanelModel
 
 public static class PanelPresenter
 {
-    const int HorizonHours = 24;
-
     public static PanelModel Present(DashboardState s, TimeZoneInfo? zone = null)
     {
         zone ??= TimeZoneInfo.Local;
@@ -237,8 +238,7 @@ public static class PanelPresenter
             Busy = s.Updating,
             Stale = !s.ChargeForecastFresh,
             Source = EstimateSource.Habits,
-            SourceLine = cf.Calibration is { Enabled:true,Ready:true } personal && Math.Abs(personal.Factor-1)>.001 ? L.T("PersonalForecastSource")
-                : L.F(cf.TimeBasis=="active_use" ? "ChargeActiveUseSource" : cf.Quality == HistoryQuality.Ok ? "ChargeHabitsSource" : "ChargeLearningSource", Days(cf.ObservedDays)),
+            SourceLine = ModelSource(cf, charging: true),
             RechargeLine = unplug,
             RecentLine = recent,
             Chart = cf,
@@ -266,8 +266,8 @@ public static class PanelPresenter
                     Tooltip = Tip($"Battery Forecast · {level}", head),
                 };
             default:
-                return m with { Headline = L.F("ChargeBeyond", target), Note = L.T("ChargeUncertain"),
-                    Tooltip = Tip($"Battery Forecast · {level}", L.F("ChargeBeyond", target)) };
+                return m with { Headline = L.F("ChargeBeyond", target, Duration(cf.HorizonEnd-now)), Note = L.T("ChargeUncertain"),
+                    Tooltip = Tip($"Battery Forecast · {level}", L.F("ChargeBeyond", target, Duration(cf.HorizonEnd-now))) };
         }
     }
 
@@ -304,8 +304,7 @@ public static class PanelPresenter
     static PanelModel HabitHeadline(PanelModel m, ForecastView f, DashboardState s, TimeZoneInfo zone)
     {
         var now = s.Now;
-        var source = L.F(f.TimeBasis=="active_use" ? "ActiveUseSource" : f.Quality == HistoryQuality.Ok ? "SourceHabits" : "SourceLearning", Days(f.ObservedDays));
-        if(f.Calibration is { Enabled:true,Ready:true } calibration && Math.Abs(calibration.Factor-1)>.001) source=L.T("PersonalForecastSource");
+        var source = ModelSource(f, charging: false);
         var recharge = f.HabitualRecharge is { } hr
             ? L.F(f.ExtrapolatedFrom is null ? "HabitualRechargeNoRate" : "HabitualRecharge", Clock(Round5(hr), zone)) : null;
         m = m with { Source = EstimateSource.Habits, SourceLine = source, RechargeLine = recharge };
@@ -330,10 +329,24 @@ public static class PanelPresenter
             default:
                 return m with
                 {
-                    Headline = L.F("Beyond", HorizonHours),
+                    Headline = L.F("Beyond", Duration(f.HorizonEnd-now)),
                     Detail = f.Early is { } pe ? L.F("PrudentCrosses", At(pe, now, zone)) : L.F("PrudentAbove", Pct(f.ReservePct)),
                 };
         }
+    }
+
+    static string ModelSource(ForecastView forecast, bool charging)
+    {
+        if(forecast.Calibration is { Enabled:true,Ready:true } calibration && Math.Abs(calibration.Factor-1)>.001)
+            return L.T("PersonalForecastSource");
+        var key=(charging,forecast.TimeBasis=="active_use",forecast.Quality==HistoryQuality.Learning) switch
+        {
+            (true,true,true)=>"ChargeActiveUseLearningSource", (true,true,false)=>"ChargeActiveUseSource",
+            (false,true,true)=>"ActiveUseLearningSource", (false,true,false)=>"ActiveUseSource",
+            (true,false,true)=>"ChargeLearningSource", (true,false,false)=>"ChargeHabitsSource",
+            (false,false,true)=>"SourceLearning", _=>"SourceHabits",
+        };
+        return L.F(key,Days(forecast.ObservedDays));
     }
 
     static string Tooltip(PanelModel m, string level, DashboardState s, TimeZoneInfo zone)

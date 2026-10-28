@@ -8,7 +8,8 @@
   <data name="About" xml:space="preserve"><value>about {0}</value></data>
   <data name="AboutRange" xml:space="preserve"><value>about {0} · indicative range {1}–{2}</value></data>
   <data name="AboutText" xml:space="preserve"><value>Battery Forecast {0}. Forecasts run locally with {1}. Derived from Till Dusk by Matteo Bonfanti (MIT).</value></data>
-  <data name="ActiveUseSource" xml:space="preserve"><value>While using the PC · {0} days of history</value></data>
+  <data name="ActiveUseLearningSource" xml:space="preserve"><value>AI still learning · continued use · {0} days</value></data>
+  <data name="ActiveUseSource" xml:space="preserve"><value>AI forecast · continued use · {0} days of history</value></data>
   <data name="AdvancedSensors" xml:space="preserve"><value>Collect optional temperature and brightness sensors</value></data>
   <data name="AdvancedSensorsHelp" xml:space="preserve"><value>Optional firmware/WMI probes. CPU, memory and battery power and display state remain available when off.</value></data>
   <data name="AlertMinutesCustom" xml:space="preserve"><value>Alert minutes (comma separated; empty = off)</value></data>
@@ -21,7 +22,7 @@
   <data name="AtTargetTomorrow" xml:space="preserve"><value>Tomorrow at {0}</value></data>
   <data name="AtToday" xml:space="preserve"><value>at {0}</value></data>
   <data name="Battery" xml:space="preserve"><value>Battery</value></data>
-  <data name="Beyond" xml:space="preserve"><value>Beyond the next {0} hours</value></data>
+  <data name="Beyond" xml:space="preserve"><value>Beyond the next {0}</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calculating the forecast…</value></data>
   <data name="CalibrationAppScope" xml:space="preserve"><value>same apps and CPU load</value></data>
   <data name="CalibrationCollecting" xml:space="preserve"><value>Collecting valid comparisons: {0}/{1}, sessions {2}/{3}. No correction applied yet.</value></data>
@@ -31,8 +32,9 @@
   <data name="CalibrationOff" xml:space="preserve"><value>Personal correction is off. Original forecasts remain saved for comparison.</value></data>
   <data name="CalibrationReady" xml:space="preserve"><value>Local correction ready: {0} independent comparisons, {1} sessions, rate factor {2} · {3}. Not a measured accuracy guarantee.</value></data>
   <data name="CalibrationReset" xml:space="preserve"><value>Reset learning</value></data>
-  <data name="ChargeActiveUseSource" xml:space="preserve"><value>While charging and using the PC · {0} days</value></data>
-  <data name="ChargeBeyond" xml:space="preserve"><value>Target {0}%: beyond the next 24 hours</value></data>
+  <data name="ChargeActiveUseLearningSource" xml:space="preserve"><value>AI still learning · charging and continued use · {0} days</value></data>
+  <data name="ChargeActiveUseSource" xml:space="preserve"><value>AI forecast · charging and continued use · {0} days</value></data>
+  <data name="ChargeBeyond" xml:space="preserve"><value>Target {0}%: beyond the next {1}</value></data>
   <data name="ChargeCollecting" xml:space="preserve"><value>Learning charging speed</value></data>
   <data name="ChargeCollectingHelp" xml:space="preserve"><value>Not enough continuous charging data for the {0}% target yet. The final charging phase may slow down.</value></data>
   <data name="ChargeHabitsSource" xml:space="preserve"><value>Learns from your charging · {0} days of history</value></data>
@@ -40,7 +42,7 @@
   <data name="ChargeHistorySource" xml:space="preserve"><value>Based on {0} comparable observed charging sessions, including the final slowdown.</value></data>
   <data name="ChargeLearningSource" xml:space="preserve"><value>Still learning how you charge · {0} days of history</value></data>
   <data name="ChargeReached" xml:space="preserve"><value>Charging target {0}% reached</value></data>
-  <data name="ChargeRecentLine" xml:space="preserve"><value>At the current charging rate: about {0} ({1})</value></data>
+  <data name="ChargeRecentLine" xml:space="preserve"><value>Observed charging: about {0} ({1})</value></data>
   <data name="ChargeRecentSource" xml:space="preserve"><value>Based on recent charging speed; keep the same adapter and load.</value></data>
   <data name="ChargeSection" xml:space="preserve"><value>Charging forecast</value></data>
   <data name="ChargeTargetHelp" xml:space="preserve"><value>50–100%. Estimates when charging; does not change the hardware charge limit. Above 80% requires at least two matching observed charge sessions.</value></data>
@@ -55,7 +57,7 @@
   <data name="ChartExtrapolatedCompact" xml:space="preserve"><value>extrapolated</value></data>
   <data name="ChartGoalLegend" xml:space="preserve"><value>Time goal</value></data>
   <data name="ChartHoverCompact" xml:space="preserve"><value>{0} · {1}% · range {2}–{3}%</value></data>
-  <data name="ChartName" xml:space="preserve"><value>Forecast for the next 24 hours</value></data>
+  <data name="ChartName" xml:space="preserve"><value>AI battery forecast</value></data>
   <data name="ChartPinned" xml:space="preserve"><value>Pinned point · click outside the chart to clear</value></data>
   <data name="ChartPinnedInline" xml:space="preserve"><value>◇ {0} · {1}% ({2}–{3}%)</value></data>
   <data name="ChartProbe" xml:space="preserve"><value>{0} · about {1}%
@@ -183,12 +185,16 @@ Indicative range {2}–{3}%</value></data>
   <data name="OpenOnHoverHelp" xml:space="preserve"><value>Opens after half a second without clicking and closes when the pointer moves away. A click keeps it open.</value></data>
   <data name="OpenPowerSettings" xml:space="preserve"><value>Power &amp; battery settings…</value></data>
   <data name="OpenSaverSettings" xml:space="preserve"><value>Battery saver settings…</value></data>
+  <data name="OtherEstimates" xml:space="preserve"><value>Compare other estimates</value></data>
+  <data name="OtherEstimatesChartHelp" xml:space="preserve"><value>The chart and main duration follow the AI forecast. The values below are separate estimates from observed readings or Windows and can differ substantially.</value></data>
+  <data name="OtherEstimatesPendingHelp" xml:space="preserve"><value>Windows provides its own estimate. The app's forecast is not available yet.</value></data>
+  <data name="OtherEstimatesRecentHelp" xml:space="preserve"><value>The main duration uses recent consumption. Windows provides a separate estimate.</value></data>
   <data name="PanelScale" xml:space="preserve"><value>Size</value></data>
   <data name="PanelSizeHelp" xml:space="preserve"><value>Size enlarges text, chart and window together; width adds room. Changes apply immediately.</value></data>
   <data name="PanelSizeReset" xml:space="preserve"><value>Reset size</value></data>
   <data name="PanelSizeTitle" xml:space="preserve"><value>Panel size</value></data>
   <data name="PanelWidth" xml:space="preserve"><value>Width</value></data>
-  <data name="PersonalForecastSource" xml:space="preserve"><value>Personalised forecast · continued active use</value></data>
+  <data name="PersonalForecastSource" xml:space="preserve"><value>Personalised AI forecast · continued active use</value></data>
   <data name="PluggedIn" xml:space="preserve"><value>Power adapter connected</value></data>
   <data name="PowerSource" xml:space="preserve"><value>Power source: {0}</value></data>
   <data name="PrefAbout" xml:space="preserve"><value>About</value></data>
@@ -236,7 +242,7 @@ Indicative range {2}–{3}%</value></data>
   <data name="RecalculateInlineHelp" xml:space="preserve"><value>↻ Recalculate now: fresh readings, local model.</value></data>
   <data name="RecalculateNow" xml:space="preserve"><value>Recalculate now</value></data>
   <data name="RecalculateNowHelp" xml:space="preserve"><value>Read the battery now and run the local model. Disabled while calculating.</value></data>
-  <data name="RecentLine" xml:space="preserve"><value>At the current rate: about {0} ({1})</value></data>
+  <data name="RecentLine" xml:space="preserve"><value>Recent consumption: about {0} to reserve ({1})</value></data>
   <data name="RefreshBalanced" xml:space="preserve"><value>Every 30 minutes (recommended)</value></data>
   <data name="RefreshFrequent" xml:space="preserve"><value>Every 10 minutes</value></data>
   <data name="RefreshOnOpen" xml:space="preserve"><value>Only when I open the panel</value></data>
@@ -366,5 +372,5 @@ Indicative range {2}–{3}%</value></data>
   <data name="UseCalibration" xml:space="preserve"><value>Learn from past forecast errors</value></data>
   <data name="UseContext" xml:space="preserve"><value>Use historical sensors in Timestral (experimental)</value></data>
   <data name="VersionLine" xml:space="preserve"><value>Version {0}</value></data>
-  <data name="WindowsLine" xml:space="preserve"><value>Windows: {0} of continuous use at the current rate</value></data>
+  <data name="WindowsLine" xml:space="preserve"><value>Windows estimate: {0}</value></data>
 </root>

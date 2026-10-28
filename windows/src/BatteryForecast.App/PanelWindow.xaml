@@ -119,10 +119,18 @@
                                    Visibility="{Binding SourceLine, Converter={StaticResource Visible}}"/>
                         <TextBlock Text="{Binding RechargeLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
                                    Visibility="{Binding RechargeLine, Converter={StaticResource Visible}}"/>
-                        <TextBlock Text="{Binding RecentLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
-                                   Visibility="{Binding RecentLine, Converter={StaticResource Visible}}"/>
-                        <TextBlock Text="{Binding WindowsLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
-                                   Visibility="{Binding WindowsLine, Converter={StaticResource Visible}}"/>
+                        <Expander Header="{app:T OtherEstimates}" IsExpanded="False" Margin="0,8,0,0" Padding="0"
+                                  FontSize="12" Foreground="{DynamicResource TextSecondary}" Background="Transparent" BorderThickness="0"
+                                  HorizontalContentAlignment="Stretch" AutomationProperties.HelpText="{Binding ComparisonHelp}"
+                                  Visibility="{Binding HasComparisons, Converter={StaticResource IfTrue}}">
+                            <StackPanel Margin="0,6,0,0">
+                                <TextBlock Text="{Binding ComparisonHelp}" Style="{StaticResource Footnote}" Margin="0,0,0,5"/>
+                                <TextBlock Text="{Binding RecentLine}" Style="{StaticResource Footnote}"
+                                           Visibility="{Binding RecentLine, Converter={StaticResource Visible}}"/>
+                                <TextBlock Text="{Binding WindowsLine}" Style="{StaticResource Footnote}" Margin="0,3,0,0"
+                                           Visibility="{Binding WindowsLine, Converter={StaticResource Visible}}"/>
+                            </StackPanel>
+                        </Expander>
                     </StackPanel>
                 </StackPanel>
 

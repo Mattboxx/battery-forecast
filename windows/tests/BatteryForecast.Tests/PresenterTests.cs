@@ -84,7 +84,7 @@ public class PresenterTests
         Assert.Contains("riserva del 5%", m.Note);
         Assert.Equal(EstimateSource.Habits, m.Source);
         Assert.Equal("Impara dal tuo utilizzo · 6,2 giorni di storia", m.SourceLine);
-        Assert.Equal("Al ritmo attuale: circa 2 h 45 min (fino alle 12:45)", m.RecentLine);
+        Assert.Equal("Consumo recente: circa 2 h 45 min alla riserva (fino alle 12:45)", m.RecentLine);
         Assert.Equal("Alle 22:00", m.TargetLabel);
         Assert.Equal("46%", m.TargetValue);
         Assert.NotNull(m.ChartSummary);
@@ -135,7 +135,7 @@ public class PresenterTests
         Assert.Equal("Obiettivo 80%: 14:10", m.Headline);
         Assert.Equal("circa 4 h 10 min · fascia indicativa 13:35–15:00", m.Detail);
         Assert.Equal("Impara dalle tue ricariche · 6,2 giorni di storia", m.SourceLine);
-        Assert.Equal("Al ritmo di carica attuale: circa 3 h 20 min (fino alle 13:20)", m.RecentLine);
+        Assert.Equal("Carica osservata: circa 3 h 20 min (fino alle 13:20)", m.RecentLine);
         Assert.Contains("Di solito stacchi l’alimentatore verso le 16:00", m.RechargeLine);
         Assert.False(m.ShowEveningMarker);
         Assert.Same(cf, m.Chart);
@@ -165,8 +165,88 @@ public class PresenterTests
     public void Beyond_horizon_never_claims_exactly_24_hours()
     {
         var m = PanelPresenter.Present(State(Bat(), View(CrossingStatus.BeyondHorizon, early: null)), Rome);
-        Assert.Equal("Oltre le prossime 24 ore", m.Headline);
+        Assert.Equal("Oltre le prossime 24 h", m.Headline);
         Assert.Equal("Anche nella stima più prudente resta sopra il 5%", m.Detail);
+    }
+
+    [Fact]
+    public void Different_recent_duration_is_a_separate_comparison_not_the_chart_forecast()
+    {
+        var forecast=View(hours:8,early:7,late:9) with
+        {
+            TimeBasis="active_use",
+            Curve=[..Enumerable.Range(1,288).Select(i=>new CurvePoint(Now.AddMinutes(i*5),
+                Math.Max(0,60-55/7d*i/12),Math.Max(0,60-55/8d*i/12),Math.Max(0,60-55/9d*i/12)))],
+        };
+        var recent=new RecentEstimate(RecentMethod.Power,13.75,Now.AddHours(4),TimeSpan.FromMinutes(10));
+        var model=PanelPresenter.Present(State(Bat(),forecast,recent),Rome);
+        Assert.NotNull(model.Chart);
+        Assert.Same(forecast,model.Chart);
+        Assert.Equal(5,model.Chart.At(Now.AddHours(8))!.Value.P50,5);
+        Assert.Contains("circa 8 h",model.Detail);
+        Assert.DoesNotContain("4 h",model.Detail);
+        Assert.Contains("circa 4 h alla riserva",model.RecentLine);
+        Assert.True(model.HasComparisons);
+        Assert.Contains("previsione IA",model.ComparisonHelp);
+        Assert.Contains("stime separate",model.ComparisonHelp);
+        Assert.Contains("Previsione IA",model.SourceLine);
+        Assert.False(PanelPresenter.Present(State(Bat(),forecast),Rome).HasComparisons);
+    }
+
+    [Fact]
+    public void Recent_fallback_keeps_its_own_duration_and_compares_only_windows()
+    {
+        var recent=new RecentEstimate(RecentMethod.Power,20,Now.AddHours(2.75),TimeSpan.FromMinutes(10));
+        var model=PanelPresenter.Present(State(Bat(os:10800),r:recent),Rome);
+        Assert.Equal(EstimateSource.Recent,model.Source);
+        Assert.Null(model.Chart);
+        Assert.Null(model.RecentLine);
+        Assert.Contains("2 h 45 min",model.Detail);
+        Assert.True(model.HasComparisons);
+        Assert.Equal("Stima di Windows: 3:00",model.WindowsLine);
+        Assert.Contains("La durata principale usa il consumo recente",model.ComparisonHelp);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Beyond_horizon_text_uses_the_visible_remaining_horizon_in_both_scenarios(bool charging)
+    {
+        var forecast=View(CrossingStatus.BeyondHorizon,early:null,late:null) with
+        {
+            ReservePct=charging?80:5,IsCharge=charging,
+            Curve=[..Enumerable.Range(1,72).Select(i=>new CurvePoint(Now.AddMinutes(i*5),
+                charging?60+i*.03:60-i*.12,charging?60+i*.05:60-i*.1,charging?60+i*.07:60-i*.08))],
+        };
+        var state=charging
+            ? State(Bat(60,true,ChargeState.Charging)) with { ChargeForecast=forecast,ChargeForecastFresh=true }
+            : State(Bat(),forecast);
+        var model=PanelPresenter.Present(state with { Now=Now.AddMinutes(30) },Rome);
+        Assert.Contains("oltre le prossime 5 h 30 min",model.Headline,StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("24",model.Headline);
+        Assert.Same(forecast,model.Chart);
+    }
+
+    [Fact]
+    public void Collecting_with_only_windows_does_not_claim_a_recent_use_forecast_exists()
+    {
+        var model=PanelPresenter.Present(State(Bat(os:10800)),Rome);
+        Assert.Equal(EstimateSource.None,model.Source);
+        Assert.Equal("Raccolta dati in corso",model.Headline);
+        Assert.True(model.HasComparisons);
+        Assert.Equal("Windows fornisce una propria stima. La previsione dell’app non è ancora disponibile.",model.ComparisonHelp);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Active_use_forecasts_explicitly_show_when_the_ai_is_still_learning(bool charging)
+    {
+        var forecast=View(q:HistoryQuality.Learning) with { TimeBasis="active_use",IsCharge=charging };
+        var state=charging
+            ? State(Bat(60,true,ChargeState.Charging)) with { ChargeForecast=forecast,ChargeForecastFresh=true }
+            : State(Bat(),forecast);
+        Assert.Contains("IA in apprendimento",PanelPresenter.Present(state,Rome).SourceLine);
     }
 
     [Fact]
