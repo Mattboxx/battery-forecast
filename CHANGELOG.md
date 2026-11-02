@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.7
+
+- Preferences keep the **Learn from past forecast errors** status current: it refreshes with every new forecast
+  while the section is open. Before, a window opened in the first seconds after startup kept showing 0/8 even
+  though the forecast already had a ready correction.
+
 ## 0.9.6
 
 - **Learn from past forecast errors now actually learns.** It required past forecasts taken with identical
