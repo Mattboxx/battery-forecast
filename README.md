@@ -169,7 +169,7 @@ forecast\.venv\Scripts\python -m pytest -q forecast
 dotnet run --project windows\src\BatteryForecast.App -- --demo
 
 # full offline package and installer in artifacts\
-powershell -NoProfile -File tools\package.ps1 -Version 0.9.5
+powershell -NoProfile -File tools\package.ps1 -Version 0.9.6
 ```
 
 ARM64 installers are built natively on Windows ARM by the [release workflow](.github/workflows/release.yml),
