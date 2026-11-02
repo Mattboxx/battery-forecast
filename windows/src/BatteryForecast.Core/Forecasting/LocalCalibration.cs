@@ -48,27 +48,55 @@ public sealed record CalibrationInfo
 public sealed record CalibrationContext(DateTimeOffset At,int? CpuBand,double? DisplayState,double? BrightnessPct,string? WorkloadKey);
 public sealed record RawForecastTiming(CrossingDto Crossing,double? Recharge,double? Unplug,double? Extrapolated,double? Rate);
 
-/// <summary>Bounded local rate calibration, from immutable original forecasts and subsequent active observations.</summary>
+/// <summary>
+/// Bounded local rate calibration, from immutable original forecasts and subsequent active observations.
+/// Evidence is searched from the most specific to the broadest comparable conditions: exact app workload and
+/// load first, then the same CPU load and screen, a similar load, and finally any comparable battery use.
+/// Requiring identical app workloads alone almost never finds two comparable moments (the top apps and their
+/// CPU bands change all the time), so learning would never start; the first level with enough independent
+/// windows and sessions is used, and its scope is reported.
+/// </summary>
 public static class LocalCalibration
 {
     public const int MinimumWindows=8,MinimumSessions=3;
     static readonly TimeSpan MaximumGap=TimeSpan.FromMinutes(3);
     static DateTimeOffset Time(double unix)=>DateTimeOffset.FromUnixTimeMilliseconds((long)(unix*1000));
 
+    /// <summary>How closely a past forecast's conditions must match the current ones.</summary>
+    public enum Match { SameAppsAndLoad, SameLoad, SimilarLoad, AnyUse }
+    public static string ScopeOf(Match level)=>level switch
+    {
+        Match.SameAppsAndLoad=>"same_apps_and_load", Match.SameLoad=>"same_load", Match.SimilarLoad=>"similar_load", _=>"all_use",
+    };
+
     public static CalibrationInfo Learn(ForecastResponse current,IReadOnlyList<ForecastSnapshot> saved,
         IReadOnlyList<BatterySample> observations,IReadOnlyList<DateTimeOffset> interruptions,
         IReadOnlyList<CalibrationContext> context,DateTimeOffset now,DateTimeOffset? reset=null)
     {
         var conditions=current.Conditions;
-        var empty=new CalibrationInfo { Enabled=true,ResetUtc=reset,Scope=conditions?.AppContext==true?"same_apps_and_load":"general_load" };
+        var empty=new CalibrationInfo { Enabled=true,ResetUtc=reset,Scope=ScopeOf(conditions?.AppContext==true?Match.SameAppsAndLoad:Match.SameLoad) };
         if(conditions is null || current.Quality.State is not ("ok" or "learning") || current.TimeBasis!="active_use" || string.IsNullOrWhiteSpace(current.ModelRevision) || current.ModelRevision=="unknown") return empty;
-        if(conditions.AppContext && conditions.WorkloadKey is null) return empty with { Reason="fresh_load_needed" };
         var samples=observations.Where(s=>s.TimestampUtc<=now && s.Source=="windows").OrderBy(s=>s.TimestampUtc).ToArray();
         var breaks=interruptions.Where(t=>t<=now).ToList();
         for(int i=1;i<samples.Length;i++)
             if(samples[i].OnAc!=samples[i-1].OnAc || samples[i].TimestampUtc-samples[i-1].TimestampUtc>MaximumGap ||
                 samples[i].DesignMWh!=samples[i-1].DesignMWh) breaks.Add(samples[i].TimestampUtc);
         breaks.Sort();
+        CalibrationInfo? widest=null;
+        foreach(var level in Enum.GetValues<Match>())
+        {
+            // exact app matching needs a fresh workload reading for the current forecast
+            if(level==Match.SameAppsAndLoad && !(conditions.AppContext && conditions.WorkloadKey is not null)) continue;
+            var report=Collect(level,current,conditions,saved,samples,breaks,context,now,reset,empty);
+            if(report.Ready) return report;
+            widest=report;      // not ready anywhere: show the progress of the broadest search
+        }
+        return widest??empty;
+    }
+
+    static CalibrationInfo Collect(Match match,ForecastResponse current,ForecastConditions conditions,IReadOnlyList<ForecastSnapshot> saved,
+        BatterySample[] samples,List<DateTimeOffset> breaks,IReadOnlyList<CalibrationContext> context,DateTimeOffset now,DateTimeOffset? reset,CalibrationInfo empty)
+    {
         var accepted=new List<(DateTimeOffset End,double Ratio,DateTimeOffset Session)>();
         DateTimeOffset? usedUntil=null;
         foreach(var snapshot in saved.OrderBy(s=>s.View.Generated))
@@ -78,7 +106,7 @@ public static class LocalCalibration
                 (reset is { } resetOrigin && origin<resetOrigin) ||
                 !snapshot.Source.StartsWith("timestral",StringComparison.Ordinal) || snapshot.Source.EndsWith(":held",StringComparison.Ordinal) ||
                 r.TimeBasis!="active_use" || r.Quality.State is not ("ok" or "learning") || r.Scenario!=current.Scenario || r.ModelRevision!=current.ModelRevision ||
-                r.Conditions is not { } past || !Comparable(past,conditions) || usedUntil is { } previousEnd && origin<previousEnd) continue;
+                r.Conditions is not { } past || !Comparable(match,past,conditions) || usedUntil is { } previousEnd && origin<previousEnd) continue;
             bool charging=r.Scenario=="charge";
             if(past.OnAc!=charging) continue; // an unplug-now forecast issued on AC has no matching realised scenario
             foreach(int minutes in new[]{30,60,120})
@@ -109,7 +137,7 @@ public static class LocalCalibration
                         (j>first && (s.TimestampUtc-samples[j-1].TimestampUtc>MaximumGap ||
                         Math.Abs(level-samples[j-1].LevelPct.GetValueOrDefault(level))>5))) { valid=false;break; }
                 }
-                if(!valid || breaks.Any(t=>t>origin && t<=actual.TimestampUtc) || !StableContext(past,context,origin,actual.TimestampUtc)) continue;
+                if(!valid || breaks.Any(t=>t>origin && t<=actual.TimestampUtc) || !StableContext(match,past,context,origin,actual.TimestampUtc)) continue;
                 double ratio=actualDelta/predictedDelta;
                 if(!double.IsFinite(ratio)||ratio<=0) continue;
                 var session=breaks.LastOrDefault(t=>t<=origin);
@@ -118,31 +146,49 @@ public static class LocalCalibration
             }
         }
         int sessions=accepted.Select(p=>p.Session).Distinct().Count();
-        var report=empty with { Windows=accepted.Count,Sessions=sessions };
+        var report=empty with { Windows=accepted.Count,Sessions=sessions,Scope=ScopeOf(match),Reason="collecting" };
         if(accepted.Count<MinimumWindows || sessions<MinimumSessions) return report;
         var ratios=accepted.Select(p=>p.Ratio).Order().ToArray();
         double median=ratios.Length%2==1?ratios[ratios.Length/2]:(ratios[ratios.Length/2-1]+ratios[ratios.Length/2])/2;
         return report with { Ready=true,Reason="ready",Factor=Math.Clamp(median,.75,1.25) };
     }
 
-    static bool Comparable(ForecastConditions past,ForecastConditions current)
+    static bool Comparable(Match level,ForecastConditions past,ForecastConditions current)
     {
-        if(past.Version!=current.Version || past.OnAc!=current.OnAc || past.DesignMWh!=current.DesignMWh ||
-            past.CpuBand!=current.CpuBand || past.DisplayState!=current.DisplayState || past.AppContext!=current.AppContext) return false;
+        // always: same model of conditions, same power scenario and the same battery
+        if(past.Version!=current.Version || past.OnAc!=current.OnAc || past.DesignMWh!=current.DesignMWh) return false;
         if(past.FullMWh is >0 && current.FullMWh is >0 && Math.Abs(past.FullMWh.Value-current.FullMWh.Value)>current.FullMWh.Value*.05) return false;
-        if(current.BrightnessPct is { } light && (past.BrightnessPct is not { } old || Math.Abs(light-old)>10)) return false;
-        return !current.AppContext || past.WorkloadKey==current.WorkloadKey;
+        switch(level)
+        {
+            case Match.SameAppsAndLoad:
+                if(past.CpuBand!=current.CpuBand || past.DisplayState!=current.DisplayState || past.AppContext!=current.AppContext) return false;
+                if(current.BrightnessPct is { } light && (past.BrightnessPct is not { } old || Math.Abs(light-old)>10)) return false;
+                return past.WorkloadKey==current.WorkloadKey;
+            case Match.SameLoad:
+                if(past.CpuBand!=current.CpuBand || past.DisplayState!=current.DisplayState) return false;
+                return current.BrightnessPct is not { } now || past.BrightnessPct is not { } then || Math.Abs(now-then)<=20;
+            case Match.SimilarLoad:
+                if(current.CpuBand is { } band && past.CpuBand is { } pastBand && Math.Abs(band-pastBand)>1) return false;
+                return current.DisplayState is null || past.DisplayState is null || past.DisplayState==current.DisplayState;
+            default:
+                return true;
+        }
     }
-    static bool StableContext(ForecastConditions expected,IReadOnlyList<CalibrationContext> all,DateTimeOffset from,DateTimeOffset until)
+    static bool StableContext(Match level,ForecastConditions expected,IReadOnlyList<CalibrationContext> all,DateTimeOffset from,DateTimeOffset until)
     {
-        if(expected.CpuBand is null && expected.DisplayState is null && expected.BrightnessPct is null && !expected.AppContext) return true;
+        if(level==Match.AnyUse) return true;
+        bool apps=level==Match.SameAppsAndLoad && expected.AppContext;
+        double? brightness=level==Match.SimilarLoad?null:expected.BrightnessPct;
+        if(expected.CpuBand is null && expected.DisplayState is null && brightness is null && !apps) return true;
         var rows=all.Where(c=>c.At>=from&&c.At<=until).OrderBy(c=>c.At).ToArray();
         if(rows.Length<6 || rows[0].At-from>TimeSpan.FromSeconds(150) || until-rows[^1].At>TimeSpan.FromSeconds(150)) return false;
         for(int i=1;i<rows.Length;i++) if(rows[i].At-rows[i-1].At>TimeSpan.FromSeconds(150)) return false;
-        return rows.Count(c=>(expected.CpuBand is null||c.CpuBand==expected.CpuBand) &&
+        int tolerance=level==Match.SimilarLoad?1:0;
+        double light=level==Match.SameAppsAndLoad?10:20, share=level switch { Match.SameAppsAndLoad=>.8, Match.SameLoad=>.7, _=>.6 };
+        return rows.Count(c=>(expected.CpuBand is null||c.CpuBand is { } band && Math.Abs(band-expected.CpuBand.Value)<=tolerance) &&
             (expected.DisplayState is null||c.DisplayState==expected.DisplayState) &&
-            (expected.BrightnessPct is null||c.BrightnessPct is { } b && Math.Abs(b-expected.BrightnessPct.Value)<=10) &&
-            (!expected.AppContext||c.WorkloadKey==expected.WorkloadKey)) >= Math.Ceiling(rows.Length*.8);
+            (brightness is null||c.BrightnessPct is { } b && Math.Abs(b-brightness.Value)<=light) &&
+            (!apps||c.WorkloadKey==expected.WorkloadKey)) >= Math.Ceiling(rows.Length*share);
     }
     static int LowerBound(IReadOnlyList<BatterySample> values,DateTimeOffset t)
     {

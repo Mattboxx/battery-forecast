@@ -78,9 +78,12 @@ public class LocalCalibrationTests
     {
         var low=History(1.2,key:"profile|abcdef012345:1");var high=History(.8,key:"profile|abcdef012345:2",startDay:3);
         var all=new Data([..low.Saved,..high.Saved],[..low.Actual,..high.Actual],[..low.Breaks,..high.Breaks],[..low.Context,..high.Context],high.Now);
-        Assert.Equal(1.2,Learn(all,Forecast(all.Now,key:"profile|abcdef012345:1")).Factor,8);
+        var first=Learn(all,Forecast(all.Now,key:"profile|abcdef012345:1"));
+        Assert.Equal(1.2,first.Factor,8);Assert.Equal("same_apps_and_load",first.Scope);
         Assert.Equal(.8,Learn(all,Forecast(all.Now,key:"profile|abcdef012345:2")).Factor,8);
-        Assert.False(Learn(all,Forecast(all.Now,key:"profile|ffffff012345:1")).Ready);
+        // apps never seen before: no exact evidence, so the same CPU load pools both histories
+        var unseen=Learn(all,Forecast(all.Now,key:"profile|ffffff012345:1"));
+        Assert.True(unseen.Ready);Assert.Equal("same_load",unseen.Scope);Assert.Equal(16,unseen.Windows);Assert.Equal(1.0,unseen.Factor,8);
         Assert.NotEqual(ForecastConditions.AppKey(1,[new("editor",10,100)]),ForecastConditions.AppKey(1,[new("editor",30,100)]));
     }
     [Fact]
@@ -91,8 +94,35 @@ public class LocalCalibrationTests
         Assert.Equal(0,Learn(data,Forecast(data.Now,key:"app:1") with { Quality=new() { State="insufficient" } }).Windows);
         Assert.Equal(0,Learn(data with { Saved=data.Saved.Select(s=>new ForecastSnapshot(s.Id,s.IssuedAt,s.Source,s.Response with { Quality=new() })).ToList() },Forecast(data.Now,key:"app:1")).Windows);
         Assert.Equal(0,Learn(data,Forecast(data.Now,key:"app:1") with { Conditions=Conditions("app:1") with { DesignMWh=60000 } }).Windows);
+        // other apps after the forecast, same CPU load: not an exact-app comparison, still a same-load one
         var changed=data with { Context=data.Context.Select(c=>c with { WorkloadKey="different" }).ToList() };
-        Assert.Equal(0,Learn(changed,Forecast(data.Now,key:"app:1")).Windows);
+        var report=Learn(changed,Forecast(data.Now,key:"app:1"));
+        Assert.Equal("same_load",report.Scope);Assert.Equal(8,report.Windows);
+    }
+    [Fact]
+    public void AppWorkloadsThatNeverRepeatStillLearnFromTheSameLoad()
+    {
+        // as on real PCs: the top apps and their CPU bands differ at every forecast
+        var data=History(1.15);
+        data=data with
+        {
+            Saved=data.Saved.Select((s,i)=>new ForecastSnapshot(s.Id,s.IssuedAt,s.Source,s.Response with { Conditions=Conditions($"apps-{i}") })).ToList(),
+            Context=data.Actual.Select((a,i)=>new CalibrationContext(a.TimestampUtc,2,null,null,$"moment-{i}")).ToList(),
+        };
+        var report=Learn(data,Forecast(data.Now,key:"apps-now"));
+        Assert.True(report.Ready);Assert.Equal("same_load",report.Scope);Assert.Equal(8,report.Windows);Assert.Equal(1.15,report.Factor,8);
+    }
+    [Fact]
+    public void ALoadChangeAfterTheForecastFallsBackToBroaderEvidenceOnly()
+    {
+        var data=History(1.1,key:"app:1");
+        // CPU band 3 after each forecast instead of 2: not the same load, but within one band
+        var busier=data with { Context=data.Context.Select(c=>c with { CpuBand=3 }).ToList() };
+        var report=Learn(busier,Forecast(data.Now,key:"app:1"));
+        Assert.True(report.Ready);Assert.Equal("similar_load",report.Scope);Assert.Equal(1.1,report.Factor,8);
+        // without any context readings only the broadest scope can use these windows
+        var unknown=Learn(data with { Context=[] },Forecast(data.Now,key:"app:1"));
+        Assert.True(unknown.Ready);Assert.Equal("all_use",unknown.Scope);
     }
     [Theory]
     [InlineData(.6,.75)]

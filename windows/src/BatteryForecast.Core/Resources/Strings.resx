@@ -24,14 +24,16 @@
   <data name="Battery" xml:space="preserve"><value>Battery</value></data>
   <data name="Beyond" xml:space="preserve"><value>Beyond the next {0}</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calculating the forecast…</value></data>
+  <data name="CalibrationAllScope" xml:space="preserve"><value>all comparable battery use</value></data>
   <data name="CalibrationAppScope" xml:space="preserve"><value>same apps and CPU load</value></data>
   <data name="CalibrationCollecting" xml:space="preserve"><value>Collecting valid comparisons: {0}/{1}, sessions {2}/{3}. No correction applied yet.</value></data>
   <data name="CalibrationFreshLoad" xml:space="preserve"><value>Waiting for fresh app-load readings before selecting comparable errors.</value></data>
-  <data name="CalibrationGeneralScope" xml:space="preserve"><value>comparable general load</value></data>
-  <data name="CalibrationHelp" xml:space="preserve"><value>Compares original forecasts with later readings under similar conditions. Starts after 8 independent comparisons in 3 sessions; app recording also matches apps and CPU load. Adjustment is limited to ±25%, without retraining the AI or establishing accuracy. A faster adjustment may shorten the chart horizon. Reset keeps old forecasts and starts learning from new ones.</value></data>
+  <data name="CalibrationGeneralScope" xml:space="preserve"><value>same CPU load and screen</value></data>
+  <data name="CalibrationHelp" xml:space="preserve"><value>Compares original forecasts with later readings. Starts after 8 independent comparisons in 3 sessions, using the most similar conditions with enough evidence: same apps and CPU load, then same load and screen, similar load, and finally all comparable battery use. Adjustment is limited to ±25%, without retraining the AI or establishing accuracy. A faster adjustment may shorten the chart horizon. Reset keeps old forecasts and starts learning from new ones.</value></data>
   <data name="CalibrationOff" xml:space="preserve"><value>Personal correction is off. Original forecasts remain saved for comparison.</value></data>
   <data name="CalibrationReady" xml:space="preserve"><value>Local correction ready: {0} independent comparisons, {1} sessions, rate factor {2} · {3}. Not a measured accuracy guarantee.</value></data>
   <data name="CalibrationReset" xml:space="preserve"><value>Reset learning</value></data>
+  <data name="CalibrationSimilarScope" xml:space="preserve"><value>similar CPU load</value></data>
   <data name="ChargeActiveUseLearningSource" xml:space="preserve"><value>AI still learning · charging and continued use · {0} days</value></data>
   <data name="ChargeActiveUseSource" xml:space="preserve"><value>AI forecast · charging and continued use · {0} days</value></data>
   <data name="ChargeBeyond" xml:space="preserve"><value>Target {0}%: beyond the next {1}</value></data>

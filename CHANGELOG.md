@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.6
+
+- **Learn from past forecast errors now actually learns.** It required past forecasts taken with identical
+  apps, CPU band, screen and brightness, held stable for most of the following hour; the top apps change
+  at almost every forecast, so no comparison was ever accepted (0/8 comparisons, 0/3 sessions). It now looks
+  for evidence from the most specific to the broadest conditions (same apps and CPU load, same CPU load and
+  screen, similar load, all comparable battery use) and uses the first level with 8 comparisons in 3 sessions.
+  The scope used is shown in Preferences. Same bounds as before (±25%), same original curves kept.
+- Diagnostic command `tilldusk calibration --db <copy>` reports the comparisons found on an existing history.
+
 ## 0.9.5
 
 - Pin the self-contained .NET and Windows Desktop runtimes to the audited 10.0.13 version on both architectures. Newer build-runner SDKs cannot silently change the distributed runtime; license checks continue to reject unreviewed components.

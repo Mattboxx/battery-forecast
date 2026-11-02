@@ -88,7 +88,29 @@ switch (cmd)
         return 0;
     }
 
+    case "calibration":
+    {
+        // "Impara dagli errori" su uno storico esistente (usare una COPIA del database dell'app): per l'ultima
+        // previsione salvata di ogni scenario, quanti confronti trova ogni livello di somiglianza.
+        var db = Opt("--db") ?? throw new ArgumentException("--db FILE");
+        var apps = !args.Contains("--no-apps");
+        using var store = new HistoryStore(db);
+        var all = store.ForecastSnapshots(DateTimeOffset.UnixEpoch, DateTimeOffset.UtcNow.AddDays(1));
+        foreach (var (source, charge) in new[] { ("timestral", false), ("timestral:charge", true) })
+        {
+            if (all.Where(s => s.Source == source && s.Response.Conditions is not null).MaxBy(s => s.IssuedAt) is not { } latest)
+            { Console.WriteLine($"{source}: nessuna previsione salvata con condizioni"); continue; }
+            var origin = DateTimeOffset.FromUnixTimeMilliseconds((long)(latest.Response.ContextEndUtc * 1000));
+            var since = origin.AddDays(-30);
+            var report = LocalCalibration.Learn(latest.Response, store.CalibrationSnapshots(since, origin, charge), store.Samples(since, origin),
+                store.ModelDiscontinuities(since, origin), store.CalibrationContext(since, origin, apps), origin);
+            Console.WriteLine($"{source} @ {latest.IssuedAt.ToLocalTime():dd/MM HH:mm}: pronta={report.Ready} ambito={report.Scope} " +
+                $"confronti={report.Windows}/{LocalCalibration.MinimumWindows} sessioni={report.Sessions}/{LocalCalibration.MinimumSessions} fattore={report.Factor:0.000}");
+        }
+        return 0;
+    }
+
     default:
-        Console.Error.WriteLine("comandi: battery | sensors | forecast [--db FILE] | record --db FILE [--minutes N]");
+        Console.Error.WriteLine("comandi: battery | sensors | forecast [--db FILE] | record --db FILE [--minutes N] | calibration --db COPIA [--no-apps]");
         return 1;
 }

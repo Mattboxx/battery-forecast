@@ -24,14 +24,16 @@
   <data name="Battery" xml:space="preserve"><value>Batteria</value></data>
   <data name="Beyond" xml:space="preserve"><value>Oltre le prossime {0}</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calcolo della previsione…</value></data>
+  <data name="CalibrationAllScope" xml:space="preserve"><value>tutto l’uso a batteria confrontabile</value></data>
   <data name="CalibrationAppScope" xml:space="preserve"><value>stesse app e carico CPU</value></data>
   <data name="CalibrationCollecting" xml:space="preserve"><value>Confronti validi raccolti: {0}/{1}, sessioni {2}/{3}. Nessuna correzione applicata per ora.</value></data>
   <data name="CalibrationFreshLoad" xml:space="preserve"><value>Attendo letture fresche del carico app per selezionare errori confrontabili.</value></data>
-  <data name="CalibrationGeneralScope" xml:space="preserve"><value>carico generale confrontabile</value></data>
-  <data name="CalibrationHelp" xml:space="preserve"><value>Confronta previsioni originali e letture successive in condizioni simili. Parte dopo 8 confronti indipendenti in 3 sessioni; con la raccolta app attiva abbina anche app e carico CPU. Correzione limitata al ±25%, senza riaddestrare l’IA né dimostrare accuratezza. Può accorciare l’orizzonte del grafico. Azzera conserva le vecchie previsioni e ricomincia da quelle nuove.</value></data>
+  <data name="CalibrationGeneralScope" xml:space="preserve"><value>stesso carico CPU e schermo</value></data>
+  <data name="CalibrationHelp" xml:space="preserve"><value>Confronta previsioni originali e letture successive. Parte dopo 8 confronti indipendenti in 3 sessioni, usando le condizioni più simili con abbastanza dati: stesse app e carico CPU, poi stesso carico e schermo, carico simile e infine tutto l’uso a batteria confrontabile. Correzione limitata al ±25%, senza riaddestrare l’IA né dimostrare accuratezza. Può accorciare l’orizzonte del grafico. Azzera conserva le vecchie previsioni e ricomincia da quelle nuove.</value></data>
   <data name="CalibrationOff" xml:space="preserve"><value>Correzione personale disattivata. Le previsioni originali restano salvate per il confronto.</value></data>
   <data name="CalibrationReady" xml:space="preserve"><value>Correzione locale pronta: {0} confronti indipendenti, {1} sessioni, fattore velocità {2} · {3}. Non è una garanzia di accuratezza misurata.</value></data>
   <data name="CalibrationReset" xml:space="preserve"><value>Azzera apprendimento</value></data>
+  <data name="CalibrationSimilarScope" xml:space="preserve"><value>carico CPU simile</value></data>
   <data name="ChargeActiveUseLearningSource" xml:space="preserve"><value>IA in apprendimento · carica e uso continuo · {0} giorni</value></data>
   <data name="ChargeActiveUseSource" xml:space="preserve"><value>Previsione IA · carica e uso continuo · {0} giorni</value></data>
   <data name="ChargeBeyond" xml:space="preserve"><value>Obiettivo {0}%: oltre le prossime {1}</value></data>
