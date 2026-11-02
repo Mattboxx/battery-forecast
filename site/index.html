@@ -382,8 +382,8 @@
       // ripiego se l'API di GitHub non risponde (limite di richieste, rete): l'ultima versione nota
       let release = { assets: {} };
       for (const arch of ['x64', 'arm64']) {
-        const name = `BatteryForecast-Setup-0.9.5-${arch}.exe`;
-        const url = `https://github.com/${repo}/releases/download/v0.9.5/${name}`;
+        const name = `BatteryForecast-Setup-0.9.6-${arch}.exe`;
+        const url = `https://github.com/${repo}/releases/download/v0.9.6/${name}`;
         release.assets[arch] = { url, name, size: 0, sha: url + '.sha256' };
       }
       const loaded = fetch(`https://api.github.com/repos/${repo}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } })
