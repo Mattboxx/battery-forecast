@@ -113,6 +113,19 @@ public partial class PreferencesWindow : Window
         ContextHours.KeyDown += (_, e) => { if (e.Key == Key.Enter) { SaveContext_Click(this, e); e.Handled = true; } };
     }
 
+    /// <summary>Correzione personale della previsione attiva (scarica, carica o "se stacchi adesso").</summary>
+    void ShowCalibration()
+    {
+        var state = app.Coordinator?.State;
+        var forecast = state?.Phase switch
+        {
+            Core.Forecasting.PowerPhase.Charging => state.ChargeForecast,
+            Core.Forecasting.PowerPhase.PluggedIn => state.HeldForecast,
+            _ => state?.Forecast,
+        };
+        CalibrationStatus.Text = CalibrationPresenter.Present(app.Settings.UseLocalCalibration, forecast?.Calibration);
+    }
+
     // MARK: sezioni
 
     readonly ScrollViewer[] pages;
@@ -303,6 +316,8 @@ public partial class PreferencesWindow : Window
 
     public void DashboardChanged(DashboardState state)
     {
+        // lo stato di "Impara dagli errori" segue ogni nuova previsione, anche a finestra già aperta
+        if (IsVisible && Sections.SelectedIndex == 5) ShowCalibration();
         if (!IsVisible || Sections.SelectedIndex != 0) return;
         if (state.Updating) { trendWasUpdating = true; return; }
         if (trendWasUpdating || trendLoadedBattery != state.Battery.TimestampUtc)
@@ -406,7 +421,7 @@ public partial class PreferencesWindow : Window
                 _ => state?.Forecast,
             };
             ContextStatus.Text = ContextPresenter.Present(app.Settings, app.CurrentSystemContext, store.ContextSummary(start), forecast?.ContextFeatures ?? []);
-            CalibrationStatus.Text=CalibrationPresenter.Present(app.Settings.UseLocalCalibration,forecast?.Calibration);
+            ShowCalibration();
             if(app.Settings.CollectProcesses && app.Settings.CollectSystemContext && app.CurrentSystemContext is { } currentApps)
             {
                 var associations=store.ProcessAssociations(currentApps,start,end);
