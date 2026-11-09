@@ -58,7 +58,7 @@ public sealed record DashboardState
 public sealed class ForecastCoordinator : IDisposable
 {
     static readonly TimeSpan DriftMinAge = TimeSpan.FromMinutes(2),
-        FreshFor = TimeSpan.FromMinutes(10), ValidFor = TimeSpan.FromHours(3), RecentLookback = TimeSpan.FromMinutes(40),
+        FreshFor = TimeSpan.FromMinutes(10), ValidFor = TimeSpan.FromHours(3), RecentLookback = TimeSpan.FromMinutes(70),
         HistoryDays = TimeSpan.FromDays(110);
     const double FreshDrift = 2;
 
@@ -307,6 +307,21 @@ public sealed class ForecastCoordinator : IDisposable
                 else report=report with { Reason="collecting" };
             }
             r=LocalCalibration.Apply(r,report);
+            if(mode==Mode.Discharge && r.Source=="timestral")
+            {
+                // arrival at the reserve: measured power and Timestral curve, weighted by their past errors on this PC
+                var blend=new BlendInfo { PowerWeight=EstimateBlend.PriorPowerWeight };
+                RecentEstimate? measured=SafeRecent(s,reserve,s.TimestampUtc)??EstimateBlend.FromWindows(s,reserve);
+                try
+                {
+                    var since=origin.AddDays(-Math.Min(30,options.RetentionDays));
+                    var past=store.Samples(since,origin);
+                    blend=EstimateBlend.Learn(store.DischargeSnapshots(since,origin),past,origin);
+                    measured??=EstimateBlend.FromHistory(past.Where(p=>p.TimestampUtc>=origin.AddDays(-7)).ToList(),s,reserve);
+                }
+                catch(Microsoft.Data.Sqlite.SqliteException) { }
+                r=EstimateBlend.Apply(r,measured,blend);
+            }
             var view = ForecastView.From(r);
             lock (gate)
             {

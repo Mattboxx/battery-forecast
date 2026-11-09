@@ -97,6 +97,8 @@ public sealed record ForecastResponse
     public string TimeBasis { get; init; } = "calendar";
     public ForecastConditions? Conditions { get; init; }
     public CalibrationInfo? Calibration { get; init; }
+    /// <summary>How the arrival time combines the measured power with the Timestral curve (discharge only).</summary>
+    public BlendInfo? Blend { get; init; }
     public IReadOnlyList<CurvePointDto>? RawCurve { get; init; }
     public RawForecastTiming? RawTiming { get; init; }
     public double GeneratedAtUtc { get; init; }

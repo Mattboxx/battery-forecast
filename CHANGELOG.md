@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.9.8
+
+- **Much closer arrival at the reserve.** Measured on a real laptop's history (49 discharges that actually reached the
+  reserve): the Timestral time was on average 86 minutes off (71 too late in the median), Windows' estimate 33, the new
+  combined time 21 minutes, with the median error about one minute and 57% of arrivals within 15 minutes.
+  - The headline combines the energy left divided by the mean measured power of the current discharge (up to an hour;
+    then Windows' own estimate right after unplugging; then this PC's typical power) with the Timestral curve.
+  - Each PC learns the weight of the two from the arrivals it has actually observed, separately for short and long
+    measured stretches; the curve is retimed to the combined arrival, so chart, headline and alerts agree.
+- **Learning from past errors works along the whole discharge.** Each saved forecast is compared with reality in
+  5-point spans, credited to 10-point battery-level bands: on many laptops the reported percentage falls much faster
+  near empty (2.5 times in the 20-10% band on the test laptop), which a single factor learned on the first 30 minutes
+  could not fix. Bounds 0.5-2 per band; bands without enough evidence use broader comparable conditions.
+- Learning reads the whole period of saved discharge forecasts instead of the 200 most recent of any kind.
+- Battery Forecast's own code is now released under the **GNU GPL version 3 or later** (LICENSE, NOTICE). Till Dusk's
+  MIT notice is preserved for the parts derived from it; a GPL section 7 permission covers the bundled third-party
+  components. Versions up to 0.9.7 remain available under MIT.
+- Diagnostics: `tilldusk backtest --db <copy>` compares Windows, Timestral, the measured power and the combined time
+  on an existing history, using only data available before each forecast.
+
 ## 0.9.7
 
 - Preferences keep the **Learn from past forecast errors** status current: it refreshes with every new forecast

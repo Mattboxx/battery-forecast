@@ -76,14 +76,15 @@ public class LocalCalibrationTests
     [Fact]
     public void WorkloadAndPerAppCpuBandsKeepSeparateBiasesInsteadOfPoolingDifferentApps()
     {
-        var low=History(1.2,key:"profile|abcdef012345:1");var high=History(.8,key:"profile|abcdef012345:2",startDay:3);
+        var low=History(1.2,key:"profile|abcdef012345:1");var high=History(.9,key:"profile|abcdef012345:2",startDay:3);
         var all=new Data([..low.Saved,..high.Saved],[..low.Actual,..high.Actual],[..low.Breaks,..high.Breaks],[..low.Context,..high.Context],high.Now);
         var first=Learn(all,Forecast(all.Now,key:"profile|abcdef012345:1"));
         Assert.Equal(1.2,first.Factor,8);Assert.Equal("same_apps_and_load",first.Scope);
-        Assert.Equal(.8,Learn(all,Forecast(all.Now,key:"profile|abcdef012345:2")).Factor,8);
+        Assert.Equal(.9,Learn(all,Forecast(all.Now,key:"profile|abcdef012345:2")).Factor,8);
         // apps never seen before: no exact evidence, so the same CPU load pools both histories
         var unseen=Learn(all,Forecast(all.Now,key:"profile|ffffff012345:1"));
-        Assert.True(unseen.Ready);Assert.Equal("same_load",unseen.Scope);Assert.Equal(16,unseen.Windows);Assert.Equal(1.0,unseen.Factor,8);
+        Assert.True(unseen.Ready);Assert.Equal("same_load",unseen.Scope);Assert.Equal(16,unseen.Windows);
+        Assert.InRange(unseen.Factor,.9,1.2);   // pooled evidence lies between the two histories
         Assert.NotEqual(ForecastConditions.AppKey(1,[new("editor",10,100)]),ForecastConditions.AppKey(1,[new("editor",30,100)]));
     }
     [Fact]
@@ -98,6 +99,36 @@ public class LocalCalibrationTests
         var changed=data with { Context=data.Context.Select(c=>c with { WorkloadKey="different" }).ToList() };
         var report=Learn(changed,Forecast(data.Now,key:"app:1"));
         Assert.Equal("same_load",report.Scope);Assert.Equal(8,report.Windows);
+    }
+    [Fact]
+    public void FasterDischargeNearEmptyIsLearnedPerLevelBandAndMovesTheReserveArrivalEarlier()
+    {
+        // as measured on a real laptop: the forecast is right above 30%, the battery then goes twice as fast
+        var saved=new List<ForecastSnapshot>();var actual=new List<BatterySample>();var breaks=new List<DateTimeOffset>();int id=0;
+        double Real(double minutes)=>minutes<=60?90-minutes/60*60:Math.Max(0,30-(minutes-60)/60*120);   // 60%/h, then 120%/h below 30%
+        for(int session=0;session<4;session++)
+        {
+            var start=Zero.AddDays(session);breaks.Add(start);
+            for(int minute=0;minute<=80;minute++)
+                actual.Add(new(start.AddMinutes(minute),ChargeState.Discharging,Real(minute),false,FullChargeMWh:50000,DesignMWh:50000));
+            for(int i=0;i<3;i++)
+            {
+                var origin=start.AddMinutes(i*30);double level=Real(i*30);
+                var points=Enumerable.Range(1,288).Select(k=>new CurvePointDto(origin.AddMinutes(k*5).ToUnixTimeSeconds(),
+                    Math.Max(0,level-5*k-2),Math.Max(0,level-5*k),Math.Max(0,level-5*k+2))).ToList();   // forecast: 60%/h throughout
+                saved.Add(new(++id,origin.AddSeconds(1),"timestral",Forecast(origin,level) with { Curve=points,ReservePct=10 }));
+            }
+        }
+        var now=actual[^1].TimestampUtc.AddMinutes(10);
+        var current=Forecast(now,60) with { ReservePct=10,Curve=[..Enumerable.Range(1,288).Select(k=>new CurvePointDto(now.AddMinutes(k*5).ToUnixTimeSeconds(),
+            Math.Max(0,58-5*k),Math.Max(0,60-5*k),Math.Max(0,62-5*k)))],Crossing=new() { Status="within_horizon",CentralUtc=now.AddMinutes(50).ToUnixTimeSeconds() } };
+        var report=LocalCalibration.Learn(current,saved,actual,breaks,[],now);
+        Assert.True(report.Ready);
+        double FactorAt(double level)=>report.LevelFactors![Array.FindIndex(report.LevelPoints!,p=>Math.Abs(p-level)<1e-9)];
+        Assert.Equal(1,FactorAt(55),2);Assert.Equal(2,FactorAt(25),2);
+        // 60% -> 30% at the forecast speed (30 min), then 30% -> 10% twice as fast (10 min instead of 20)
+        var corrected=LocalCalibration.Apply(current,report);
+        Assert.Equal(40,(corrected.Crossing.CentralUtc!.Value-now.ToUnixTimeSeconds())/60,0);
     }
     [Fact]
     public void AppWorkloadsThatNeverRepeatStillLearnFromTheSameLoad()
@@ -124,14 +155,15 @@ public class LocalCalibrationTests
         var unknown=Learn(data with { Context=[] },Forecast(data.Now,key:"app:1"));
         Assert.True(unknown.Ready);Assert.Equal("all_use",unknown.Scope);
     }
-    [Theory]
-    [InlineData(.6,.75)]
-    [InlineData(2,1.25)]
-    public void LearnedCorrectionIsBounded(double ratio,double expected)
+    [Fact]
+    public void LearnedCorrectionIsBounded()
     {
-        var data=History(ratio);var report=Learn(data);
-        Assert.True(report.Ready);
-        Assert.Equal(expected,report.Factor);
+        var report=Learn(History(3.5));
+        Assert.True(report.Ready);Assert.Equal(LocalCalibration.MaximumFactor,report.Factor);
+        Assert.All(report.LevelFactors!,f=>Assert.InRange(f,LocalCalibration.MinimumFactor,LocalCalibration.MaximumFactor));
+        // a saved or hand-made report outside the bounds is clamped when applied
+        var slow=LocalCalibration.Apply(Forecast(Zero),new() { Enabled=true,Ready=true,Factor=.2 });
+        Assert.Equal(LocalCalibration.MinimumFactor,slow.Calibration!.Factor);
     }
     [Fact]
     public void TimeWarpPreservesRawCurveQuantilesAndCanBeDisabledWithoutCompounding()

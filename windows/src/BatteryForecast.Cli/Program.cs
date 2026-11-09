@@ -110,7 +110,94 @@ switch (cmd)
         return 0;
     }
 
+    case "blendtrace":
+    {
+        var db = Opt("--db") ?? throw new ArgumentException("--db FILE");
+        using var store = new HistoryStore(db);
+        var trace = new List<(DateTimeOffset Origin, double Actual, double Power, double Timestral)>();
+        var now = DateTimeOffset.UtcNow;
+        var info = EstimateBlend.Learn(store.DischargeSnapshots(now.AddDays(-30), now), store.Samples(now.AddDays(-30), now), now, trace);
+        foreach (var t in trace) Console.WriteLine($"{t.Origin.ToLocalTime():dd/MM HH:mm} reale {t.Actual,4:0} · potenza {t.Power - t.Actual,+5:+0;-0} · timestral {t.Timestral - t.Actual,+5:+0;-0}");
+        Console.WriteLine($"peso {info.PowerWeight:0.00}, errori {info.PowerError:0} / {info.TimestralError:0}");
+        return 0;
+    }
+
+    case "backtest":
+    {
+        // Prova sul passato (usare una COPIA del database): per ogni previsione di scarica salvata, l'apprendimento
+        // ricalcolato con i soli dati precedenti, poi l'errore sull'arrivo reale alla riserva, originale e corretto.
+        var db = Opt("--db") ?? throw new ArgumentException("--db FILE");
+        using var store = new HistoryStore(db);
+        var samples = store.Samples(DateTimeOffset.UnixEpoch).Where(s => s.Source == "windows" && s.LevelPct is not null).OrderBy(s => s.TimestampUtc).ToList();
+        var snaps = store.DischargeSnapshots(DateTimeOffset.UnixEpoch, DateTimeOffset.UtcNow.AddDays(1))
+            .Where(s => s.Source == "timestral" && s.Response.TimeBasis == "active_use" && s.Response.Conditions is { OnAc: false })
+            .OrderBy(s => s.IssuedAt).ToList();
+        var rawErr = new List<double>(); var calErr = new List<double>(); var ready = 0;
+        var windowsErr = new List<double>(); var powerErr = new List<double>(); var blendErr = new List<double>();
+        var levelErr = new[] { 60, 120 }.ToDictionary(m => m, _ => (raw: new List<double>(), cal: new List<double>()));
+        foreach (var snap in snaps)
+        {
+            var raw = LocalCalibration.Apply(snap.Response, new CalibrationInfo { Enabled = false });
+            var origin = DateTimeOffset.FromUnixTimeMilliseconds((long)(raw.ContextEndUtc * 1000));
+            // arrivo reale alla riserva: a batteria, senza buchi oltre 3 minuti
+            int i = samples.FindIndex(s => s.TimestampUtc >= origin);
+            if (i <= 0 || (samples[i].TimestampUtc - origin).TotalSeconds > 150) continue;
+            DateTimeOffset? arrival = null;
+            for (int k = i; k < samples.Count; k++)
+            {
+                if (samples[k].OnAc == true || k > i && samples[k].TimestampUtc - samples[k - 1].TimestampUtc > TimeSpan.FromMinutes(3)) break;
+                if (samples[k].LevelPct <= raw.ReservePct) { arrival = samples[k].TimestampUtc; break; }
+            }
+            var since = origin.AddDays(-30);
+            var report = LocalCalibration.Learn(raw, store.CalibrationSnapshots(since, origin, false), store.Samples(since, origin),
+                store.ModelDiscontinuities(since, origin), store.CalibrationContext(since, origin, !args.Contains("--no-apps")), origin);
+            var corrected = LocalCalibration.Apply(raw, report);
+            // livello a +60 e +120 minuti, finché il PC resta a batteria e senza buchi (anche senza arrivo alla riserva)
+            foreach (var minutes in new[] { 60, 120 })
+            {
+                var target = origin.AddMinutes(minutes);
+                int k = i;
+                while (k + 1 < samples.Count && samples[k + 1].TimestampUtc <= target && samples[k + 1].OnAc != true &&
+                       samples[k + 1].TimestampUtc - samples[k].TimestampUtc <= TimeSpan.FromMinutes(3)) k++;
+                if ((target - samples[k].TimestampUtc).TotalSeconds > 150 || samples[k].LevelPct is not { } real || real <= raw.ReservePct) continue;
+                double? LevelAt(ForecastResponse r) => r.Curve.Where(p => p.T >= target.ToUnixTimeSeconds()).Select(p => (double?)p.P50).FirstOrDefault();
+                if (LevelAt(raw) is { } lr && LevelAt(corrected) is { } lc) { levelErr[minutes].raw.Add(lr - real); levelErr[minutes].cal.Add(lc - real); }
+            }
+            if (arrival is null) continue;
+            if (report.Ready) ready++;
+            var blendInfo = EstimateBlend.Learn(store.DischargeSnapshots(since, origin), store.Samples(since, origin), origin);
+            var recent = RecentRate.Estimate(samples.Where(s => s.TimestampUtc <= origin && origin - s.TimestampUtc <= TimeSpan.FromMinutes(70)).ToList(), raw.ReservePct);
+            var blended = EstimateBlend.Apply(corrected, recent ?? EstimateBlend.FromWindows(samples[i], raw.ReservePct) ??
+                EstimateBlend.FromHistory(samples.Where(s => s.TimestampUtc < origin && s.TimestampUtc >= origin.AddDays(-7)).ToList(), samples[i], raw.ReservePct), blendInfo);
+            double? Err(ForecastResponse r) => r.Crossing.CentralUtc is { } c ? (c - arrival.Value.ToUnixTimeMilliseconds() / 1000.0) / 60 : null;
+            double actualMinutes = (arrival.Value - origin).TotalMinutes;
+            if (samples[i].OsRemainingSeconds is int os && os > 0 && samples[i].LevelPct is double lvl && lvl > 0)
+                windowsErr.Add(os / 60.0 * (lvl - raw.ReservePct) / lvl - actualMinutes);
+            if (recent?.ReserveAt is { } ra) powerErr.Add((ra - origin).TotalMinutes - actualMinutes);
+            if (Err(blended) is { } m) blendErr.Add(m);
+            if (Err(raw) is { } a && Err(corrected) is { } b)
+            {
+                rawErr.Add(a); calErr.Add(b);
+                var bands = $" · peso potenza {blendInfo.PowerWeight:0.00} ({blendInfo.Evaluations} arrivi passati, errori {blendInfo.PowerError:0} / {blendInfo.TimestralError:0} min) · per durata {string.Join("/", blendInfo.StretchWeights?.Select(w => w?.ToString("0.00") ?? "-") ?? [])} · usato {blended.Blend?.PowerWeight:0.00} su {recent?.Window.TotalMinutes:0} min · combinato {Err(blended):+0;-0}";
+                Console.WriteLine($"{snap.IssuedAt.ToLocalTime():dd/MM HH:mm} reale tra {(arrival.Value - origin).TotalMinutes,4:0} min · originale {a,+5:+0;-0} · corretta {b,+5:+0;-0} min · {(report.Ready ? $"{report.Scope} {report.Factor:0.00}" : $"in raccolta {report.Windows}")}{bands}");
+            }
+        }
+        static string Summary(List<double> e) => e.Count == 0 ? "—" :
+            $"n={e.Count}, errore medio assoluto {e.Average(Math.Abs):0} min, mediana {e.Order().ElementAt(e.Count / 2):+0;-0} min, entro 15 min {e.Count(x => Math.Abs(x) <= 15) * 100 / e.Count}%";
+        Console.WriteLine($"\n{rawErr.Count} previsioni con arrivo reale osservato, correzione pronta in {ready}");
+        Console.WriteLine($"Windows:                     {Summary(windowsErr)}");
+        Console.WriteLine($"Timestral originale:         {Summary(rawErr)}");
+        Console.WriteLine($"Timestral corretto:          {Summary(calErr)}");
+        Console.WriteLine($"potenza misurata:            {Summary(powerErr)}");
+        Console.WriteLine($"combinato (nuovo titolo):    {Summary(blendErr)}");
+        foreach (var (minutes, e) in levelErr)
+            if (e.raw.Count > 0)
+                Console.WriteLine($"livello a +{minutes} min ({e.raw.Count} previsioni): errore medio assoluto originale {e.raw.Average(Math.Abs):0.0} punti " +
+                    $"(distorsione {e.raw.Average():+0.0;-0.0}), corretta {e.cal.Average(Math.Abs):0.0} (distorsione {e.cal.Average():+0.0;-0.0})");
+        return 0;
+    }
+
     default:
-        Console.Error.WriteLine("comandi: battery | sensors | forecast [--db FILE] | record --db FILE [--minutes N] | calibration --db COPIA [--no-apps]");
+        Console.Error.WriteLine("comandi: battery | sensors | forecast [--db FILE] | record --db FILE [--minutes N] | calibration --db COPIA [--no-apps] | backtest --db COPIA");
         return 1;
 }

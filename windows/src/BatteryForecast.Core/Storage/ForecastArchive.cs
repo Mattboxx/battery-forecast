@@ -41,6 +41,31 @@ public sealed partial class HistoryStore
         cmd.ExecuteNonQuery();
     }
 
+    /// <summary>
+    /// Saved discharge forecasts in a period, oldest first, for learning how close each estimate came to reality.
+    /// Unlike <see cref="ForecastSnapshots"/> (the 200 most recent of any kind), it returns the whole period.
+    /// </summary>
+    public IReadOnlyList<ForecastSnapshot> DischargeSnapshots(DateTimeOffset since, DateTimeOffset until)
+    {
+        lock (gate)
+        {
+            using var cmd = db.CreateCommand();
+            cmd.CommandText = "SELECT id,ts,source,json FROM forecast_snapshots WHERE ts >= $since AND ts <= $until AND source='timestral' ORDER BY ts,id LIMIT 20000";
+            cmd.Parameters.AddWithValue("$since", since.ToUnixTimeSeconds());
+            cmd.Parameters.AddWithValue("$until", until.ToUnixTimeSeconds());
+            using var reader = cmd.ExecuteReader();
+            var result = new List<ForecastSnapshot>();
+            while (reader.Read())
+                try
+                {
+                    if (JsonSerializer.Deserialize<ForecastResponse>(reader.GetString(3)) is { Curve.Count: > 0 } response)
+                        result.Add(new(reader.GetInt64(0), DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(1)), reader.GetString(2), response));
+                }
+                catch (JsonException) { }
+            return result;
+        }
+    }
+
     public IReadOnlyList<ForecastSnapshot> ForecastSnapshots(DateTimeOffset since, DateTimeOffset until, int limit = 100)
     {
         lock (gate)

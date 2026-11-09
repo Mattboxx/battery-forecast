@@ -43,6 +43,13 @@ public sealed record CalibrationInfo
     public string Scope { get; init; } = "general_load";
     public string Reason { get; init; } = "collecting";
     public DateTimeOffset? ResetUtc { get; init; }
+    /// <summary>
+    /// Battery levels (band midpoints) with the learned speed factor for each: on many laptops the reported
+    /// percentage falls much faster near empty than the model expects, so one factor for the whole curve is
+    /// not enough. Null in reports saved by earlier versions, which used <see cref="Factor"/> alone.
+    /// </summary>
+    public double[]? LevelPoints { get; init; }
+    public double[]? LevelFactors { get; init; }
 }
 
 public sealed record CalibrationContext(DateTimeOffset At,int? CpuBand,double? DisplayState,double? BrightnessPct,string? WorkloadKey);
@@ -82,23 +89,34 @@ public static class LocalCalibration
             if(samples[i].OnAc!=samples[i-1].OnAc || samples[i].TimestampUtc-samples[i-1].TimestampUtc>MaximumGap ||
                 samples[i].DesignMWh!=samples[i-1].DesignMWh) breaks.Add(samples[i].TimestampUtc);
         breaks.Sort();
-        CalibrationInfo? widest=null;
-        foreach(var level in Enum.GetValues<Match>())
-        {
-            // exact app matching needs a fresh workload reading for the current forecast
-            if(level==Match.SameAppsAndLoad && !(conditions.AppContext && conditions.WorkloadKey is not null)) continue;
-            var report=Collect(level,current,conditions,saved,samples,breaks,context,now,reset,empty);
-            if(report.Ready) return report;
-            widest=report;      // not ready anywhere: show the progress of the broadest search
-        }
-        return widest??empty;
+        // exact app matching needs a fresh workload reading for the current forecast
+        var results=Enum.GetValues<Match>()
+            .Where(level=>level!=Match.SameAppsAndLoad || conditions.AppContext && conditions.WorkloadKey is not null)
+            .Select(level=>Collect(level,current,conditions,saved,samples,breaks,context,now,reset,empty)).ToList();
+        for(int i=0;i<results.Count;i++)
+            if(results[i].Report.Ready) return WithBands(results[i].Report,results[i].Known,results.Skip(i+1).Select(r=>r.Known));
+        return results.Count>0?results[^1].Report:empty;      // not ready anywhere: show the progress of the broadest search
     }
 
-    static CalibrationInfo Collect(Match match,ForecastResponse current,ForecastConditions conditions,IReadOnlyList<ForecastSnapshot> saved,
+    /// <summary>
+    /// Battery level bands (upper bounds) whose crossing time is compared between forecast and reality. On real
+    /// heavy discharges the 20-10% band went by 2.5 times faster than forecast and the middle bands about 1.15 times:
+    /// one factor learned on the first 30 minutes could not fix the arrival at the reserve, often an hour late.
+    /// </summary>
+    public static readonly double[] Bands={100,90,80,70,60,50,40,30,20,10};
+    const double BandWidth=10,Span=5,MinimumTravel=4;
+    /// <summary>Bounds of a learned speed factor (real speed / forecast speed).</summary>
+    public const double MinimumFactor=.5,MaximumFactor=2;
+    const int MinimumPerBand=5;
+    /// <summary>Forecasts closer than this in the same scenario repeat the same evidence: only the first is used.</summary>
+    static readonly TimeSpan Thinning=TimeSpan.FromMinutes(25);
+
+    static (CalibrationInfo Report,Dictionary<double,double> Known) Collect(Match match,ForecastResponse current,ForecastConditions conditions,IReadOnlyList<ForecastSnapshot> saved,
         BatterySample[] samples,List<DateTimeOffset> breaks,IReadOnlyList<CalibrationContext> context,DateTimeOffset now,DateTimeOffset? reset,CalibrationInfo empty)
     {
-        var accepted=new List<(DateTimeOffset End,double Ratio,DateTimeOffset Session)>();
-        DateTimeOffset? usedUntil=null;
+        var ratios=Bands.ToDictionary(b=>b,_=>new List<double>());
+        var sessionsUsed=new List<DateTimeOffset>();
+        DateTimeOffset? lastOrigin=null;
         foreach(var snapshot in saved.OrderBy(s=>s.View.Generated))
         {
             var r=snapshot.Response;var origin=Time(r.ContextEndUtc);
@@ -106,51 +124,106 @@ public static class LocalCalibration
                 (reset is { } resetOrigin && origin<resetOrigin) ||
                 !snapshot.Source.StartsWith("timestral",StringComparison.Ordinal) || snapshot.Source.EndsWith(":held",StringComparison.Ordinal) ||
                 r.TimeBasis!="active_use" || r.Quality.State is not ("ok" or "learning") || r.Scenario!=current.Scenario || r.ModelRevision!=current.ModelRevision ||
-                r.Conditions is not { } past || !Comparable(match,past,conditions) || usedUntil is { } previousEnd && origin<previousEnd) continue;
+                r.Conditions is not { } past || !Comparable(match,past,conditions) || lastOrigin is { } previous && origin-previous<Thinning) continue;
             bool charging=r.Scenario=="charge";
             if(past.OnAc!=charging) continue; // an unplug-now forecast issued on AC has no matching realised scenario
-            foreach(int minutes in new[]{30,60,120})
+            int first=LowerBound(samples,origin);
+            if(first>0 && origin-samples[first-1].TimestampUtc<=TimeSpan.FromSeconds(90)) first--;
+            if(first>=samples.Length || Math.Abs((samples[first].TimestampUtc-origin).TotalSeconds)>90) continue;
+            // the realised path: same scenario and battery, no gaps, jumps or interruptions, nothing after now
+            int last=first;
+            for(int j=first;j<samples.Length;j++)
             {
-                var target=origin.AddMinutes(minutes);
-                if(target>now) continue;
-                var index=LowerBound(samples,target);
-                if(index==samples.Length) index--;
-                if(index<0) continue;
-                if(index>0 && Math.Abs((samples[index-1].TimestampUtc-target).TotalSeconds)<Math.Abs((samples[index].TimestampUtc-target).TotalSeconds)) index--;
-                var actual=samples[index];
-                if(Math.Abs((actual.TimestampUtc-target).TotalSeconds)>90 || actual.TimestampUtc<=snapshot.IssuedAt || actual.LevelPct is not { } actualLevel) continue;
-                var expected=At(r,r.RawCurve??r.Curve,actual.TimestampUtc);
-                if(expected is not { } prediction) continue;
-                double predictedDelta=charging?prediction.P50-r.Level:r.Level-prediction.P50;
-                double actualDelta=charging?actualLevel-r.Level:r.Level-actualLevel;
-                if(predictedDelta<2 || actualDelta<2 || (charging && (actualLevel>=99||prediction.P50>=99)) ||
-                    (!charging && (actualLevel<=r.ReservePct+.5||prediction.P50<=r.ReservePct+.5))) continue;
-                int first=LowerBound(samples,origin);
-                if(first>0 && origin-samples[first-1].TimestampUtc<=TimeSpan.FromSeconds(90)) first--;
-                if(first>index || Math.Abs((samples[first].TimestampUtc-origin).TotalSeconds)>90 || index-first<5) continue;
-                bool valid=true;
-                for(int j=first;j<=index;j++)
-                {
-                    var s=samples[j];
-                    if(s.OnAc!=charging || s.LevelPct is not { } level || (charging && s.State!=ChargeState.Charging) ||
-                        past.DesignMWh is { } design && s.DesignMWh is { } actualDesign && design!=actualDesign ||
-                        (j>first && (s.TimestampUtc-samples[j-1].TimestampUtc>MaximumGap ||
-                        Math.Abs(level-samples[j-1].LevelPct.GetValueOrDefault(level))>5))) { valid=false;break; }
-                }
-                if(!valid || breaks.Any(t=>t>origin && t<=actual.TimestampUtc) || !StableContext(match,past,context,origin,actual.TimestampUtc)) continue;
-                double ratio=actualDelta/predictedDelta;
-                if(!double.IsFinite(ratio)||ratio<=0) continue;
-                var session=breaks.LastOrDefault(t=>t<=origin);
-                if(session==default && samples.Length>0) session=samples[0].TimestampUtc;
-                accepted.Add((actual.TimestampUtc,ratio,session));usedUntil=actual.TimestampUtc;break;
+                var s=samples[j];
+                if(s.TimestampUtc>now || s.OnAc!=charging || s.LevelPct is not { } level || (charging && s.State!=ChargeState.Charging) ||
+                    past.DesignMWh is { } design && s.DesignMWh is { } actualDesign && design!=actualDesign) break;
+                if(j>first && (s.TimestampUtc-samples[j-1].TimestampUtc>MaximumGap || Math.Abs(level-samples[j-1].LevelPct.GetValueOrDefault(level))>5 ||
+                    breaks.Any(t=>t>samples[j-1].TimestampUtc && t<=s.TimestampUtc))) break;
+                last=j;
             }
+            if(last-first<5) continue;
+            var curve=r.RawCurve??r.Curve;bool used=false;
+            // consecutive spans of Span points from the current level, each credited to the band of its midpoint;
+            // the last span may be shorter (down to the lowest level the battery reached), if at least MinimumTravel
+            double reached=r.Level;
+            for(int j=first;j<=last;j++)
+                if(samples[j].LevelPct is { } v) reached=charging?Math.Max(reached,v):Math.Min(reached,v);
+            double limit=charging?Math.Min(reached,99):Math.Max(reached,r.ReservePct);
+            for(double from=r.Level;charging?limit-from>=MinimumTravel:from-limit>=MinimumTravel;from=charging?from+Span:from-Span)
+            {
+                double to=charging?Math.Min(from+Span,limit):Math.Max(from-Span,limit);
+                double top=Math.Clamp(Math.Ceiling((from+to)/2/BandWidth)*BandWidth,BandWidth,100);
+                var predictedStart=from==r.Level?origin:CurveReaches(r,curve,from,charging);
+                var actualStart=from==r.Level?origin:PathReaches(samples,first,last,origin,r.Level,from,charging);
+                if(predictedStart is not { } ps || actualStart is not { } aS) break;
+                if(CurveReaches(r,curve,to,charging) is not { } pe || PathReaches(samples,first,last,origin,r.Level,to,charging) is not { } ae) break;
+                if(ae<=snapshot.IssuedAt || ae<=aS || pe<=ps || !StableContext(match,past,context,origin,ae)) break;
+                double ratio=(pe-ps).TotalSeconds/(ae-aS).TotalSeconds;
+                if(!double.IsFinite(ratio)||ratio<=0) break;
+                ratios[top].Add(ratio);used=true;
+            }
+            if(!used) continue;
+            var session=breaks.LastOrDefault(t=>t<=origin);
+            if(session==default && samples.Length>0) session=samples[0].TimestampUtc;
+            sessionsUsed.Add(session);lastOrigin=origin;
         }
-        int sessions=accepted.Select(p=>p.Session).Distinct().Count();
-        var report=empty with { Windows=accepted.Count,Sessions=sessions,Scope=ScopeOf(match),Reason="collecting" };
-        if(accepted.Count<MinimumWindows || sessions<MinimumSessions) return report;
-        var ratios=accepted.Select(p=>p.Ratio).Order().ToArray();
-        double median=ratios.Length%2==1?ratios[ratios.Length/2]:(ratios[ratios.Length/2-1]+ratios[ratios.Length/2])/2;
-        return report with { Ready=true,Reason="ready",Factor=Math.Clamp(median,.75,1.25) };
+        int sessions=sessionsUsed.Distinct().Count();
+        var report=empty with { Windows=sessionsUsed.Count,Sessions=sessions,Scope=ScopeOf(match),Reason="collecting" };
+        // bands with enough evidence at this level: also used to fill bands missing at narrower levels
+        var known=Bands.Where(b=>ratios[b].Count>=MinimumPerBand).ToDictionary(b=>b,b=>Bound(Median(ratios[b])));
+        var all=ratios.Values.SelectMany(v=>v).ToList();
+        if(sessionsUsed.Count<MinimumWindows || sessions<MinimumSessions || all.Count==0) return (report,known);
+        return (report with { Ready=true,Reason="ready",Factor=Bound(Median(all)) },known);
+    }
+
+    /// <summary>
+    /// One factor per band: from the chosen level when it has enough evidence there, otherwise from the closest broader
+    /// level that has (the speed-up near empty depends on the battery more than on the load), otherwise from the nearest
+    /// band of the chosen level, otherwise the overall factor.
+    /// </summary>
+    static CalibrationInfo WithBands(CalibrationInfo report,Dictionary<double,double> own,IEnumerable<Dictionary<double,double>> broader)
+    {
+        var points=new List<double>();var factors=new List<double>();
+        foreach(var top in Bands.Reverse())
+        {
+            double factor=own.TryGetValue(top,out var mine)?mine:
+                broader.FirstOrDefault(b=>b.ContainsKey(top)) is { } wider?wider[top]:
+                own.Count>0?own.MinBy(k=>Math.Abs(k.Key-top)).Value:report.Factor;
+            points.Add(top-BandWidth/2);factors.Add(factor);
+        }
+        return report with { LevelPoints=[..points],LevelFactors=[..factors] };
+    }
+
+    static double Bound(double factor)=>Math.Clamp(factor,MinimumFactor,MaximumFactor);
+    static double Median(List<double> values)
+    {
+        var sorted=values.Order().ToArray();
+        return sorted.Length%2==1?sorted[sorted.Length/2]:(sorted[sorted.Length/2-1]+sorted[sorted.Length/2])/2;
+    }
+    /// <summary>When the forecast median first reaches <paramref name="target"/>, interpolated between points.</summary>
+    static DateTimeOffset? CurveReaches(ForecastResponse r,IReadOnlyList<CurvePointDto> curve,double target,bool charging)
+    {
+        double t0=r.ContextEndUtc,v0=r.Level;
+        foreach(var p in curve)
+        {
+            if(charging?p.P50>=target:p.P50<=target)
+                return Time(p.P50==v0?p.T:t0+(target-v0)/(p.P50-v0)*(p.T-t0));
+            (t0,v0)=(p.T,p.P50);
+        }
+        return null;
+    }
+    /// <summary>When the real battery first reached <paramref name="target"/> along a validated path.</summary>
+    static DateTimeOffset? PathReaches(BatterySample[] samples,int first,int last,DateTimeOffset origin,double start,double target,bool charging)
+    {
+        var (t0,v0)=(origin,start);
+        for(int j=first;j<=last;j++)
+        {
+            if(samples[j].TimestampUtc<=origin || samples[j].LevelPct is not { } v) continue;
+            if(charging?v>=target:v<=target)
+                return v==v0?samples[j].TimestampUtc:t0+(samples[j].TimestampUtc-t0)*((target-v0)/(v-v0));
+            (t0,v0)=(samples[j].TimestampUtc,v);
+        }
+        return null;
     }
 
     static bool Comparable(Match level,ForecastConditions past,ForecastConditions current)
@@ -218,21 +291,53 @@ public static class LocalCalibration
         raw=raw with { Curve=original.ToList(),RawCurve=null,RawTiming=null,Calibration=report,Crossing=timing.Crossing,
             HabitualRechargeUtc=timing.Recharge,HabitualUnplugUtc=timing.Unplug,ExtrapolatedFromUtc=timing.Extrapolated,ExtrapolationRatePctPerHour=timing.Rate };
         if(!double.IsFinite(report.Factor)||report.Factor<=0) return raw with { Calibration=report with { Ready=false,Factor=1,Reason="collecting" } };
-        report=report with { Factor=Math.Clamp(report.Factor,.75,1.25) };raw=raw with { Calibration=report };
-        if(!report.Enabled || !report.Ready || Math.Abs(report.Factor-1)<1e-6 || original.Count==0) return raw;
+        report=report with { Factor=Bound(report.Factor) };raw=raw with { Calibration=report };
+        // speed factor by battery level of the forecast median; reports from earlier versions have one factor only
+        double[] steps=[0],factors=[report.Factor];
+        if(report.LevelPoints is { Length:>0 } p && report.LevelFactors is { } f && f.Length==p.Length && f.All(double.IsFinite))
+            (steps,factors)=(p,[..f.Select(Bound)]);
+        if(!report.Enabled || !report.Ready || factors.All(x=>Math.Abs(x-1)<1e-6) || original.Count==0) return raw;
+        double origin=raw.ContextEndUtc;
+        double FactorAt(double level)
+        {
+            if(level<=steps[0]) return factors[0];
+            for(int i=1;i<steps.Length;i++)
+                if(level<=steps[i]) return factors[i-1]+(level-steps[i-1])/(steps[i]-steps[i-1])*(factors[i]-factors[i-1]);
+            return factors[^1];
+        }
+        // raw time -> corrected time: each stretch of the curve goes faster or slower by the factor of its level
+        var rawTimes=new List<double>{origin};var newTimes=new List<double>{origin};double previousLevel=raw.Level;
+        foreach(var point in original)
+        {
+            if(point.T<=rawTimes[^1]) continue;
+            double factor=FactorAt((point.P50+(newTimes.Count==1?raw.Level:previousLevel))/2);previousLevel=point.P50;
+            double corrected=newTimes[^1]+(point.T-rawTimes[^1])/factor;
+            rawTimes.Add(point.T);newTimes.Add(corrected);
+        }
+        double? ToRaw(double t)
+        {
+            for(int i=1;i<newTimes.Count;i++)
+                if(t<=newTimes[i]) return rawTimes[i-1]+(t-newTimes[i-1])/(newTimes[i]-newTimes[i-1])*(rawTimes[i]-rawTimes[i-1]);
+            return null;     // beyond the raw horizon: never invent a forecast
+        }
+        double? Warp(double? value)
+        {
+            if(value is not { } v) return null;
+            for(int i=1;i<rawTimes.Count;i++)
+                if(v<=rawTimes[i]) return newTimes[i-1]+(v-rawTimes[i-1])/(rawTimes[i]-rawTimes[i-1])*(newTimes[i]-newTimes[i-1]);
+            return newTimes[^1]+(v-rawTimes[^1])/FactorAt(original[^1].P50);
+        }
         var points=new List<CurvePointDto>();
         for(int step=1;step<=Protocol.HorizonSteps;step++)
         {
-            double t=raw.ContextEndUtc+step*Protocol.StepSeconds;
-            var point=At(raw,original,Time(raw.ContextEndUtc+(t-raw.ContextEndUtc)*report.Factor));
-            if(point is null) break; // do not invent a raw forecast beyond its supported horizon
+            double t=origin+step*Protocol.StepSeconds;
+            if(ToRaw(t) is not { } u || At(raw,original,Time(u)) is not { } point) break;
             points.Add(point with { T=t });
         }
         if(points.Count==0) return raw with { RawCurve=saved,Calibration=report with { Ready=false,Reason="collecting",Factor=1 } };
         bool charging=raw.Scenario=="charge";double target=charging?raw.TargetPct??raw.ReservePct:raw.ReservePct;
         double? Cross(Func<CurvePointDto,double> get)=>points.FirstOrDefault(p=>charging?get(p)>=target:get(p)<=target)?.T;
         var central=Cross(p=>p.P50);
-        double? Warp(double? t)=>t is { } value ? raw.ContextEndUtc+(value-raw.ContextEndUtc)/report.Factor : null;
         return raw with
         {
             Curve=points,RawCurve=saved,RawTiming=timing,Calibration=report,
@@ -240,7 +345,7 @@ public static class LocalCalibration
                 Status=central is null?"beyond_horizon":"within_horizon",CentralUtc=central,
                 EarlyUtc=Cross(p=>charging?p.P90:p.P10),LateUtc=Cross(p=>charging?p.P10:p.P90) },
             HabitualRechargeUtc=Warp(raw.HabitualRechargeUtc),HabitualUnplugUtc=Warp(raw.HabitualUnplugUtc),ExtrapolatedFromUtc=Warp(raw.ExtrapolatedFromUtc),
-            ExtrapolationRatePctPerHour=raw.ExtrapolationRatePctPerHour*report.Factor,
+            ExtrapolationRatePctPerHour=raw.ExtrapolationRatePctPerHour*FactorAt(raw.Level),
         };
     }
 }
