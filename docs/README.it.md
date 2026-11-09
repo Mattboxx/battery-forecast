@@ -27,8 +27,10 @@
 </p>
 <p align="center"><sub>Interfaccia demo · storico sintetico; previsioni calcolate dal vero modello locale.</sub></p>
 
-> **Accuratezza delle previsioni.** Battery Forecast funziona ed è in prova su portatili reali. La sua accuratezza non è ancora stata
-> misurata, quindi non ne dichiara: mostra una fascia e dice da dove viene ogni numero.
+> **Accuratezza delle previsioni.** Misurata finora su un solo portatile reale: rifacendo 93 previsioni di scarica
+> (6 scariche) con i soli dati disponibili in ogni momento, l’ora della riserva ha sbagliato in media di 13 minuti, il
+> 72% entro 15 minuti, contro 27 minuti della stima di Windows. Altri portatili e usi possono dare risultati diversi;
+> l’app mostra sempre una fascia e da dove viene ogni numero.
 
 ## Due previsioni, un pannello
 

@@ -27,8 +27,10 @@
   <a href="https://ko-fi.com/mattboxx"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-support-C2416B?logo=kofi&logoColor=white"></a>
 </p>
 
-> **Forecast accuracy.** Battery Forecast works and is being tested on real laptops. Its accuracy has not been measured
-> yet, so it does not claim any: it shows a range and tells you where each number comes from.
+> **Forecast accuracy.** Measured so far on one real laptop only: replaying 93 discharge forecasts (6 discharges) with
+> just the data available at each moment, the time to the reserve was on average 13 minutes off, 72% within 15
+> minutes, against 27 minutes for Windows' own estimate. Other laptops and uses may differ; the app always shows a
+> range and where each number comes from.
 
 ## Two forecasts, one panel
 

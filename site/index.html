@@ -269,7 +269,7 @@
       </div>
       <details>
         <summary>Is the forecast exact?</summary>
-        <p>No forecast of the future can be. Battery Forecast shows a central estimate with a range, says which model produced it, and tells you when it is still learning. Accuracy on real laptops has not yet been measured.</p>
+        <p>No forecast of the future can be. Battery Forecast shows a central estimate with a range, says which model produced it, and tells you when it is still learning. Measured so far on one real laptop: replaying 93 discharge forecasts with only the data available at each moment, the time to the reserve was on average 13 minutes off (72% within 15 minutes), against 27 minutes for Windows' own estimate. Other laptops may differ.</p>
       </details>
       <details>
         <summary>Why is the download that large?</summary>
@@ -382,8 +382,8 @@
       // ripiego se l'API di GitHub non risponde (limite di richieste, rete): l'ultima versione nota
       let release = { assets: {} };
       for (const arch of ['x64', 'arm64']) {
-        const name = `BatteryForecast-Setup-0.9.8-${arch}.exe`;
-        const url = `https://github.com/${repo}/releases/download/v0.9.8/${name}`;
+        const name = `BatteryForecast-Setup-0.9.9-${arch}.exe`;
+        const url = `https://github.com/${repo}/releases/download/v0.9.9/${name}`;
         release.assets[arch] = { url, name, size: 0, sha: url + '.sha256' };
       }
       const loaded = fetch(`https://api.github.com/repos/${repo}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } })
