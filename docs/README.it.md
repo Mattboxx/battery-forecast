@@ -29,7 +29,8 @@
 
 > **Accuratezza delle previsioni.** Misurata finora su un solo portatile reale: rifacendo 93 previsioni di scarica
 > (6 scariche) con i soli dati disponibili in ogni momento, l’ora della riserva ha sbagliato in media di 13 minuti, il
-> 72% entro 15 minuti, contro 27 minuti della stima di Windows. Altri portatili e usi possono dare risultati diversi;
+> 72% entro 15 minuti, contro 27 minuti della stima di Windows. Carica all’80% (151 momenti di 18 cariche): 2,5 minuti
+> di errore medio, il 98% entro 10 minuti. Altri portatili e usi possono dare risultati diversi;
 > l’app mostra sempre una fascia e da dove viene ogni numero.
 
 ## Due previsioni, un pannello

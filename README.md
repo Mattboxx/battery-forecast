@@ -29,8 +29,9 @@
 
 > **Forecast accuracy.** Measured so far on one real laptop only: replaying 93 discharge forecasts (6 discharges) with
 > just the data available at each moment, the time to the reserve was on average 13 minutes off, 72% within 15
-> minutes, against 27 minutes for Windows' own estimate. Other laptops and uses may differ; the app always shows a
-> range and where each number comes from.
+> minutes, against 27 minutes for Windows' own estimate. Charging to 80% (151 moments of 18 charges): 2.5 minutes
+> off on average, 98% within 10 minutes. Other laptops and uses may differ; the app always shows a range and where
+> each number comes from.
 
 ## Two forecasts, one panel
 
@@ -171,7 +172,7 @@ forecast\.venv\Scripts\python -m pytest -q forecast
 dotnet run --project windows\src\BatteryForecast.App -- --demo
 
 # full offline package and installer in artifacts\
-powershell -NoProfile -File tools\package.ps1 -Version 0.9.9
+powershell -NoProfile -File tools\package.ps1 -Version 0.9.10
 ```
 
 ARM64 installers are built natively on Windows ARM by the [release workflow](.github/workflows/release.yml),

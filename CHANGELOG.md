@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.9.10
 
 - **Charging time from the measured charging.** Replayed on a real laptop's history (151 moments of 18 charges that
   reached 80%), the Timestral time at the charge target was on average 77 minutes off even after correction, and
