@@ -1,4 +1,4 @@
-﻿// Strumento da riga di comando per sviluppo e diagnostica. Non scrive nello storico dell'app,
+// Strumento da riga di comando per sviluppo e diagnostica. Non scrive nello storico dell'app,
 // salvo `record`, che usa un database indicato esplicitamente.
 //
 //   tilldusk battery                      lettura attuale della batteria (JSON)
@@ -88,6 +88,47 @@ switch (cmd)
         return 0;
     }
 
+    case "replay":
+    {
+        // Rifà le previsioni di scarica del passato con il motore attuale, ogni --every minuti a batteria, e le salva
+        // al posto di quelle esistenti: poi `backtest` sullo stesso file misura motore + correzione + combinazione
+        // come le avrebbe viste l'app. Solo su una COPIA del database: cancella le previsioni salvate.
+        var db = Opt("--db") ?? throw new ArgumentException("--db FILE");
+        if (Path.GetFullPath(db).Contains(@"\BatteryForecast\data\", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("usare una copia del database, non quello dell'app");
+        var every = TimeSpan.FromMinutes(double.Parse(Opt("--every") ?? "10", System.Globalization.CultureInfo.InvariantCulture));
+        using var store = new HistoryStore(db);
+        using (var wipe = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={db}"))
+        {
+            wipe.Open();
+            using var c = wipe.CreateCommand();
+            c.CommandText = "DELETE FROM forecast_snapshots; DELETE FROM forecast_runs;";
+            c.ExecuteNonQuery();
+        }
+        var samples = store.Samples(DateTimeOffset.UnixEpoch).Where(s => s.Source == "windows" && s.LevelPct is not null).OrderBy(s => s.TimestampUtc).ToList();
+        var launch = EngineLocator.Find(AppContext.BaseDirectory) ?? throw new InvalidOperationException("motore non trovato");
+        await using var worker = new ForecastWorker(launch, new WorkerOptions { RequestTimeout = TimeSpan.FromSeconds(120) });
+        DateTimeOffset last = DateTimeOffset.MinValue; int count = 0, drained = 0;
+        foreach (var now in samples)
+        {
+            if (now.OnAc != false || now.LevelPct <= 11 || now.TimestampUtc - last < every) continue;
+            last = now.TimestampUtc;
+            var origin = now.TimestampUtc;
+            var r = await worker.ForecastAsync(new ForecastRequest(origin, now.LevelPct!.Value, false, 10,
+                store.ModelSamples(origin.AddDays(-110), origin), null,
+                Discontinuities: store.ModelDiscontinuities(origin.AddDays(-110), origin),
+                Drain: args.Contains("--no-drain") ? null : store.ModelDrain(origin.AddDays(-30), origin)));
+            r = r with { Conditions = ForecastConditions.Capture(now, null, false) };
+            store.RecordForecast(origin, r.Source, now.LevelPct!.Value, 10, r.Crossing.Status, null, null, null, r.Quality.State,
+                r.ModelId, r.ModelRevision, r.ElapsedMs, snapshot: r, issuedAt: origin);
+            count++; if (r.FromDrain) drained++;
+            if (count % 50 == 0) Console.WriteLine($"{count} previsioni ({drained} dal consumo) · {origin.ToLocalTime():dd/MM HH:mm}");
+        }
+        Console.WriteLine($"{count} previsioni rifatte, {drained} dal consumo previsto");
+        await worker.StopAsync();
+        return 0;
+    }
+
     case "calibration":
     {
         // "Impara dagli errori" su uno storico esistente (usare una COPIA del database dell'app): per l'ultima
@@ -135,6 +176,8 @@ switch (cmd)
         var rawErr = new List<double>(); var calErr = new List<double>(); var ready = 0;
         var windowsErr = new List<double>(); var powerErr = new List<double>(); var blendErr = new List<double>();
         var levelErr = new[] { 60, 120 }.ToDictionary(m => m, _ => (raw: new List<double>(), cal: new List<double>()));
+        using var dump = Opt("--dump") is { } dumpPath ? new StreamWriter(dumpPath) : null;   // CSV per confronti esterni
+        dump?.WriteLine("origin,level,reserve,arrival,combined,power,raw,corrected");
         foreach (var snap in snaps)
         {
             var raw = LocalCalibration.Apply(snap.Response, new CalibrationInfo { Enabled = false });
@@ -149,7 +192,9 @@ switch (cmd)
                 if (samples[k].LevelPct <= raw.ReservePct) { arrival = samples[k].TimestampUtc; break; }
             }
             var since = origin.AddDays(-30);
-            var report = LocalCalibration.Learn(raw, store.CalibrationSnapshots(since, origin, false), store.Samples(since, origin),
+            // as in the app: a curve from the forecast drain gets no level-band correction
+            var report = raw.FromDrain ? new CalibrationInfo { Reason = LocalCalibration.DrainReason } :
+                LocalCalibration.Learn(raw, store.CalibrationSnapshots(since, origin, false), store.Samples(since, origin),
                 store.ModelDiscontinuities(since, origin), store.CalibrationContext(since, origin, !args.Contains("--no-apps")), origin);
             var corrected = LocalCalibration.Apply(raw, report);
             // livello a +60 e +120 minuti, finché il PC resta a batteria e senza buchi (anche senza arrivo alla riserva)
@@ -165,7 +210,7 @@ switch (cmd)
             }
             if (arrival is null) continue;
             if (report.Ready) ready++;
-            var blendInfo = EstimateBlend.Learn(store.DischargeSnapshots(since, origin), store.Samples(since, origin), origin);
+            var blendInfo = EstimateBlend.Learn(store.DischargeSnapshots(since, origin), store.Samples(since, origin), origin, drain: raw.FromDrain);
             var recent = RecentRate.Estimate(samples.Where(s => s.TimestampUtc <= origin && origin - s.TimestampUtc <= TimeSpan.FromMinutes(70)).ToList(), raw.ReservePct);
             var blended = EstimateBlend.Apply(corrected, recent ?? EstimateBlend.FromWindows(samples[i], raw.ReservePct) ??
                 EstimateBlend.FromHistory(samples.Where(s => s.TimestampUtc < origin && s.TimestampUtc >= origin.AddDays(-7)).ToList(), samples[i], raw.ReservePct), blendInfo);
@@ -175,6 +220,7 @@ switch (cmd)
                 windowsErr.Add(os / 60.0 * (lvl - raw.ReservePct) / lvl - actualMinutes);
             if (recent?.ReserveAt is { } ra) powerErr.Add((ra - origin).TotalMinutes - actualMinutes);
             if (Err(blended) is { } m) blendErr.Add(m);
+            dump?.WriteLine(FormattableString.Invariant($"{origin.ToUnixTimeSeconds()},{samples[i].LevelPct},{raw.ReservePct},{arrival.Value.ToUnixTimeSeconds()},{Err(blended)},{(recent?.ReserveAt is { } rr ? (rr - origin).TotalMinutes - actualMinutes : null)},{Err(raw)},{Err(corrected)}"));
             if (Err(raw) is { } a && Err(corrected) is { } b)
             {
                 rawErr.Add(a); calErr.Add(b);
@@ -198,6 +244,6 @@ switch (cmd)
     }
 
     default:
-        Console.Error.WriteLine("comandi: battery | sensors | forecast [--db FILE] | record --db FILE [--minutes N] | calibration --db COPIA [--no-apps] | backtest --db COPIA");
+        Console.Error.WriteLine("comandi: battery | sensors | forecast [--db FILE] | record --db FILE [--minutes N] | calibration --db COPIA [--no-apps] | backtest --db COPIA [--dump FILE.csv] | replay --db COPIA [--every MIN] [--no-drain]");
         return 1;
 }

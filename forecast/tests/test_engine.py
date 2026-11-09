@@ -160,3 +160,18 @@ def test_real_model_receives_different_app_load_channels_and_recurring_profiles(
     assert seen['categorical_past_covariates'].shape==(1,1,31)
     assert seen['known_covariates'].shape==(1,1,31+288)  # future app/CPU values are not invented
     assert len(response['curve'])==288
+
+
+def test_discharge_curve_comes_from_the_drain_when_measured(engine):
+    from battery_forecast import protocol
+    # 8%/h on battery in the synthetic days, as in synthetic_days()
+    drain = [[t, 8.0] for t, _, ac in synthetic_days() if ac == 0]
+    r = engine.predict(protocol.parse_request(json.dumps(request(drain_pct_per_hour=drain)).encode()))
+    assert r["method"] == "drain"
+    curve = np.array([[p["p10"], p["p50"], p["p90"]] for p in r["curve"]])
+    assert (curve <= 60).all() and (np.diff(curve, axis=0) <= 1e-9).all() and (np.diff(curve, axis=1) >= -1e-9).all()
+    assert r["extrapolated_from_utc"] is None
+    # a steady 8%/h: one hour later the central level is close to 52%
+    assert abs(r["curve"][11]["p50"] - 52) < 3
+    plain = engine.predict(protocol.parse_request(json.dumps(request()).encode()))
+    assert plain["method"] == "level"

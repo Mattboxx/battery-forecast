@@ -10,7 +10,7 @@ import math
 
 from .series import CONTEXT_RANGES,MAX_CONTEXT_CHANNELS,context_range
 
-from . import DEFAULT_RESERVE, HORIZON_STEPS, PROTOCOL_VERSION, STEP_SECONDS
+from . import DEFAULT_RESERVE, HORIZON_STEPS, PROTOCOL_VERSION, STEP_SECONDS, drain
 
 
 class ProtocolError(Exception):
@@ -121,4 +121,8 @@ def parse_request(line: bytes) -> dict:
     except (ValueError, TypeError) as e:
         raise ProtocolError("bad_request", f"invalid past_covariates: {e}") from None
     out["past_covariates"] = parsed
+    try:
+        out["drain"] = drain.parse(req.get("drain_pct_per_hour", []), out["now"])
+    except (ValueError, TypeError, OverflowError) as e:
+        raise ProtocolError("bad_request", f"invalid drain_pct_per_hour: {e}") from None
     return out

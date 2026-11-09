@@ -16,6 +16,7 @@ public sealed record ForecastView(
     public IReadOnlyList<string> ContextFeatures { get; init; } = [];
     public string TimeBasis { get; init; } = "calendar";
     public CalibrationInfo? Calibration { get; init; }
+    public BlendInfo? Blend { get; init; }
     /// <summary>Previsione di carica ("resto collegato"): ReservePct è allora l'obiettivo di carica.</summary>
     public bool IsCharge { get; init; }
     /// <summary>In carica: ora in cui di solito si stacca l'alimentatore, secondo il modello.</summary>
@@ -40,6 +41,7 @@ public sealed record ForecastView(
         ContextFeatures = r.ContextFeatures,
         TimeBasis = r.TimeBasis,
         Calibration = r.Calibration,
+        Blend = r.Blend,
         IsCharge = r.Scenario == "charge",
         HabitualUnplug = Opt(r.HabitualUnplugUtc),
     };

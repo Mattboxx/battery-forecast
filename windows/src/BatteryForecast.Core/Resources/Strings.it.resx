@@ -25,6 +25,8 @@
   <data name="Beyond" xml:space="preserve"><value>Oltre le prossime {0}</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calcolo della previsione…</value></data>
   <data name="CalibrationAllScope" xml:space="preserve"><value>tutto l’uso a batteria confrontabile</value></data>
+  <data name="CalibrationArrivalsCollecting" xml:space="preserve"><value>La previsione di scarica impara dalle volte in cui è arrivata davvero alla riserva: {0}/{1} osservate finora. Fino ad allora Timestral e la potenza misurata hanno un peso fisso.</value></data>
+  <data name="CalibrationArrivalsReady" xml:space="preserve"><value>Imparato da {0} arrivi osservati alla riserva: Timestral pesa il {1}% e la potenza misurata il resto, secondo quanto ha sbagliato ciascuno su questo PC. Non è una garanzia di accuratezza misurata.</value></data>
   <data name="CalibrationAppScope" xml:space="preserve"><value>stesse app e carico CPU</value></data>
   <data name="CalibrationCollecting" xml:space="preserve"><value>Confronti validi raccolti: {0}/{1}, sessioni {2}/{3}. Nessuna correzione applicata per ora.</value></data>
   <data name="CalibrationFreshLoad" xml:space="preserve"><value>Attendo letture fresche del carico app per selezionare errori confrontabili.</value></data>

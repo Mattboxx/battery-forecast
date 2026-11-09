@@ -11,7 +11,7 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 import numpy as np
 
-from . import STEP_SECONDS, physics, series
+from . import STEP_SECONDS, drain, physics, series
 
 # Soglie di prodotto provvisorie: da ritarare con la validazione (docs/VALIDATION.md).
 MIN_DAYS_LEARNING = 3.0
@@ -124,6 +124,7 @@ class Engine:
         s = series.build(req["samples"], req["now"], req["level"], req["ac"],discontinuities=req.get("discontinuities",()))
         h = req["horizon"]
         charge = req["scenario"] == "charge"
+        method = "level"
         # Covariata nota del futuro: lo scenario. "no_charge" = alimentatore scollegato, "charge" = collegato.
         past, categories, context_features = series.past_covariates(req.get("past_covariates", {}), s)
         active_level,active_ac,active_mask,past,categories=series.active_inputs(s,past,categories)
@@ -144,6 +145,12 @@ class Engine:
         else:
             q, change, rate = self._no_charge(q[:, self.qi], req["level"], s)
             threshold = req["reserve"]
+            # The level forecast above still tells when this PC is usually plugged in; the curve itself comes
+            # from the drain forecast when there is enough measured drain (see drain.py).
+            with self._torch.inference_mode():
+                from_drain = drain.curves(self.fc, req.get("drain", ()), req["level"], h)
+            if from_drain is not None:
+                q, rate, method = physics.constrain_no_charge(from_drain, req["level"]), None, "drain"
             cross = [physics.crossing(q[:, k], times, threshold, req["level"], req["now"]) for k in range(3)]
         plug = change
         return {
@@ -161,6 +168,8 @@ class Engine:
             "level": req["level"],
             "context_features": context_features,
             "time_basis": "active_use",
+            # "drain": curve integrated from the forecast drain (drain.py); "level": the level forecast itself
+            "method": method,
             "quality": {
                 "model_context_steps":len(active_level),
                 "calendar_context_steps":len(s.level),

@@ -60,6 +60,13 @@ public class EstimateBlendTests
         Assert.True(blend.PowerWeight>=.9);
         // fewer observed arrivals than required: the prior weight
         Assert.Equal(EstimateBlend.PriorPowerWeight,EstimateBlend.Learn(saved.Take(2).ToList(),samples,now).PowerWeight);
+        // forecasts made from the drain learn only from forecasts made the same way, and start from their own prior
+        var drain=EstimateBlend.Learn(saved,samples,now,drain:true);
+        Assert.Equal(0,drain.Evaluations);
+        Assert.Equal(EstimateBlend.PriorDrainPowerWeight,drain.PowerWeight);
+        var fromDrain=saved.Select(s=>s with { Response=s.Response with { Method="drain" } }).ToList();
+        Assert.Equal(6,EstimateBlend.Learn(fromDrain,samples,now,drain:true).Evaluations);
+        Assert.Equal(0,EstimateBlend.Learn(fromDrain,samples,now).Evaluations);
     }
 
     [Fact]

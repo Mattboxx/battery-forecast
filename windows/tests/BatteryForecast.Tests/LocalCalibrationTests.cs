@@ -51,6 +51,23 @@ public class LocalCalibrationTests
         current??Forecast(data.Now),data.Saved,data.Actual,data.Breaks,data.Context,data.Now,reset);
 
     [Fact]
+    public void ForecastsFromTheDrainLearnOnlyFromEachOtherAndSayHowTheyLearn()
+    {
+        var data=History();
+        var drain=Forecast(data.Now) with { Method="drain" };
+        Assert.Equal(0,Learn(data,drain).Windows);                          // level forecasts are not its evidence
+        var both=data with { Saved=data.Saved.Select(s=>s with { Response=s.Response with { Method="drain" } }).ToList() };
+        Assert.Equal(8,Learn(both,drain).Windows);
+        Assert.Equal(0,Learn(both).Windows);
+        var report=new CalibrationInfo { Enabled=true,Reason=LocalCalibration.DrainReason };
+        Assert.Equal(drain.Curve,LocalCalibration.Apply(drain,report).Curve);   // not warped
+        var collecting=Core.Presentation.CalibrationPresenter.Present(true,report,new BlendInfo { Evaluations=2 });
+        Assert.Contains("2/"+EstimateBlend.MinimumEvaluations,collecting);
+        var ready=Core.Presentation.CalibrationPresenter.Present(true,report,new BlendInfo { Evaluations=7,PowerWeight=.25 });
+        Assert.Contains("7",ready);Assert.Contains("75",ready);
+    }
+
+    [Fact]
     public void EightIndependentWindowsAcrossThreeSessionsLearnTheObservedRateBias()
     {
         var data=History();var report=Learn(data);

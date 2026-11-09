@@ -123,7 +123,7 @@ public static class LocalCalibration
             if(origin>=now || snapshot.IssuedAt>now || (reset is { } cutoff && snapshot.IssuedAt<cutoff) ||
                 (reset is { } resetOrigin && origin<resetOrigin) ||
                 !snapshot.Source.StartsWith("timestral",StringComparison.Ordinal) || snapshot.Source.EndsWith(":held",StringComparison.Ordinal) ||
-                r.TimeBasis!="active_use" || r.Quality.State is not ("ok" or "learning") || r.Scenario!=current.Scenario || r.ModelRevision!=current.ModelRevision ||
+                r.TimeBasis!="active_use" || r.Quality.State is not ("ok" or "learning") || r.Scenario!=current.Scenario || r.ModelRevision!=current.ModelRevision || r.FromDrain!=current.FromDrain ||
                 r.Conditions is not { } past || !Comparable(match,past,conditions) || lastOrigin is { } previous && origin-previous<Thinning) continue;
             bool charging=r.Scenario=="charge";
             if(past.OnAc!=charging) continue; // an unplug-now forecast issued on AC has no matching realised scenario
@@ -283,6 +283,9 @@ public static class LocalCalibration
         }
         return null;
     }
+    /// <summary>Reason of a report for a discharge curve from the forecast drain: no level-band correction.</summary>
+    public const string DrainReason="drain";
+
     public static ForecastResponse Apply(ForecastResponse raw,CalibrationInfo report)
     {
         var original=raw.RawCurve??raw.Curve;

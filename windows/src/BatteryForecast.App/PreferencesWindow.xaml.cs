@@ -123,7 +123,7 @@ public partial class PreferencesWindow : Window
             Core.Forecasting.PowerPhase.PluggedIn => state.HeldForecast,
             _ => state?.Forecast,
         };
-        CalibrationStatus.Text = CalibrationPresenter.Present(app.Settings.UseLocalCalibration, forecast?.Calibration);
+        CalibrationStatus.Text = CalibrationPresenter.Present(app.Settings.UseLocalCalibration, forecast?.Calibration, forecast?.Blend);
     }
 
     // MARK: sezioni

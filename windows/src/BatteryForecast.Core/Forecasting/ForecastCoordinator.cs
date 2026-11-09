@@ -59,7 +59,9 @@ public sealed class ForecastCoordinator : IDisposable
 {
     static readonly TimeSpan DriftMinAge = TimeSpan.FromMinutes(2),
         FreshFor = TimeSpan.FromMinutes(10), ValidFor = TimeSpan.FromHours(3), RecentLookback = TimeSpan.FromMinutes(70),
-        HistoryDays = TimeSpan.FromDays(110);
+        HistoryDays = TimeSpan.FromDays(110),
+        // drain history for the discharge curve: the engine uses at most a week of time on battery
+        DrainDays = TimeSpan.FromDays(30);
     const double FreshDrift = 2;
 
     /// <summary>Chi chiede la previsione: il timer, un evento (scollegamento, ripresa) o l'utente.</summary>
@@ -291,12 +293,16 @@ public sealed class ForecastCoordinator : IDisposable
             var r = await engine.ForecastAsync(new ForecastRequest(origin, level, s.OnAc, reserve, history,
                 modelContext,
                 Charge: charge, TargetPct: reserve,
-                Discontinuities:store.ModelDiscontinuities(origin-HistoryDays,origin))).ConfigureAwait(false);
+                Discontinuities:store.ModelDiscontinuities(origin-HistoryDays,origin),
+                Drain:charge?null:store.ModelDrain(origin-DrainDays,origin))).ConfigureAwait(false);
             var useContext=options.UseSystemContext && options.CollectSystemContext;
             var conditions=ForecastConditions.Capture(s,useContext?capturedContext:null,useContext&&options.CollectProcesses);
             r=r with { Conditions=conditions };
             var report=new CalibrationInfo { Enabled=options.UseLocalCalibration && !demo,Reason=demo?"demo":"disabled",ResetUtc=options.CalibrationResetUtc };
-            if(options.UseLocalCalibration && !demo && r.TimeBasis=="active_use" && r.Source=="timestral")
+            // A discharge curve from the forecast drain is not warped by level band: measured on real discharges,
+            // that correction made it worse. It learns from errors through the weight of the arrival (EstimateBlend).
+            if(r.FromDrain) report=report with { Reason=LocalCalibration.DrainReason };
+            else if(options.UseLocalCalibration && !demo && r.TimeBasis=="active_use" && r.Source=="timestral")
             {
                 var since=origin.AddDays(-Math.Min(30,options.RetentionDays));
                 if(options.CalibrationResetUtc is { } reset && reset>since) since=reset;
@@ -310,13 +316,13 @@ public sealed class ForecastCoordinator : IDisposable
             if(mode==Mode.Discharge && r.Source=="timestral")
             {
                 // arrival at the reserve: measured power and Timestral curve, weighted by their past errors on this PC
-                var blend=new BlendInfo { PowerWeight=EstimateBlend.PriorPowerWeight };
+                var blend=new BlendInfo { PowerWeight=EstimateBlend.Prior(r.FromDrain) };
                 RecentEstimate? measured=SafeRecent(s,reserve,s.TimestampUtc)??EstimateBlend.FromWindows(s,reserve);
                 try
                 {
                     var since=origin.AddDays(-Math.Min(30,options.RetentionDays));
                     var past=store.Samples(since,origin);
-                    blend=EstimateBlend.Learn(store.DischargeSnapshots(since,origin),past,origin);
+                    blend=EstimateBlend.Learn(store.DischargeSnapshots(since,origin),past,origin,drain:r.FromDrain);
                     measured??=EstimateBlend.FromHistory(past.Where(p=>p.TimestampUtc>=origin.AddDays(-7)).ToList(),s,reserve);
                 }
                 catch(Microsoft.Data.Sqlite.SqliteException) { }

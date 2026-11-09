@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.9.9 (not released yet)
+
+- **Timestral now forecasts the power, not the percentage.** On battery the level falls exactly as fast as energy
+  is used, so the uncertain part is the future drain. The app sends the measured drain (percent per hour, battery
+  time only) and Timestral forecasts it; the discharge curve is its integral. Replayed every 10 minutes over a real
+  laptop's history (93 moments with an observed arrival at the reserve, 6 discharges), with each forecast learning
+  only from earlier ones: the arrival time was on average 13 minutes off (72% within 15 minutes), against 17 minutes
+  (63%) for 0.9.8 on the same moments and 27 (38%) for Windows. Timestral alone went from 102 to 13 minutes.
+- The level-band correction from past errors is not applied to these curves (it made them worse); they learn
+  through the per-PC weight of measured power and Timestral, only from forecasts made the same way. Preferences say
+  how many observed arrivals that weight is based on.
+- Without an hour of measured drain, and when charging, forecasts work as before.
+- Diagnostics: `tilldusk replay --db <copy>` redoes past discharge forecasts with the current engine so that
+  `tilldusk backtest` measures the whole chain; `backtest --dump` writes the per-forecast errors as CSV.
+
 ## 0.9.8
 
 - **Much closer arrival at the reserve.** Measured on a real laptop's history (49 discharges that actually reached the

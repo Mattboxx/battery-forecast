@@ -343,6 +343,37 @@ public sealed partial class HistoryStore : IDisposable
         }
     }
 
+    /// <summary>
+    /// Consumo a batteria in %/ora (potenza / capacità piena) a passi di 5 minuti, dal più vecchio: il motore lo
+    /// prevede e ne ricava la curva di scarica. I passi senza scarica misurata (in carica, in pausa) non ci sono.
+    /// </summary>
+    public List<ModelCovariate> ModelDrain(DateTimeOffset since, DateTimeOffset? until = null)
+    {
+        lock (gate)
+        {
+            using var cmd = db.CreateCommand();
+            cmd.CommandText = """
+                SELECT COALESCE(measured_at,ts),
+                       CASE WHEN on_ac=0 AND discharge_mw>0 AND full_mwh>0 THEN 100.0*discharge_mw/full_mwh END
+                FROM battery_samples WHERE ts >= $since AND COALESCE(measured_at,ts) <= $until
+                    AND battery_epoch=(SELECT battery_epoch FROM battery_samples WHERE ts <= $until ORDER BY ts DESC LIMIT 1)
+                ORDER BY ts
+                """;
+            cmd.Parameters.AddWithValue("$since", since.ToUnixTimeSeconds());
+            cmd.Parameters.AddWithValue("$until", Seconds(until ?? DateTimeOffset.MaxValue));
+            using var r = cmd.ExecuteReader();
+            var readings = new List<(double T,double?[] Values)>();
+            while (r.Read())
+                readings.Add((r.GetDouble(0),[NullD(r,1)]));
+            r.Close();
+            double end=until is { } bound ? Seconds(bound) : readings.Count>0 ? readings[^1].T : Seconds(since);
+            var bins=new TemporalBins(1,[],Seconds(since),end,AggregationBarriers(since,until ?? DateTimeOffset.MaxValue));
+            for(int i=0;i<readings.Count;i++)
+                bins.Point(readings[i].T,i+1<readings.Count?readings[i+1].T:end,readings[i].Values);
+            return bins.Rows().Where(row=>row.Values[0] is > 0).Select(row=>new ModelCovariate(row.Ts,row.Values[0])).ToList();
+        }
+    }
+
     /// <summary>Campioni completi dal più vecchio, per la stima del consumo recente e lo storico.</summary>
     public List<BatterySample> Samples(DateTimeOffset since, DateTimeOffset? until = null)
     {

@@ -52,6 +52,24 @@ public sealed class HistoryStoreTests : IDisposable
     }
 
     [Fact]
+    public void Model_drain_is_percent_per_hour_on_battery_only()
+    {
+        // 10 W on a 50 Wh battery = 20 %/h for ten minutes, then 15 W, then plugged in
+        for (var m = 0; m < 10; m++) store.Append(Samples.Discharging(m, 80 - m, mw: 10_000, remaining: 40_000, full: 50_000));
+        for (var m = 10; m < 15; m++) store.Append(Samples.Discharging(m, 70 - m, mw: 15_000, remaining: 30_000, full: 50_000));
+        for (var m = 15; m < 25; m++) store.Append(Samples.OnAc(m, 60));
+        var drain = store.ModelDrain(Samples.T0.AddDays(-1), Samples.T0.AddMinutes(25));
+        Assert.Equal(3, drain.Count);                       // the bins on AC are absent, not zero
+        Assert.Equal(20, drain[0].Value!.Value, 6);
+        Assert.Equal(20, drain[1].Value!.Value, 6);
+        Assert.Equal(30, drain[2].Value!.Value, 6);
+        // only the discharge scenario sends it to the engine
+        var request = new ForecastRequest(Samples.T0.AddMinutes(25), 60, false, 10, [], Drain: drain);
+        Assert.Contains("drain_pct_per_hour", Protocol.EncodeRequest(1, request));
+        Assert.DoesNotContain("drain_pct_per_hour", Protocol.EncodeRequest(1, request with { Charge = true }));
+    }
+
+    [Fact]
     public void Nulls_round_trip()
     {
         store.Append(new BatterySample(Samples.T0, ChargeState.Unknown, null, null));

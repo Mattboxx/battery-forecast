@@ -56,6 +56,13 @@ public static class Protocol
             }
             o["past_covariates"]=context;
         }
+        if(!r.Charge && r.Drain is { Count:>0 })
+        {
+            var drain=new JsonArray();
+            foreach(var row in r.Drain.Where(row=>row.Ts<=r.Now.ToUnixTimeSeconds()))
+                drain.Add(new JsonArray(row.Ts,row.Value is double value && double.IsFinite(value)?Math.Round(value,3):null));
+            o["drain_pct_per_hour"]=drain;
+        }
         return o.ToJsonString();
     }
 
@@ -84,7 +91,8 @@ public static class Protocol
 /// <summary>Charge = scenario "resto collegato" fino a <see cref="TargetPct"/>; altrimenti "senza ricarica" fino alla riserva.</summary>
 public sealed record ForecastRequest(DateTimeOffset Now, double Level, bool? OnAc, double ReservePct,
     IReadOnlyList<Storage.ModelSample> History, IReadOnlyDictionary<string,IReadOnlyList<Storage.ModelCovariate>>? PastCovariates = null,
-    bool Charge = false, double TargetPct = 80, IReadOnlyList<DateTimeOffset>? Discontinuities = null);
+    bool Charge = false, double TargetPct = 80, IReadOnlyList<DateTimeOffset>? Discontinuities = null,
+    IReadOnlyList<Storage.ModelCovariate>? Drain = null);
 
 public abstract record WorkerMessage(long? Id);
 public sealed record WorkerReady(string ModelId, string ModelRevision, int StartupMs) : WorkerMessage((long?)null);
@@ -95,6 +103,9 @@ public sealed record WorkerForecast(long? Id, ForecastResponse Response) : Worke
 public sealed record ForecastResponse
 {
     public string TimeBasis { get; init; } = "calendar";
+    /// <summary>"drain": discharge curve integrated from the forecast drain; "level" (or null, before 0.9.9): the level forecast.</summary>
+    public string? Method { get; init; }
+    [JsonIgnore] public bool FromDrain => Method=="drain";
     public ForecastConditions? Conditions { get; init; }
     public CalibrationInfo? Calibration { get; init; }
     /// <summary>How the arrival time combines the measured power with the Timestral curve (discharge only).</summary>

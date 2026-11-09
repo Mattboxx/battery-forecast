@@ -23,14 +23,17 @@ public sealed record BlendInfo
 /// <summary>
 /// Arrival at the reserve from two independent views, weighted by how wrong each has been on this PC.
 /// The measured power (energy left / mean power of the current stretch) knows the present load exactly but not what
-/// comes next; the Timestral curve knows habits but, on a real laptop, came out more than an hour late on heavy
-/// discharges. Every PC learns its own weight from the arrivals it has actually observed: before enough of them,
-/// the power estimate leads, because on the evidence measured so far it is several times closer to reality.
+/// comes next. The Timestral curve forecast from the level came out more than an hour late on heavy discharges, so
+/// with it the power estimate leads; the curve integrated from Timestral's forecast of the drain (since 0.9.9) was
+/// closer to reality than the power estimate, so with it Timestral leads. Every PC then learns its own weight from
+/// the arrivals it has actually observed, only from forecasts made the same way.
 /// The Timestral curve is then retimed to the combined arrival, so chart, headline and alerts agree.
 /// </summary>
 public static class EstimateBlend
 {
-    public const double PriorPowerWeight=.9,MinimumWeight=.05,MaximumWeight=.97;
+    public const double PriorPowerWeight=.9,PriorDrainPowerWeight=.3,MinimumWeight=.05,MaximumWeight=.97;
+    /// <summary>The weight of the measured power before this PC has enough evidence of its own.</summary>
+    public static double Prior(bool drain)=>drain?PriorDrainPowerWeight:PriorPowerWeight;
     /// <summary>Upper bounds, in minutes, of the measured-stretch lengths that get their own weight.</summary>
     public static readonly double[] Stretches={10,30,double.PositiveInfinity};
     public const int MinimumEvaluations=5;
@@ -38,14 +41,14 @@ public static class EstimateBlend
 
     /// <summary>Errors of both estimates at past forecasts whose arrival at the reserve was observed, before <paramref name="now"/>.</summary>
     public static BlendInfo Learn(IReadOnlyList<ForecastSnapshot> saved,IReadOnlyList<BatterySample> observations,DateTimeOffset now,
-        List<(DateTimeOffset Origin,double Actual,double Power,double Timestral)>? trace=null)
+        List<(DateTimeOffset Origin,double Actual,double Power,double Timestral)>? trace=null,bool drain=false)
     {
         var samples=observations.Where(s=>s.Source=="windows" && s.LevelPct is not null && s.TimestampUtc<=now).OrderBy(s=>s.TimestampUtc).ToArray();
         var power=new List<double>();var timestral=new List<double>();var stretch=new List<int>();DateTimeOffset? last=null;
         foreach(var snapshot in saved.OrderBy(s=>s.IssuedAt))
         {
             var r=snapshot.Response;
-            if(snapshot.Source!="timestral" || r.Scenario!="no_charge" || r.Conditions is { OnAc:true }) continue;
+            if(snapshot.Source!="timestral" || r.Scenario!="no_charge" || r.Conditions is { OnAc:true } || r.FromDrain!=drain) continue;
             // the Timestral arrival before any blending (saved forecasts show the combined one)
             double? central=r.Blend?.TimestralMinutes is { } own ? r.ContextEndUtc+own*60 : r.Blend is null ? r.Crossing.CentralUtc : null;
             if(central is null) continue;
@@ -76,7 +79,7 @@ public static class EstimateBlend
             var idx=Enumerable.Range(0,power.Count).Where(i=>stretch[i]==b).ToArray();
             if(idx.Length>=MinimumEvaluations) weights[b]=Weight(idx.Average(i=>power[i]),idx.Average(i=>timestral[i]));
         }
-        var info=new BlendInfo { PowerWeight=PriorPowerWeight,Evaluations=power.Count,StretchWeights=weights };
+        var info=new BlendInfo { PowerWeight=Prior(drain),Evaluations=power.Count,StretchWeights=weights };
         if(power.Count<MinimumEvaluations) return info;
         double ep=power.Average(),et=timestral.Average();
         return info with { PowerWeight=Weight(ep,et),PowerError=ep,TimestralError=et };

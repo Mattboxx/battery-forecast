@@ -101,6 +101,23 @@ remaining missing grid value. Pair separations of at least ten minutes reduce se
 If the phase is too short or has no usable rate, no rate is invented. The existing extrapolated charging
 slowdown and ±25% spread remain heuristics, not newly validated physical or uncertainty models.
 
+## Discharge curve from the forecast drain (0.9.9)
+
+On battery, Windows' percentage is the energy left divided by the full capacity, so the level falls exactly as
+fast as power is drawn: the uncertain part of a discharge is the future power, not the shape of the curve.
+When at least an hour of measured drain exists, the app also sends the drain history in percent per hour
+(battery power divided by full capacity, time-weighted in 5-minute steps, only while on battery and
+discharging; steps on AC or asleep are absent rather than zero, up to 30 days). Timestral forecasts that
+series from its last week of battery time, and the engine integrates it into the level: P50 uses the mean
+of the forecast quantiles (the expected drain), P10 the high-drain quantile and P90 the low-drain one,
+step by step, which gives a wide, cautious band. The response says `"method": "drain"`. The level forecast
+still runs, but only to report the habitual recharge time; it no longer shapes the curve. Without enough
+measured drain, or in the charging scenario, nothing changes (`"method": "level"`).
+
+The level-band correction from past errors is not applied to these curves: replayed on a real history it
+made them worse. They still learn from this PC's errors through the arrival weight below, using only past
+forecasts made the same way. Before five observed arrivals the measured power has a fixed weight of 0.3.
+
 ## Current-use estimates remain separate
 
 Discharge compares observed available energy above reserve to the median recent battery power when
@@ -108,7 +125,10 @@ available. Otherwise it uses a robust percentage slope on the current discharge 
 reading replaces a stored duplicate at the same timestamp; known design-capacity changes stop the tail.
 Charging uses a robust short local trend only within the existing allowed range below taper, or previous
 comparable observed charging intervals. Future observations are excluded and fresh duplicates win.
-The app does not blend these methods using arbitrary weights or claim one universally wins.
+Since 0.9.8 the discharge arrival at the reserve combines this measured-power estimate with the Timestral
+curve, weighted per PC by the inverse squared error of each on the arrivals actually observed (at least
+five; before that a fixed prior), and the curve is retimed to that arrival. No method is claimed to win
+universally.
 
 ## Optional local correction from past errors (0.9.2)
 
