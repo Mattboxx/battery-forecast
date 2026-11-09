@@ -13,13 +13,8 @@
 The weights' `LICENSE` file at the pinned 28M and 5M revisions is byte-identical (ignoring line endings)
 to `licenses/Timestral-28M-pesi-MIT-modificata.txt`, the text shipped by the original Till Dusk.
 
-## Relationship with upstream
+## Project origins
 
-Battery Forecast is a fork of Till Dusk. The macOS sources (`app/`, `scripts/`) were removed from this
-repository to keep it focused on Windows; they remain in the Git history and in the original repository.
-Ideas worth porting from upstream can be compared with:
-
-```bash
-git fetch upstream
-git log --oneline main..upstream/main
-```
+Battery Forecast began as a Windows adaptation of Till Dusk. The Windows app and forecasting pipeline
+are now developed independently. The original macOS sources (`app/`, `scripts/`) remain in the Git
+history and in the original repository. [NOTICE](../NOTICE) preserves the original MIT attribution.

@@ -8,7 +8,7 @@
 <p align="center">
   <b>Quanto durerà davvero oggi la batteria del tuo portatile Windows?</b><br>
   Una previsione con l'intelligenza artificiale che impara come usi il PC, e gira tutta sul PC.<br>
-  <sub>Con <a href="https://github.com/mistralai/timestral">Timestral</a> · fork per Windows di <a href="https://github.com/mattBonfanti/till-dusk">Till Dusk</a></sub>
+  <sub>Progetto indipendente per Windows · Con <a href="https://github.com/mistralai/timestral">Timestral</a></sub>
 </p>
 
 <p align="center">
@@ -139,8 +139,9 @@ Requisiti: Windows 10 2004 o Windows 11, x64 o ARM64, circa 280 MB da scaricare.
 
 ## Crediti e licenze
 
-- Battery Forecast è un fork di **[Till Dusk](https://github.com/mattBonfanti/till-dusk) di Matteo Bonfanti**
-  (licenza MIT), l'app originale per la barra dei menu di macOS.
+- Battery Forecast è nato come adattamento Windows di **[Till Dusk](https://github.com/mattBonfanti/till-dusk)
+  di Matteo Bonfanti**, l'app per la barra dei menu di macOS rilasciata con licenza MIT. Oggi l'app Windows
+  e il sistema di previsione sono sviluppati in modo indipendente. L'avviso MIT originale è conservato in [NOTICE](../NOTICE).
 - **[Timestral](https://github.com/mistralai/timestral)** di Mistral AI: codice Apache 2.0, pesi Timestral-28M
   sotto licenza MIT modificata (testo esatto in [`licenses/`](../licenses), con la condizione su azienda e
   datore di lavoro descritta sotto). Battery Forecast non è affiliato a Mistral AI.
@@ -158,9 +159,8 @@ oltre 20 milioni di dollari (o equivalente) **nel mese precedente**, e menziona 
 combinate. Leggi i [termini originali completi](../licenses/vendor/Timestral-28M-LICENSE.txt) e
 l’[audit di distribuzione](LICENSE_AUDIT.md). Nessuna certificazione generale di conformità è dichiarata.
 
-Battery Forecast è un adattamento indipendente, non un prodotto ufficiale o approvato da Matteo
-Bonfanti o Mistral AI. Le donazioni a Mattboxx tramite GitHub Sponsors o Ko-fi sostengono il porting Windows, non gli autori
-originali. Copyright e attribuzioni sono conservati nel pacchetto.
+Battery Forecast è un progetto indipendente mantenuto da Mattboxx. Le donazioni tramite GitHub Sponsors
+o Ko-fi ne sostengono lo sviluppo. Copyright e attribuzioni sono conservati nel pacchetto.
 
 ## Sostegno
 

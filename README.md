@@ -7,7 +7,7 @@
 <p align="center">
   <b>How long will your Windows laptop really last today?</b><br>
   An AI battery forecast that learns how you use your PC, and runs entirely on it.<br>
-  <sub>Powered by <a href="https://github.com/mistralai/timestral">Timestral</a> · a Windows fork of <a href="https://github.com/mattBonfanti/till-dusk">Till Dusk</a></sub>
+  <sub>Independent Windows project · Powered by <a href="https://github.com/mistralai/timestral">Timestral</a></sub>
 </p>
 
 <p align="center">
@@ -188,9 +188,9 @@ because PyInstaller packages the Python it runs on.
 
 ## Credits and licenses
 
-- **Battery Forecast** is a fork of **[Till Dusk](https://github.com/mattBonfanti/till-dusk) by Matteo Bonfanti**,
-  the original macOS menu-bar app, released under the MIT license. The idea, the forecast approach and the
-  wording of many messages come from it.
+- **Battery Forecast** began as a Windows adaptation of **[Till Dusk](https://github.com/mattBonfanti/till-dusk)
+  by Matteo Bonfanti**, the MIT-licensed macOS menu-bar app. Battery Forecast now develops its Windows app
+  and forecasting pipeline independently. The original MIT notice is preserved in [NOTICE](NOTICE).
 - **[Timestral](https://github.com/mistralai/timestral)** by Mistral AI: code under Apache 2.0, Timestral-28M weights
   under a modified MIT license (its exact text is in [`licenses/`](licenses) and inside the installer; it includes a
   company/employer revenue condition detailed below). Battery Forecast is not affiliated with Mistral AI.
@@ -209,9 +209,8 @@ the full original text also addresses derivatives and combined works. This is no
 Read the [original terms](licenses/vendor/Timestral-28M-LICENSE.txt) and [distribution audit](docs/LICENSE_AUDIT.md).
 The GPL applies to Battery Forecast's own code; it does not change the terms of the bundled components.
 
-Battery Forecast is an independent adaptation and is not an official or endorsed product of Matteo
-Bonfanti or Mistral AI. Donations to Mattboxx through GitHub Sponsors or Ko-fi fund this Windows port; they are not donations
-to the original authors. Their copyright and attribution notices are preserved in every package.
+Battery Forecast is an independent project maintained by Mattboxx. Donations through GitHub Sponsors or
+Ko-fi fund its development. Copyright and attribution notices are preserved in every package.
 
 ## Support
 

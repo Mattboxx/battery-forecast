@@ -124,7 +124,7 @@ def main():
     for t in ("Local AI · Timestral", "Works offline", "Free"):
         x = pill(img, x, 470 * S, t, pf)
     d = ImageDraw.Draw(img)
-    d.text((x0, 560 * S), "Windows 10 & 11  ·  x64 & ARM64  ·  a Windows fork of Till Dusk",
+    d.text((x0, 560 * S), "Windows 10 & 11  ·  x64 & ARM64  ·  Independent project",
            font=font("segoeui.ttf", 17), fill=(150, 146, 178))
 
     a.out.parent.mkdir(parents=True, exist_ok=True)
