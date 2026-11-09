@@ -1,0 +1,66 @@
+Battery Forecast
+Copyright (c) 2026 Mattboxx (Battery Forecast, Windows fork)
+
+Battery Forecast is free software: you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version. It is distributed WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License in
+the LICENSE file for more details. SPDX-License-Identifier: GPL-3.0-or-later
+
+Versions up to and including 0.9.7 were released under the MIT license and remain available under it.
+
+
+ORIGINAL PROJECT: TILL DUSK (MIT)
+
+Battery Forecast is an independent Windows adaptation of Till Dusk, the macOS app by Matteo Bonfanti
+(https://github.com/mattBonfanti/till-dusk). Parts of Battery Forecast derive from Till Dusk, which was
+released under the MIT license below. Those parts keep this notice and remain available under its terms;
+the combined work is distributed under the GNU GPL as stated above. Battery Forecast is not an official
+product of Matteo Bonfanti and is not endorsed by him. The original license text, unmodified, is also in
+licenses/vendor/Till-Dusk-original-LICENSE.txt.
+
+MIT License
+
+Copyright (c) 2026 Matteo Bonfanti
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+ADDITIONAL PERMISSION UNDER GNU GPL VERSION 3 SECTION 7
+
+If you modify this Program, or any covered work, by linking or combining it with the third-party
+components that the Windows package of Battery Forecast distributes with it, namely the Timestral-28M
+model weights by Mistral AI (Modified MIT License), the Intel OpenMP runtime and the Arm Performance
+Libraries included with PyTorch, the Microsoft .NET, Windows Desktop and Visual C++ runtimes and the
+Windows SDK projections (or modified versions of these components), containing parts covered by the
+terms of their own licenses, the licensors of this Program grant you additional permission to convey
+the resulting work. Corresponding Source for a non-source form of such a combination shall not include
+the source code for the parts of those components that are not available in source form under their own
+licenses, but shall include the source code for the parts of this Program that are used.
+
+This permission does not change the terms of those components. They keep their own licenses, which are
+included with every installer (licenses folder) and listed in THIRD-PARTY-NOTICES.txt. In particular the
+Timestral-28M weights are under a Modified MIT License with a condition on the global consolidated monthly
+revenue of the user's company or employer; read licenses/vendor/Timestral-28M-LICENSE.txt.
+
+
+SOURCE CODE
+
+The complete source code of every released version is available at
+https://github.com/Mattboxx/battery-forecast (tag v<version>).

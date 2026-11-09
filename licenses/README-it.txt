@@ -6,7 +6,8 @@ Copyright (c) 2026 Mattboxx per i contributi originali del porting Windows.
 Non è un prodotto ufficiale né è approvato da Matteo Bonfanti o Mistral AI.
 Le donazioni Ko-fi a Mattboxx finanziano il porting Windows e non sono destinate agli autori originali.
 
-La MIT di LICENSE-MIT.txt riguarda il codice del progetto per il quale sono disponibili tali diritti.
+Il codice di Battery Forecast è sotto GNU GPL versione 3 o successiva (LICENSE-GPL-3.0.txt); NOTICE.txt conserva
+l'avviso MIT originale di Till Dusk e contiene il permesso aggiuntivo per i componenti di terze parti.
 Non sostituisce le licenze delle dipendenze o le condizioni dei pesi del modello.
 
 Timestral (codice di inferenza), Mistral AI: Apache License 2.0.

@@ -71,7 +71,7 @@ def test_windows_os_contracts_are_not_shipped(tmp_path):
 
 def test_installer_terms_preserve_applicable_original_texts(tmp_path):
     originals = {
-        "LICENSE-MIT.txt": "Original project MIT grant\n",
+        "NOTICE.txt": "Project GPL notice with the original MIT grant\n",
         "Python-LICENSE.txt": "Python original and Additional Conditions\n",
         "vendor/Timestral-28M-LICENSE.txt": "Model original revenue condition\n",
         "vendor/Intel-OpenMP-EULA.txt": "Intel original agreement\n",
@@ -91,10 +91,20 @@ def test_installer_terms_preserve_applicable_original_texts(tmp_path):
 
 def test_schema2_requires_both_installer_term_documents(tmp_path):
     files = {}
-    for name in ("LICENSE-MIT.txt", "Python-LICENSE.txt", "Timestral-28M-weights-LICENSE.txt", "THIRD-PARTY-NOTICES.txt"):
+    for name in ("LICENSE-GPL-3.0.txt", "NOTICE.txt", "Python-LICENSE.txt", "Timestral-28M-weights-LICENSE.txt", "THIRD-PARTY-NOTICES.txt"):
         path = tmp_path / name
         path.write_text("original text")
         files[name] = legal.sha(path)
     (tmp_path / "inventory.json").write_text(json.dumps({"schema": 2, "files": files}))
     with pytest.raises(ValueError, match="Mandatory installer component terms"):
         legal.verify_bundle(tmp_path)
+
+
+def test_project_license_is_official_gpl3_and_notice_keeps_till_dusk_mit():
+    root = Path(__file__).parents[2]
+    assert legal.sha(root / "LICENSE") == legal.GPL3_SHA256
+    notice = (root / "NOTICE").read_text(encoding="utf-8")
+    assert "SPDX-License-Identifier: GPL-3.0-or-later" in notice
+    assert "Copyright (c) 2026 Matteo Bonfanti" in notice.splitlines()
+    assert "ADDITIONAL PERMISSION UNDER GNU GPL VERSION 3 SECTION 7" in notice
+    legal.verify_sources()

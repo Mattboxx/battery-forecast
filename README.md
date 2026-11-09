@@ -22,7 +22,7 @@
   <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-2457C5">
   <img alt="x64 and ARM64" src="https://img.shields.io/badge/arch-x64%20%7C%20ARM64-3D2F7A">
   <a href="https://github.com/Mattboxx/battery-forecast/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Mattboxx/battery-forecast?include_prereleases&color=B45A0A"></a>
-  <a href="LICENSE"><img alt="Project code: MIT; bundled components have separate terms" src="https://img.shields.io/badge/code-MIT-167351"></a>
+  <a href="LICENSE"><img alt="Project code: GPL-3.0-or-later; bundled components have separate terms" src="https://img.shields.io/badge/code-GPL--3.0-167351"></a>
   <a href="https://github.com/sponsors/Mattboxx"><img alt="GitHub Sponsors" src="https://img.shields.io/badge/GitHub_Sponsors-support-EA4AAA?logo=githubsponsors&logoColor=white"></a>
   <a href="https://ko-fi.com/mattboxx"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-support-C2416B?logo=kofi&logoColor=white"></a>
 </p>
@@ -194,14 +194,17 @@ because PyInstaller packages the Python it runs on.
 - Python, PyTorch, NumPy, .NET and the other bundled components keep their own licenses; the installer ships every
   original legal files in its `licenses` folder. Native Intel OpenMP/oneMKL (x64), ArmPL (ARM64) and Microsoft
   Visual C++ runtimes have separate supplier terms; new installers display the applicable component agreements.
-- Battery Forecast's own code is MIT, see [LICENSE](LICENSE).
+- Battery Forecast's own code is free software under the **GNU GPL version 3 or later**, see [LICENSE](LICENSE)
+  and [NOTICE](NOTICE). NOTICE keeps Till Dusk's MIT notice for the parts derived from it and adds a GPL section 7
+  permission to distribute the program with the third-party components above. Versions up to 0.9.7 were released
+  under MIT and remain available under it.
 
 The Windows package contains third-party components under their own terms. In particular, the Timestral
 weights' Modified MIT license restricts exercising its rights when the global consolidated monthly
 revenue of your company **or employer** exceeds USD 20 million (or equivalent) **for the preceding month**;
 the full original text also addresses derivatives and combined works. This is not standard MIT.
 Read the [original terms](licenses/vendor/Timestral-28M-LICENSE.txt) and [distribution audit](docs/LICENSE_AUDIT.md).
-The MIT license applies to project code for which the contributors hold the relevant rights.
+The GPL applies to Battery Forecast's own code; it does not change the terms of the bundled components.
 
 Battery Forecast is an independent adaptation and is not an official or endorsed product of Matteo
 Bonfanti or Mistral AI. Donations to Mattboxx through GitHub Sponsors or Ko-fi fund this Windows port; they are not donations

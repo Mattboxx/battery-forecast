@@ -16,6 +16,8 @@ from importlib import metadata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# SHA-256 of https://www.gnu.org/licenses/gpl-3.0.txt (GNU GPL version 3, 29 June 2007)
+GPL3_SHA256 = "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
 LEGAL = ("LICENSE", "LICENCE", "COPYING", "NOTICE", "COPYRIGHT")
 
 
@@ -44,11 +46,16 @@ def verify_sources():
                              for p in document.findall(".//w:p", ns)) + "\n"
             if (ROOT / "licenses" / item["file"]).read_text(encoding="utf-8") != text:
                 raise ValueError(f"Original DOCX text extraction changed: {item['file']}")
+    # Project license: the official GPL-3.0 text, byte-for-byte; the original Till Dusk MIT notice lives in NOTICE.
+    if sha(ROOT / "LICENSE") != GPL3_SHA256:
+        raise ValueError("LICENSE must be the official, unmodified GNU GPL version 3 text")
     original = (ROOT / "licenses/vendor/Till-Dusk-original-LICENSE.txt").read_text(encoding="utf-8")
-    current = (ROOT / "LICENSE").read_text(encoding="utf-8")
-    if "Copyright (c) 2026 Matteo Bonfanti" not in current.splitlines():
+    notice = (ROOT / "NOTICE").read_text(encoding="utf-8")
+    if "SPDX-License-Identifier: GPL-3.0-or-later" not in notice:
+        raise ValueError("NOTICE must state the project license")
+    if "Copyright (c) 2026 Matteo Bonfanti" not in notice.splitlines():
         raise ValueError("Original copyright must be preserved verbatim")
-    if original.split("Permission is hereby", 1)[1].split("\n---", 1)[0] not in current:
+    if original.split("Permission is hereby", 1)[1].split("\n---", 1)[0] not in notice:
         raise ValueError("Original MIT permission/disclaimer changed")
     return manifest
 
@@ -167,20 +174,22 @@ def windows_file_version(path):
 
 
 def write_installer_terms(out, native):
-    documents = {"LICENSE-MIT.txt", "vendor/Timestral-28M-LICENSE.txt", "Python-LICENSE.txt"}
+    documents = {"NOTICE.txt", "vendor/Timestral-28M-LICENSE.txt", "Python-LICENSE.txt"}
     for row in native:
         documents.update(p for p in row["license_documents"] if p.endswith(".txt") and p.startswith("vendor/") and "NOTICES" not in p)
-    order = ["LICENSE-MIT.txt", "vendor/Timestral-28M-LICENSE.txt", "Python-LICENSE.txt"]
+    order = ["NOTICE.txt", "vendor/Timestral-28M-LICENSE.txt", "Python-LICENSE.txt"]
     order += sorted(documents - set(order))
     headers = {
         "en": """BATTERY FORECAST — PROJECT LICENSE AND THIRD-PARTY COMPONENT TERMS
 
-Battery Forecast's project code is MIT-licensed, with original copyright preserved.
-It is an independent Windows adaptation by Mattboxx of Till Dusk by Matteo Bonfanti.
+Battery Forecast is free software under the GNU General Public License, version 3 or later
+(LICENSE-GPL-3.0.txt), with an additional permission for the third-party components below (NOTICE.txt).
+It is an independent Windows adaptation by Mattboxx of Till Dusk by Matteo Bonfanti, whose MIT notice
+is preserved. The GPL does not require you to accept it to use the program.
 
 By selecting acceptance, you agree to the applicable original terms reproduced below for the
 respective third-party components in this installer. These terms apply to their own components;
-they do not add restrictions to Battery Forecast's MIT-licensed project code.
+they do not add restrictions to Battery Forecast's own code under the GPL.
 The Timestral model weights are under Modified MIT, including the company/employer monthly
 revenue condition. Native runtimes have separate supplier agreements. All original documents
 and notices are also installed in the licenses folder for offline reading.
@@ -189,12 +198,14 @@ Files and their applicable supplier terms:
 """,
         "it": """BATTERY FORECAST — LICENZA DEL PROGETTO E TERMINI DEI COMPONENTI
 
-Il codice del progetto Battery Forecast è MIT, con il copyright originale conservato.
-È un adattamento Windows indipendente di Mattboxx di Till Dusk, creato da Matteo Bonfanti.
+Battery Forecast è software libero sotto GNU General Public License versione 3 o successiva
+(LICENSE-GPL-3.0.txt), con un permesso aggiuntivo per i componenti di terze parti qui sotto (NOTICE.txt).
+È un adattamento Windows indipendente di Mattboxx di Till Dusk, creato da Matteo Bonfanti, di cui è
+conservato l'avviso MIT. La GPL non richiede di essere accettata per usare il programma.
 
 Selezionando l'accettazione, accetti i termini originali applicabili riprodotti di seguito per i
 rispettivi componenti di terze parti presenti nell'installer. Si applicano ai propri componenti;
-non aggiungono restrizioni al codice MIT del progetto Battery Forecast.
+non aggiungono restrizioni al codice di Battery Forecast sotto GPL.
 I pesi Timestral hanno una Modified MIT, inclusa la condizione sul fatturato mensile di azienda
 o datore di lavoro. I runtime nativi hanno accordi dei fornitori separati. Tutti gli originali
 e gli avvisi vengono installati nella cartella licenses e sono leggibili offline.
@@ -304,7 +315,8 @@ def collect(out, internal, publish, toc, inno_license=None):
     verify_sources()
     out.mkdir(parents=True, exist_ok=True)
     shutil.copytree(ROOT / "licenses", out, dirs_exist_ok=True)
-    shutil.copyfile(ROOT / "LICENSE", out / "LICENSE-MIT.txt")
+    shutil.copyfile(ROOT / "LICENSE", out / "LICENSE-GPL-3.0.txt")
+    shutil.copyfile(ROOT / "NOTICE", out / "NOTICE.txt")
     model = publish / "engine/model/LICENSE"
     if not model.is_file() or model.read_text(encoding="utf-8") != (ROOT / "licenses/vendor/Timestral-28M-LICENSE.txt").read_text(encoding="utf-8"):
         raise ValueError("Distributed model license differs from audited revision")
@@ -324,8 +336,9 @@ def collect(out, internal, publish, toc, inno_license=None):
                  "pyinstaller_analysis_sha256": sha(toc), "published_deps_sha256": sha(next(publish.glob("*.deps.json")))}
     lines = ["Battery Forecast — third-party components", "", "Original notices are readable offline in this folder.",
              "Python license archives preserve original relative filenames; open with Windows Explorer.",
-             "The MIT license for this project's code does not replace the licenses below.",
-             "Till Dusk: Copyright (c) 2026 Matteo Bonfanti. Independent Windows contributions: Mattboxx.",
+             "Battery Forecast: GNU GPL version 3 or later (LICENSE-GPL-3.0.txt), with the additional permission in NOTICE.txt.",
+             "The GPL for this project's code does not replace the licenses below.",
+             "Till Dusk: Copyright (c) 2026 Matteo Bonfanti, MIT notice preserved in NOTICE.txt. Windows port: Mattboxx.",
              "Timestral code: Apache-2.0. Model weights: Modified MIT, including company/employer revenue condition.",
              "See vendor/Timestral-28M-LICENSE.txt and MODEL_INFO.json for the exact terms and revision.", "", "Bundled Python distributions:"]
     lines += [f"- {x['name']} {x['version']}: {x['license']} — {x['archive']}" for x in packages]
@@ -358,7 +371,7 @@ def verify_bundle(out):
             with zipfile.ZipFile(p) as z:
                 if z.testzip() or not z.namelist():
                     raise ValueError(f"Invalid legal archive: {rel}")
-    required = {"LICENSE-MIT.txt", "Python-LICENSE.txt", "Timestral-28M-weights-LICENSE.txt", "THIRD-PARTY-NOTICES.txt"}
+    required = {"LICENSE-GPL-3.0.txt", "NOTICE.txt", "Python-LICENSE.txt", "Timestral-28M-weights-LICENSE.txt", "THIRD-PARTY-NOTICES.txt"}
     if not required.issubset(inventory["files"]):
         raise ValueError("Mandatory legal texts absent from inventory")
     if inventory.get("schema", 1) >= 2:

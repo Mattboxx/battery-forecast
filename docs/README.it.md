@@ -141,11 +141,14 @@ Requisiti: Windows 10 2004 o Windows 11, x64 o ARM64, circa 280 MB da scaricare.
 - **[Timestral](https://github.com/mistralai/timestral)** di Mistral AI: codice Apache 2.0, pesi Timestral-28M
   sotto licenza MIT modificata (testo esatto in [`licenses/`](../licenses), con la condizione su azienda e
   datore di lavoro descritta sotto). Battery Forecast non è affiliato a Mistral AI.
-- Il codice di Battery Forecast è MIT, vedi [LICENSE](../LICENSE).
+- Il codice di Battery Forecast è software libero sotto **GNU GPL versione 3 o successiva**, vedi
+  [LICENSE](../LICENSE) e [NOTICE](../NOTICE). NOTICE conserva l'avviso MIT di Till Dusk per le parti derivate e
+  aggiunge un permesso (sezione 7 della GPL) per distribuire il programma con i componenti di terze parti.
+  Le versioni fino alla 0.9.7 sono state pubblicate con licenza MIT e restano disponibili con quella licenza.
 - Runtime nativi Intel OpenMP/oneMKL (x64), ArmPL (ARM64) e Microsoft Visual C++ hanno condizioni proprie.
   I nuovi installer mostrano gli accordi applicabili e conservano originali e avvisi offline in `licenses`.
 
-La MIT copre il codice del progetto per cui i contributori hanno i relativi diritti. Il pacchetto
+La GPL copre il codice di Battery Forecast e non cambia i termini dei componenti inclusi. Il pacchetto
 contiene dipendenze con termini propri. I pesi Timestral hanno una **Modified MIT**, non MIT standard:
 la clausola riguarda il fatturato globale consolidato mensile dell’azienda **o del datore di lavoro**,
 oltre 20 milioni di dollari (o equivalente) **nel mese precedente**, e menziona anche derivati e opere

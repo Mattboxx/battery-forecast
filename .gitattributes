@@ -9,3 +9,6 @@
 licenses/vendor/** -text -whitespace
 
 licenses/vendor/*.rtf binary
+
+# Official GPL-3.0 text, kept byte-for-byte (verified by tools/licenses.py).
+LICENSE -text -whitespace
