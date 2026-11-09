@@ -302,6 +302,8 @@ public sealed class ForecastCoordinator : IDisposable
             // A discharge curve from the forecast drain is not warped by level band: measured on real discharges,
             // that correction made it worse. It learns from errors through the weight of the arrival (EstimateBlend).
             if(r.FromDrain) report=report with { Reason=LocalCalibration.DrainReason };
+            // charging: the time comes from the measured charging of this PC (ChargeBlend), nothing left to correct
+            else if(charge) report=report with { Reason=LocalCalibration.MeasuredChargeReason };
             else if(options.UseLocalCalibration && !demo && r.TimeBasis=="active_use" && r.Source=="timestral")
             {
                 var since=origin.AddDays(-Math.Min(30,options.RetentionDays));
@@ -313,6 +315,12 @@ public sealed class ForecastCoordinator : IDisposable
                 else report=report with { Reason="collecting" };
             }
             r=LocalCalibration.Apply(r,report);
+            if(mode==Mode.Charge && r.Source=="timestral")
+            {
+                // time at the charge target: the measured charging leads, the Timestral curve is retimed to it
+                try { r=ChargeBlend.Apply(r,ChargeRate.Estimate(store.Samples(origin.AddDays(-30),origin),s,(int)Math.Round(reserve))); }
+                catch(Microsoft.Data.Sqlite.SqliteException) { }
+            }
             if(mode==Mode.Discharge && r.Source=="timestral")
             {
                 // arrival at the reserve: measured power and Timestral curve, weighted by their past errors on this PC

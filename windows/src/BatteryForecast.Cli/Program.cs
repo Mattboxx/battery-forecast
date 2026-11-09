@@ -177,10 +177,25 @@ switch (cmd)
         var db = Opt("--db") ?? throw new ArgumentException("--db FILE");
         using var store = new HistoryStore(db);
         var samples = store.Samples(DateTimeOffset.UnixEpoch).Where(s => s.Source == "windows" && s.LevelPct is not null).OrderBy(s => s.TimestampUtc).ToList();
-        var snaps = store.ForecastSnapshots(DateTimeOffset.UnixEpoch, DateTimeOffset.UtcNow.AddDays(1), 20000)
-            .Where(s => s.Source == "timestral:charge" && s.Response.TimeBasis == "active_use" && s.Response.Conditions is { OnAc: true })
-            .OrderBy(s => s.IssuedAt).ToList();
-        var rawErr = new List<double>(); var calErr = new List<double>(); var rateErr = new List<double>(); int ready = 0;
+        if (Opt("--slope") is { } slopeRule)       // readings,minutes,points: thresholds for the current charge's slope
+        {
+            var parts = slopeRule.Split(',').Select(v => double.Parse(v, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+            (ChargeRate.MinimumReadings, ChargeRate.MinimumSpan, ChargeRate.MinimumRise) = ((int)parts[0], TimeSpan.FromMinutes(parts[1]), parts[2]);
+        }
+        // every saved charge forecast (the archive queries thin or cap them)
+        var snaps = new List<ForecastSnapshot>();
+        using (var read = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={db};Mode=ReadOnly"))
+        {
+            read.Open();
+            using var q = read.CreateCommand();
+            q.CommandText = "SELECT id,ts,source,json FROM forecast_snapshots WHERE source='timestral:charge' ORDER BY ts";
+            using var rows = q.ExecuteReader();
+            while (rows.Read())
+                if (JsonSerializer.Deserialize<ForecastResponse>(rows.GetString(3)) is { Curve.Count: > 0 } resp &&
+                    resp.TimeBasis == "active_use" && resp.Conditions is { OnAc: true })
+                    snaps.Add(new(rows.GetInt64(0), DateTimeOffset.FromUnixTimeSeconds(rows.GetInt64(1)), rows.GetString(2), resp));
+        }
+        var rawErr = new List<double>(); var calErr = new List<double>(); var rateErr = new List<double>(); var finalErr = new List<double>(); int ready = 0, waiting = 0;
         foreach (var snap in snaps)
         {
             var raw = LocalCalibration.Apply(snap.Response, new CalibrationInfo { Enabled = false });
@@ -200,10 +215,20 @@ switch (cmd)
             if (report.Ready) ready++;
             var corrected = LocalCalibration.Apply(raw, report);
             double? Err(ForecastResponse r) => r.Crossing.CentralUtc is { } c ? (c - arrival.Value.ToUnixTimeMilliseconds() / 1000.0) / 60 : null;
-            if (Err(raw) is not { } a || Err(corrected) is not { } b) continue;
-            rawErr.Add(a); calErr.Add(b);
+            // as in the app: measured charging first, the Timestral curve retimed to it
             var rate = ChargeRate.Estimate(samples.Where(s => s.TimestampUtc < origin && s.TimestampUtc >= since).ToList(), samples[i], (int)raw.ReservePct);
             if (rate.TargetAt is { } at) rateErr.Add((at - arrival.Value).TotalMinutes);
+            // the panel shows a charge time only once measured (otherwise "measuring")
+            if (rate.TargetAt is { } measuredAt && Err(ChargeBlend.Apply(corrected, rate)) is { } final)
+            {
+                finalErr.Add(final);
+                double gap = final - (measuredAt - arrival.Value).TotalMinutes;
+                if (Math.Abs(gap) > 5 && args.Contains("--why"))
+                    Console.WriteLine($"  scarto {gap:+0;-0} min a {origin.ToLocalTime():dd/MM HH:mm}: {rate.Kind}, Timestral {corrected.Crossing.Status} {(corrected.Crossing.CentralUtc is { } cc ? $"{(cc - raw.ContextEndUtc) / 60:0}" : "—")} min, curva fino a {(corrected.Curve.Count > 0 ? (corrected.Curve[^1].T - raw.ContextEndUtc) / 60 : 0):0} min, misurata {(measuredAt - origin).TotalMinutes:0} min");
+            }
+            else waiting++;
+            if (Err(raw) is not { } a || Err(corrected) is not { } b) continue;
+            rawErr.Add(a); calErr.Add(b);
             Console.WriteLine($"{origin.ToLocalTime():dd/MM HH:mm} {samples[i].LevelPct,3:0}% reale tra {(arrival.Value - origin).TotalMinutes,4:0} min · originale {a,+5:+0;-0} · corretta {b,+5:+0;-0} · velocità misurata {(rate.TargetAt is { } t ? $"{(t - arrival.Value).TotalMinutes:+0;-0}" : "—")} · {(report.Ready ? $"{report.Scope} {report.Factor:0.00}" : $"in raccolta {report.Windows}")}");
         }
         static string Summary(List<double> e) => e.Count == 0 ? "—" :
@@ -212,6 +237,7 @@ switch (cmd)
         Console.WriteLine($"Timestral originale:  {Summary(rawErr)}");
         Console.WriteLine($"Timestral corretto:   {Summary(calErr)}");
         Console.WriteLine($"velocità misurata:    {Summary(rateErr)}");
+        Console.WriteLine($"titolo dell'app:      {Summary(finalErr)} · ancora in misura in {waiting} istanti");
         return 0;
     }
 

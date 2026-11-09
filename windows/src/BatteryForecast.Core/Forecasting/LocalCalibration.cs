@@ -285,6 +285,8 @@ public static class LocalCalibration
     }
     /// <summary>Reason of a report for a discharge curve from the forecast drain: no level-band correction.</summary>
     public const string DrainReason="drain";
+    /// <summary>Reason of a report for a charge forecast: its time comes from the measured charging (ChargeBlend).</summary>
+    public const string MeasuredChargeReason="measured_charge";
 
     public static ForecastResponse Apply(ForecastResponse raw,CalibrationInfo report)
     {

@@ -129,8 +129,12 @@ public class CustomizationTests
     {
         var data = Session(-10,60,61,10);
         Assert.Equal(ChargeEstimateKind.Collecting,ChargeRate.Estimate(data,data[^1],75).Kind);
+        // far from the target the current slope is projected too, but only below the taper region
         data = Session(-10,40,45,10);
-        Assert.Equal(ChargeEstimateKind.Collecting,ChargeRate.Estimate(data,data[^1],80).Kind);
+        var far = ChargeRate.Estimate(data,data[^1],80);
+        Assert.Equal(ChargeEstimateKind.RecentRate,far.Kind);
+        Assert.Equal(Now.AddMinutes(70),far.TargetAt);
+        Assert.Equal(ChargeEstimateKind.Collecting,ChargeRate.Estimate(data,data[^1],85).Kind);
         Assert.Equal(ChargeEstimateKind.AlreadyReached,ChargeRate.Estimate(data,data[^1] with { LevelPct=80 },80).Kind);
     }
 }

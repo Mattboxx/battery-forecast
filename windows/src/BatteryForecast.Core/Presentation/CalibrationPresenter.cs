@@ -6,6 +6,7 @@ public static class CalibrationPresenter
 {
     public static string Present(bool enabled,CalibrationInfo? report,BlendInfo? blend=null)
     {
+        if(report?.Reason==LocalCalibration.MeasuredChargeReason) return L.T("CalibrationChargeMeasured");
         if(!enabled) return L.T("CalibrationOff");
         // discharge curve from the forecast drain: it learns through the weight of the arrival at the reserve
         if(report?.Reason==LocalCalibration.DrainReason)

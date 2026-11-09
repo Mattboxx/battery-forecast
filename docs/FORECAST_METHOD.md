@@ -118,6 +118,17 @@ The level-band correction from past errors is not applied to these curves: repla
 made them worse. They still learn from this PC's errors through the arrival weight below, using only past
 forecasts made the same way. Before five observed arrivals the measured power has a fixed weight of 0.3.
 
+## Charging time from the measured charging
+
+The time at the charge target comes from this PC's measurements: the median time earlier comparable charges took
+from the current level to the target (at least two, which includes any final slowdown), otherwise the median
+pairwise slope of the current charge (at least 4 readings, 4 minutes and 2 points, projected only for targets up
+to 80% and at most 4 hours). The Timestral "stay plugged in" curve is retimed so that its median reaches the target
+at that time; if it never reaches it, or the measured arrival is minutes away while Timestral's is hours away, the
+chart is a straight line to the measured time with a ±20% band, then the target held. Without a measurement the
+panel says it is measuring rather than show the Timestral time. Replayed on one laptop's real charges, the measured
+time was on average 2.5 minutes off, against 77 for the corrected Timestral time.
+
 ## Current-use estimates remain separate
 
 Discharge compares observed available energy above reserve to the median recent battery power when

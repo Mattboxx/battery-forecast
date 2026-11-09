@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- **Charging time from the measured charging.** Replayed on a real laptop's history (151 moments of 18 charges that
+  reached 80%), the Timestral time at the charge target was on average 77 minutes off even after correction, and
+  missing for more than half of the moments; this PC's earlier charges from the same level were 2.3 minutes off and
+  the slope of the current charge about 3. The time at the target now comes from those measurements (earlier charges
+  first, then the current slope) and the Timestral curve is retimed to it: 2.5 minutes off on average, 98% within 10
+  minutes (2.4 on the 106 charge forecasts the app had saved, against 114 before).
+- The slope of the current charge is used after 4 minutes and 2 points instead of 8 minutes, and at any distance
+  below an 80% target instead of only within 20 points (same error, measured). Earlier charges no longer wait for it.
+- Without a measurement yet (the first minutes of a charge with no comparable earlier charge) the panel says it is
+  measuring instead of showing the Timestral time, which in those moments was hours off.
+- The level-band correction from past errors no longer applies to charging; Preferences say why.
+- Diagnostics: `tilldusk chargetest --db <copy>` measures every saved charge forecast; `replay --charge [--context]`.
+
 ## 0.9.9
 
 - **Timestral now forecasts the power, not the percentage.** On battery the level falls exactly as fast as energy

@@ -159,17 +159,24 @@ public partial class App : Application
             await Task.Delay(250);
         // per l'immagine "in carica": una vera previsione di carica di Timestral sullo stesso storico demo
         ForecastView? charge = null;
+        ChargeEstimate? measured = null;
         if (worker is not null && Store is not null && Coordinator?.State is { } st)
             try
             {
                 var r = await worker.ForecastAsync(new ForecastRequest(st.Now, Snapshots.ChargingLevel, true, Settings.ChargeTargetPct,
                     Store.ModelSamples(st.Now.AddDays(-110)), Charge: true, TargetPct: Settings.ChargeTargetPct));
-                charge = ForecastView.From(r);
+                // as in the app: the charge time comes from the measured charging of the (demo) history
+                // the image shows a charge under way: eight synthetic minutes at 0.75 %/min (demo, declared as such)
+                var current = st.Battery with { State = ChargeState.Charging, OnAc = true, LevelPct = Snapshots.ChargingLevel, TimestampUtc = st.Now };
+                var tail = Enumerable.Range(0, 8).Select(i => current with { TimestampUtc = st.Now.AddMinutes(i - 8), LevelPct = Snapshots.ChargingLevel - .75 * (8 - i) });
+                measured = ChargeRate.Estimate([.. Store.Samples(st.Now.AddDays(-30)).Where(s => s.TimestampUtc < st.Now.AddMinutes(-8)), .. tail],
+                    current, Settings.ChargeTargetPct);
+                charge = ForecastView.From(ChargeBlend.Apply(r, measured));
             }
             catch (ForecastWorkerException ex) { log?.Write($"snapshot charge: {ex.Message}"); }
         await Dispatcher.InvokeAsync(() =>
         {
-            try { Snapshots.Save(this, Coordinator!.State!, dir, charge); }
+            try { Snapshots.Save(this, Coordinator!.State!, dir, charge, measured); }
             catch (Exception ex) { log?.Write($"snapshot: {ex}"); }
             Quit();
         });

@@ -120,25 +120,34 @@ public class PresenterTests
     }
 
     [Fact]
-    public void Charging_uses_the_timestral_charge_forecast_with_recent_rate_as_comparison()
+    public void Charging_shows_the_curve_retimed_to_the_measured_charging_and_never_the_timestral_time_alone()
     {
         var curve = Enumerable.Range(1, 288).Select(i => new CurvePoint(Now.AddMinutes(5 * i),
             Math.Min(100, 50 + 0.5 * i), Math.Min(100, 50 + 0.6 * i), Math.Min(100, 50 + 0.7 * i))).ToList();
         var cf = new ForecastView(Now, 50, 80, CrossingStatus.WithinHorizon, Now.AddMinutes(250), Now.AddMinutes(215), Now.AddMinutes(300),
-            curve, HistoryQuality.Ok, 6.2, 9, "m", "r") { IsCharge = true, HabitualUnplug = Now.AddHours(6), ExtrapolatedFrom = null };
+            curve, HistoryQuality.Ok, 6.2, 9, "m", "r") { IsCharge = true, HabitualUnplug = Now.AddHours(6), ExtrapolatedFrom = null,
+            Blend = new BlendInfo { PowerWeight = 1, PowerMinutes = 250, TimestralMinutes = 400 } };
         var st = State(Bat(50, true, ChargeState.Charging)) with
         {
             ChargeForecast = cf, ChargeForecastFresh = true,
-            Charging = new ChargeEstimate(ChargeEstimateKind.RecentRate, 80, Now.AddMinutes(200)),
+            Charging = new ChargeEstimate(ChargeEstimateKind.RecentRate, 80, Now.AddMinutes(250)),
         };
         var m = PanelPresenter.Present(st, Rome);
         Assert.Equal("Obiettivo 80%: 14:10", m.Headline);
         Assert.Equal("circa 4 h 10 min · fascia indicativa 13:35–15:00", m.Detail);
-        Assert.Equal("Impara dalle tue ricariche · 6,2 giorni di storia", m.SourceLine);
-        Assert.Equal("Carica osservata: circa 3 h 20 min (fino alle 13:20)", m.RecentLine);
+        Assert.Equal("Dal ritmo recente di ricarica; con lo stesso alimentatore e carico.", m.SourceLine);
+        Assert.Null(m.RecentLine);                                           // the headline already is the measured time
         Assert.Contains("Di solito stacchi l’alimentatore verso le 16:00", m.RechargeLine);
         Assert.False(m.ShowEveningMarker);
         Assert.Same(cf, m.Chart);
+        // not retimed to a measurement: the measured estimate, or "measuring", not the Timestral time
+        var alone = PanelPresenter.Present(st with { ChargeForecast = cf with { Blend = null },
+            Charging = new ChargeEstimate(ChargeEstimateKind.RecentRate, 80, Now.AddMinutes(160)) }, Rome);
+        Assert.Contains("12:40", alone.Headline);
+        Assert.Null(alone.Chart);
+        var early = PanelPresenter.Present(st with { ChargeForecast = cf with { Blend = null }, Charging = new ChargeEstimate(ChargeEstimateKind.Collecting, 80) }, Rome);
+        Assert.DoesNotContain("14:10", early.Headline);
+        Assert.Null(early.Chart);
     }
 
     [Fact]
@@ -219,12 +228,12 @@ public class PresenterTests
                 charging?60+i*.03:60-i*.12,charging?60+i*.05:60-i*.1,charging?60+i*.07:60-i*.08))],
         };
         var state=charging
-            ? State(Bat(60,true,ChargeState.Charging)) with { ChargeForecast=forecast,ChargeForecastFresh=true }
+            ? State(Bat(60,true,ChargeState.Charging)) with { ChargeForecast=forecast with { Blend=new BlendInfo { PowerWeight=1,PowerMinutes=900 } },ChargeForecastFresh=true }
             : State(Bat(),forecast);
         var model=PanelPresenter.Present(state with { Now=Now.AddMinutes(30) },Rome);
         Assert.Contains("oltre le prossime 5 h 30 min",model.Headline,StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("24",model.Headline);
-        Assert.Same(forecast,model.Chart);
+        Assert.Equal(forecast.Curve,model.Chart!.Curve);
     }
 
     [Fact]
@@ -237,16 +246,11 @@ public class PresenterTests
         Assert.Equal("Windows fornisce una propria stima. La previsione dell’app non è ancora disponibile.",model.ComparisonHelp);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Active_use_forecasts_explicitly_show_when_the_ai_is_still_learning(bool charging)
+    [Fact]
+    public void Active_use_forecasts_explicitly_show_when_the_ai_is_still_learning()
     {
-        var forecast=View(q:HistoryQuality.Learning) with { TimeBasis="active_use",IsCharge=charging };
-        var state=charging
-            ? State(Bat(60,true,ChargeState.Charging)) with { ChargeForecast=forecast,ChargeForecastFresh=true }
-            : State(Bat(),forecast);
-        Assert.Contains("IA in apprendimento",PanelPresenter.Present(state,Rome).SourceLine);
+        var forecast=View(q:HistoryQuality.Learning) with { TimeBasis="active_use" };
+        Assert.Contains("IA in apprendimento",PanelPresenter.Present(State(Bat(),forecast),Rome).SourceLine);
     }
 
     [Fact]

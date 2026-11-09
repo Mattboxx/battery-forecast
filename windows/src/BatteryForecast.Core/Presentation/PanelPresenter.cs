@@ -84,7 +84,10 @@ public static class PanelPresenter
                 var head = full ? L.T("FullyCharged") : s.Phase == PowerPhase.Charging ? L.F("ChargingTo", Pct(b.LevelPct)) : L.T("PluggedIn");
                 if (s.Phase == PowerPhase.PluggedIn)
                     return Held(m, s, level, full, zone);
-                if (s.Phase == PowerPhase.Charging && s.ChargeForecast is { Quality: not HistoryQuality.Insufficient } cf)
+                // The Timestral charge time alone was on average more than two hours off on real charges, against about
+                // three minutes for the measured charging: the chart is shown once it has been retimed to a measurement,
+                // otherwise the measured estimate (or "measuring") below.
+                if (s.Phase == PowerPhase.Charging && s.ChargeForecast is { Quality: not HistoryQuality.Insufficient, Blend.PowerMinutes: not null } cf)
                     return ChargeFromModel(m, cf, s, level, zone);
                 if (s.Phase == PowerPhase.Charging && s.Charging is { } charge)
                 {
@@ -229,8 +232,9 @@ public static class PanelPresenter
         var target = (int)Math.Round(cf.ReservePct);
         var unplug = cf.HabitualUnplug is { } hu
             ? L.F(cf.ExtrapolatedFrom is null ? "HabitualUnplugNoRate" : "HabitualUnplug", Clock(Round5(hu), zone)) : null;
-        var recent = s.Charging is { Kind: ChargeEstimateKind.RecentRate or ChargeEstimateKind.PastSessions, TargetAt: { } ra }
-            ? L.F("ChargeRecentLine", Duration(ra - now), UntilPhrase(ra, now, zone)) : null;
+        // retimed to the measured charging (ChargeBlend): the headline is that time, so say where it comes from
+        string? recent = null;
+        var source = s.Charging is { Kind: ChargeEstimateKind.PastSessions, Sessions: var n } ? L.F("ChargeHistorySource", n) : L.T("ChargeRecentSource");
         m = m with
         {
             SectionTitle = L.T("ChargeSection"),
@@ -238,7 +242,7 @@ public static class PanelPresenter
             Busy = s.Updating,
             Stale = !s.ChargeForecastFresh,
             Source = EstimateSource.Habits,
-            SourceLine = ModelSource(cf, charging: true),
+            SourceLine = source,
             RechargeLine = unplug,
             RecentLine = recent,
             Chart = cf,

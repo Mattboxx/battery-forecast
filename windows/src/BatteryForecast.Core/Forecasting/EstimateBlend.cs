@@ -143,7 +143,7 @@ public static class EstimateBlend
         var central=Cross(p=>p.P50);
         return r with
         {
-            Curve=points,Blend=blend,
+            Curve=points,Blend=blend,RawCurve=r.RawCurve??r.Curve,RawTiming=r.RawTiming??Timing(r),
             Crossing=r.Crossing with { Status=central is null?"beyond_horizon":"within_horizon",CentralUtc=central,EarlyUtc=Cross(p=>p.P10),LateUtc=Cross(p=>p.P90) },
             HabitualRechargeUtc=Warp(r.HabitualRechargeUtc),ExtrapolatedFromUtc=Warp(r.ExtrapolatedFromUtc),
             ExtrapolationRatePctPerHour=r.ExtrapolationRatePctPerHour*speed,
@@ -151,7 +151,11 @@ public static class EstimateBlend
         double? Warp(double? t)=>t is { } v ? origin+(v-origin)/speed : null;
     }
 
-    static CurvePointDto Interpolate(ForecastResponse r,IReadOnlyList<CurvePointDto> points,double t)
+    /// <summary>The timing as the model issued it, kept so that learning never reads a retimed curve.</summary>
+    internal static RawForecastTiming Timing(ForecastResponse r)=>
+        new(r.Crossing,r.HabitualRechargeUtc,r.HabitualUnplugUtc,r.ExtrapolatedFromUtc,r.ExtrapolationRatePctPerHour);
+
+    internal static CurvePointDto Interpolate(ForecastResponse r,IReadOnlyList<CurvePointDto> points,double t)
     {
         var previous=new CurvePointDto(r.ContextEndUtc,r.Level,r.Level,r.Level);
         foreach(var p in points)

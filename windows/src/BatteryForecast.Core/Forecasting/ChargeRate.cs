@@ -8,6 +8,14 @@ public sealed record ChargeEstimate(ChargeEstimateKind Kind, int TargetPct, Date
 /// <summary>Observed charging only. Never calls the discharge model or promises constant speed near full.</summary>
 public static class ChargeRate
 {
+    /// <summary>
+    /// The current charge needed for its own slope: readings, minutes and percentage points. Replayed on real
+    /// charges, 4 minutes and 2 points gave the same error as 8 minutes (about 3 minutes) on 151 moments instead of 134.
+    /// </summary>
+    public static int MinimumReadings = 4;
+    public static TimeSpan MinimumSpan = TimeSpan.FromMinutes(4);
+    public static double MinimumRise = 2;
+
     public static ChargeEstimate Estimate(IReadOnlyList<BatterySample> history, BatterySample current, int target)
     {
         var pending = new ChargeEstimate(ChargeEstimateKind.Collecting, target);
@@ -16,27 +24,8 @@ public static class ChargeRate
         if (level >= target) return new(ChargeEstimateKind.AlreadyReached, target);
         var points = history.Append(current).Where(s => s.TimestampUtc <= current.TimestampUtc)
             .GroupBy(s => s.TimestampUtc).Select(g => g.Last()).OrderBy(s => s.TimestampUtc).ToArray();
-        var tail = new List<BatterySample>();
-        foreach (var s in points.Reverse())
-        {
-            if (!Valid(s, current) || current.TimestampUtc - s.TimestampUtc > TimeSpan.FromMinutes(30)) break;
-            if (tail.Count > 0 && !Continuous(s, tail[^1])) break;
-            tail.Add(s);
-        }
-        tail.Reverse();
-        if (tail.Count < 6 || current.TimestampUtc - tail[0].TimestampUtc < TimeSpan.FromMinutes(8) ||
-            level - tail[0].LevelPct < 2) return pending;
-        var slopes = new List<double>();
-        for (int i = 0; i < tail.Count; i++)
-            for (int j = i + 1; j < tail.Count; j++)
-            {
-                var minutes = (tail[j].TimestampUtc - tail[i].TimestampUtc).TotalMinutes;
-                if (minutes >= 3) slopes.Add((tail[j].LevelPct!.Value - tail[i].LevelPct!.Value) / minutes);
-            }
-        slopes.Sort();
-        if (slopes.Count == 0 || slopes[slopes.Count / 2] < 0.02) return pending;
-
-        // Match complete observed level intervals in previous charging sessions. This includes taper.
+        // Previous charges of this PC from the same level to the target come first (this includes the taper):
+        // on real charges they were on average 2.3 minutes off. They need no reading of the current charge yet.
         var durations = new List<double>();
         List<BatterySample> segment = [];
         void Flush()
@@ -58,8 +47,29 @@ public static class ChargeRate
         durations.Sort();
         if (durations.Count >= 2)
             return new(ChargeEstimateKind.PastSessions, target, current.TimestampUtc.AddMinutes(durations[durations.Count / 2]), durations.Count);
-        // A short local projection is allowed only below the taper region and within 20 points.
-        if (target > 80 || target - level > 20) return pending;
+
+        var tail = new List<BatterySample>();
+        foreach (var s in points.Reverse())
+        {
+            if (!Valid(s, current) || current.TimestampUtc - s.TimestampUtc > TimeSpan.FromMinutes(30)) break;
+            if (tail.Count > 0 && !Continuous(s, tail[^1])) break;
+            tail.Add(s);
+        }
+        tail.Reverse();
+        if (tail.Count < MinimumReadings || current.TimestampUtc - tail[0].TimestampUtc < MinimumSpan ||
+            level - tail[0].LevelPct < MinimumRise) return pending;
+        var slopes = new List<double>();
+        for (int i = 0; i < tail.Count; i++)
+            for (int j = i + 1; j < tail.Count; j++)
+            {
+                var minutes = (tail[j].TimestampUtc - tail[i].TimestampUtc).TotalMinutes;
+                if (minutes >= 3) slopes.Add((tail[j].LevelPct!.Value - tail[i].LevelPct!.Value) / minutes);
+            }
+        slopes.Sort();
+        if (slopes.Count == 0 || slopes[slopes.Count / 2] < 0.02) return pending;
+        // The current slope is projected only below the taper region. Replayed on real charges to 80% it was on
+        // average 2-4 minutes off from any distance (4.3 from more than 40 points away), so no shorter limit.
+        if (target > 80) return pending;
         var projected = (target - level) / slopes[slopes.Count / 2];
         if (projected > 240) return pending;
         return new(ChargeEstimateKind.RecentRate, target, current.TimestampUtc.AddMinutes(projected));
