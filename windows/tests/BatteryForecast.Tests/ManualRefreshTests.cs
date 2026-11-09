@@ -43,10 +43,8 @@ public class ManualRefreshTests
         finally { foreach (var file in new[] { path, path + "-wal", path + "-shm" }) File.Delete(file); }
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Repeated_manual_clicks_do_not_queue_models_and_sensor_opt_out_reaches_engine(bool useContext)
+    [Fact]
+    public async Task Repeated_manual_clicks_do_not_queue_models_and_no_sensor_history_reaches_the_engine()
     {
         var path = Path.Combine(Path.GetTempPath(), $"bf-manual-{Guid.NewGuid():N}.db");
         var clock = new FakeTimeProvider(DateTimeOffset.FromUnixTimeSeconds(1800000000));
@@ -60,7 +58,7 @@ public class ManualRefreshTests
             using var collector = new Collector(new Battery(clock), store, clock);
             var engine = new WaitingEngine();
             using var coordinator = new ForecastCoordinator(collector, store, engine,
-                () => new Settings { Refresh = RefreshPolicy.OnOpen, UseSystemContext = useContext }, clock: clock);
+                () => new Settings { Refresh = RefreshPolicy.OnOpen }, clock: clock);
             coordinator.Start();
             coordinator.RecalculateNow();
             var request = await engine.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -68,8 +66,7 @@ public class ManualRefreshTests
             await Task.Delay(100);
             Assert.Equal(1, engine.Calls);
             Assert.Equal(new[]{clock.GetUtcNow().AddMinutes(-2),clock.GetUtcNow()},request.Discontinuities!);
-            if (useContext) Assert.Equal(37, Assert.Single(request.PastCovariates!["cpu_pct"],row=>row.Value is not null).Value);
-            else Assert.Null(request.PastCovariates);
+            Assert.Null(request.PastCovariates);          // recorded sensors are for the charts, not for the model
             engine.Finished.SetResult(new ForecastResponse
             {
                 ContextEndUtc = request.Now.ToUnixTimeSeconds(), GeneratedAtUtc = request.Now.ToUnixTimeSeconds(),

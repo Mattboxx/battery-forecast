@@ -21,7 +21,7 @@ public sealed record DashboardState
     public required PowerPhase Phase { get; init; }
     /// <summary>Previsione valida per adesso (a batteria, dopo l'ultima ricarica, meno di 3 ore). Null altrimenti.</summary>
     public ForecastView? Forecast { get; init; }
-    /// <summary>Meno di 5 minuti e livello ancora uguale: altrimenti la UI la mostra attenuata.</summary>
+    /// <summary>Stima recente o riallineata a una lettura attuale: altrimenti la UI la mostra attenuata.</summary>
     public bool ForecastFresh { get; init; }
     public SystemSample? SystemContext { get; init; }
     public RecentEstimate? Recent { get; init; }
@@ -60,6 +60,8 @@ public sealed class ForecastCoordinator : IDisposable
     static readonly TimeSpan DriftMinAge = TimeSpan.FromMinutes(2),
         FreshFor = TimeSpan.FromMinutes(10), ValidFor = TimeSpan.FromHours(3), RecentLookback = TimeSpan.FromMinutes(70),
         HistoryDays = TimeSpan.FromDays(110),
+        // a re-anchored forecast was as close as a new one up to 30 minutes after the model ran (measured)
+        LiveFreshFor = TimeSpan.FromMinutes(30),
         // drain history for the discharge curve: the engine uses at most a week of time on battery
         DrainDays = TimeSpan.FromDays(30);
     const double FreshDrift = 2;
@@ -97,6 +99,10 @@ public sealed class ForecastCoordinator : IDisposable
     readonly Lock gate = new();
 
     ForecastView? forecast;
+    /// <summary>The discharge response before the arrival was combined, and the weights learned at that run: what the
+    /// live forecast between two runs restarts from (see <see cref="LiveForecast"/>).</summary>
+    ForecastResponse? dischargeModel;
+    BlendInfo? dischargeBlend;
     DateTimeOffset? lastRun, lastAcSeen, lastChargeRun, lastBatterySeen;
     ForecastView? chargeForecast, heldForecast;
     DateTimeOffset? lastHeldRun;
@@ -193,6 +199,7 @@ public sealed class ForecastCoordinator : IDisposable
         {
             operatingEpoch++;
             (forecast, lastRun, lastAcSeen, chargeForecast, lastChargeRun, heldForecast, lastHeldRun) = (null, null, null, null, null, null, null);
+            (dischargeModel, dischargeBlend) = (null, null);
         }
         Publish();
         Request(Trigger.User);
@@ -216,6 +223,7 @@ public sealed class ForecastCoordinator : IDisposable
         {
             operatingEpoch++;
             forecast=chargeForecast=heldForecast=null;
+            (dischargeModel, dischargeBlend) = (null, null);
             lastRun=lastChargeRun=lastHeldRun=null;
             pendingEvent|=updating;
             if(cachePath is not null)
@@ -286,16 +294,13 @@ public sealed class ForecastCoordinator : IDisposable
         {
             if (!engine!.IsWarm) SetEngine(EngineState.Loading, null);
             var history = store.ModelSamples(origin - HistoryDays, origin);
-            var modelContext=options.UseSystemContext && options.CollectSystemContext
-                ? store.ModelCovariates(origin-HistoryDays,origin,currentBatteryOnly:true,includeApps:options.CollectProcesses) : null;
-            if(modelContext is not null && !options.CollectProcesses)
-                foreach(var key in new[]{"process_cpu_pct","process_memory_mb","workload_profile"}) modelContext.Remove(key);
+            // No sensor history goes to the model: as past covariates of the drain forecast (CPU load, brightness,
+            // display) it changed nothing measurable on real discharges, and the charge time comes from measurements.
             var r = await engine.ForecastAsync(new ForecastRequest(origin, level, s.OnAc, reserve, history,
-                modelContext,
                 Charge: charge, TargetPct: reserve,
                 Discontinuities:store.ModelDiscontinuities(origin-HistoryDays,origin),
                 Drain:charge?null:store.ModelDrain(origin-DrainDays,origin))).ConfigureAwait(false);
-            var useContext=options.UseSystemContext && options.CollectSystemContext;
+            var useContext=options.CollectSystemContext;
             var conditions=ForecastConditions.Capture(s,useContext?capturedContext:null,useContext&&options.CollectProcesses);
             r=r with { Conditions=conditions };
             var report=new CalibrationInfo { Enabled=options.UseLocalCalibration && !demo,Reason=demo?"demo":"disabled",ResetUtc=options.CalibrationResetUtc };
@@ -321,6 +326,7 @@ public sealed class ForecastCoordinator : IDisposable
                 try { r=ChargeBlend.Apply(r,ChargeRate.Estimate(store.Samples(origin.AddDays(-30),origin),s,(int)Math.Round(reserve))); }
                 catch(Microsoft.Data.Sqlite.SqliteException) { }
             }
+            ForecastResponse? model=null;BlendInfo? learned=null;
             if(mode==Mode.Discharge && r.Source=="timestral")
             {
                 // arrival at the reserve: measured power and Timestral curve, weighted by their past errors on this PC
@@ -339,6 +345,7 @@ public sealed class ForecastCoordinator : IDisposable
                     measured??=EstimateBlend.FromHistory(past.Where(p=>p.TimestampUtc>=origin.AddDays(-7)).ToList(),s,reserve);
                 }
                 catch(Microsoft.Data.Sqlite.SqliteException) { }
+                (model,learned)=(r,blend);
                 r=EstimateBlend.Apply(r,measured,blend);
             }
             var view = ForecastView.From(r);
@@ -347,7 +354,7 @@ public sealed class ForecastCoordinator : IDisposable
                 if(requestEpoch!=operatingEpoch) view=null;
                 var latest=settings();
                 if(latest.UseLocalCalibration!=options.UseLocalCalibration || latest.CalibrationResetUtc!=options.CalibrationResetUtc ||
-                    latest.UseSystemContext!=options.UseSystemContext || latest.CollectSystemContext!=options.CollectSystemContext || latest.CollectProcesses!=options.CollectProcesses)
+                    latest.CollectSystemContext!=options.CollectSystemContext || latest.CollectProcesses!=options.CollectProcesses)
                 { view=null;pendingForce=true; }
                 // Cambiata l'alimentazione mentre si calcolava: la risposta descrive uno scenario che non c'è più.
                 if (mode == Mode.Discharge && lastAcSeen is { } ac && ac >= started) view = null;
@@ -357,7 +364,7 @@ public sealed class ForecastCoordinator : IDisposable
                     {
                         case Mode.Charge: chargeForecast = view; break;
                         case Mode.Held: heldForecast = view; break;
-                        default: forecast = view; break;
+                        default: forecast = view; (dischargeModel, dischargeBlend) = (model, learned); break;
                     }
                 (engineState, engineError) = (EngineState.Ready, null);
             }
@@ -415,6 +422,17 @@ public sealed class ForecastCoordinator : IDisposable
                 ? f : null;
             var fresh = active is not null && now - active.Generated < FreshFor
                 && s.LevelPct is double l && Math.Abs(l - active.Level) <= FreshDrift;
+            // Between two runs of the model the forecast follows the battery: its curve restarts from the level just
+            // read and the arrival is combined again with the power measured now (no model call).
+            if (active is not null && dischargeModel is { } model && s.LevelPct is double current && s.TimestampUtc > active.Generated.AddSeconds(30)
+                && s.TimestampUtc <= now && now - s.TimestampUtc <= TimeSpan.FromMinutes(2)
+                && LiveForecast.Anchor(model, s.TimestampUtc, current) is { } anchored)
+            {
+                var live = EstimateBlend.Apply(anchored, recent ?? EstimateBlend.FromWindows(s, cfg.ReservePct),
+                    dischargeBlend ?? new BlendInfo { PowerWeight = EstimateBlend.Prior(model.FromDrain) });
+                fresh = now - active.Generated < LiveFreshFor;
+                active = ForecastView.From(live) with { ModelRun = active.Generated };
+            }
             var activeCharge = chargeForecast is { } cf && s.OnAc == true && now - cf.Generated < ValidFor
                 && (lastBatterySeen is not { } bat || cf.Generated > bat) && Math.Abs(cf.ReservePct - cfg.ChargeTargetPct) < 0.01
                 ? cf : null;

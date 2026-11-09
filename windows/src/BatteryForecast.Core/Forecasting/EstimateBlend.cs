@@ -16,8 +16,6 @@ public sealed record BlendInfo
     public double? TimestralError { get; init; }
     /// <summary>Minutes of the current discharge behind the power estimate (it improves as the stretch grows).</summary>
     public double? PowerWindowMinutes { get; init; }
-    /// <summary>Learned weight for each length of measured stretch (see <see cref="EstimateBlend.Stretches"/>), null when not enough evidence.</summary>
-    public double?[]? StretchWeights { get; init; }
 }
 
 /// <summary>
@@ -32,10 +30,11 @@ public sealed record BlendInfo
 public static class EstimateBlend
 {
     public const double PriorPowerWeight=.9,PriorDrainPowerWeight=.3,MinimumWeight=.05,MaximumWeight=.97;
+    /// <summary>How many past evaluations the prior counts for: the learned weight moves away from it only as evidence
+    /// builds up (forecasts of one discharge are not independent, so a handful of them proves little).</summary>
+    public const double PriorEvaluations=30;
     /// <summary>The weight of the measured power before this PC has enough evidence of its own.</summary>
     public static double Prior(bool drain)=>drain?PriorDrainPowerWeight:PriorPowerWeight;
-    /// <summary>Upper bounds, in minutes, of the measured-stretch lengths that get their own weight.</summary>
-    public static readonly double[] Stretches={10,30,double.PositiveInfinity};
     public const int MinimumEvaluations=5;
     static readonly TimeSpan Thinning=TimeSpan.FromMinutes(10),MaximumGap=TimeSpan.FromMinutes(3),Lookback=TimeSpan.FromMinutes(70);
 
@@ -44,7 +43,7 @@ public static class EstimateBlend
         List<(DateTimeOffset Origin,double Actual,double Power,double Timestral)>? trace=null,bool drain=false)
     {
         var samples=observations.Where(s=>s.Source=="windows" && s.LevelPct is not null && s.TimestampUtc<=now).OrderBy(s=>s.TimestampUtc).ToArray();
-        var power=new List<double>();var timestral=new List<double>();var stretch=new List<int>();DateTimeOffset? last=null;
+        var power=new List<double>();var timestral=new List<double>();DateTimeOffset? last=null;
         foreach(var snapshot in saved.OrderBy(s=>s.IssuedAt))
         {
             var r=snapshot.Response;
@@ -64,31 +63,25 @@ public static class EstimateBlend
             }
             if(arrival is null) continue;
             var before=samples.Where(s=>s.TimestampUtc<=origin && origin-s.TimestampUtc<=Lookback).ToList();
-            if(RecentRate.Estimate(before,r.ReservePct) is not { ReserveAt: { } estimated } recent) continue;
+            if(RecentRate.Estimate(before,r.ReservePct) is not { ReserveAt: { } estimated }) continue;
             double actual=(arrival.Value-origin).TotalMinutes;
             power.Add(Math.Abs((estimated-origin).TotalMinutes-actual));
             timestral.Add(Math.Abs((central.Value-r.ContextEndUtc)/60-actual));
-            stretch.Add(StretchOf(recent.Window.TotalMinutes));
             trace?.Add((origin,actual,(estimated-origin).TotalMinutes,(central.Value-r.ContextEndUtc)/60));
             last=origin;
         }
-        // one weight per stretch length: a power estimate from 3 minutes of data is not one from an hour
-        var weights=new double?[Stretches.Length];
-        for(int b=0;b<Stretches.Length;b++)
-        {
-            var idx=Enumerable.Range(0,power.Count).Where(i=>stretch[i]==b).ToArray();
-            if(idx.Length>=MinimumEvaluations) weights[b]=Weight(idx.Average(i=>power[i]),idx.Average(i=>timestral[i]));
-        }
-        var info=new BlendInfo { PowerWeight=Prior(drain),Evaluations=power.Count,StretchWeights=weights };
+        var info=new BlendInfo { PowerWeight=Prior(drain),Evaluations=power.Count };
         if(power.Count<MinimumEvaluations) return info;
         double ep=power.Average(),et=timestral.Average();
-        return info with { PowerWeight=Weight(ep,et),PowerError=ep,TimestralError=et };
+        return info with { PowerWeight=Weight(ep,et,power.Count,Prior(drain)),PowerError=ep,TimestralError=et };
     }
 
     /// <summary>Inverse squared error: the closer estimate dominates, the other still contributes.</summary>
-    static double Weight(double powerError,double timestralError)=>
-        Math.Clamp(timestralError*timestralError/(timestralError*timestralError+powerError*powerError+1e-9),MinimumWeight,MaximumWeight);
-    static int StretchOf(double minutes)=>Array.FindIndex(Stretches,limit=>minutes<limit);
+    static double Weight(double powerError,double timestralError,int evaluations,double prior)
+    {
+        double learned=timestralError*timestralError/(timestralError*timestralError+powerError*powerError+1e-9);
+        return Math.Clamp((evaluations*learned+PriorEvaluations*prior)/(evaluations+PriorEvaluations),MinimumWeight,MaximumWeight);
+    }
 
     /// <summary>
     /// Right after unplugging there are too few readings for the power estimate: Windows' own remaining time (also
@@ -123,9 +116,6 @@ public static class EstimateBlend
         double? timestral=Minutes(r.Crossing.CentralUtc);
         double? measured=recent?.ReserveAt is { } at ? Minutes(at.ToUnixTimeMilliseconds()/1000.0) : null;
         blend=blend with { PowerMinutes=measured,TimestralMinutes=timestral,PowerWindowMinutes=recent?.Window.TotalMinutes };
-        // the weight learned for a stretch as long as the current one, if there is enough evidence for it
-        if(recent is not null && blend.StretchWeights is { } byStretch && byStretch[StretchOf(recent.Window.TotalMinutes)] is { } learned)
-            blend=blend with { PowerWeight=learned };
         if(r.Scenario!="no_charge" || r.Crossing.Status!="within_horizon" || timestral is not > 0 || measured is not > 0 || r.Curve.Count==0)
             return r with { Blend=blend };
         double target=blend.PowerWeight*measured.Value+(1-blend.PowerWeight)*timestral.Value;
@@ -139,7 +129,7 @@ public static class EstimateBlend
         }
         if(points.Count==0) return r with { Blend=blend };
         double reserve=r.ReservePct;
-        double? Cross(Func<CurvePointDto,double> get)=>points.FirstOrDefault(p=>get(p)<=reserve)?.T;
+        double? Cross(Func<CurvePointDto,double> get)=>Crossings.At(points,origin,r.Level,reserve,get);
         var central=Cross(p=>p.P50);
         return r with
         {

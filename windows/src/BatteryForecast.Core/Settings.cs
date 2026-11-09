@@ -33,7 +33,6 @@ public sealed record Settings
     public DateTimeOffset? CalibrationResetUtc { get; init; }
     public int ContextIntervalSeconds { get; init; } = 60;
     public int ContextHistoryHours { get; init; } = 24;
-    public bool UseSystemContext { get; init; } = true;
     public bool ShowChart { get; init; } = true;
     public bool KeepPanelOpen { get; init; }
     /// <summary>Apre il pannello quando il puntatore resta un attimo sull'icona (senza clic).</summary>

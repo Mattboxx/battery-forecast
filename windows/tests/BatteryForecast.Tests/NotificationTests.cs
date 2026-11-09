@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Time.Testing;
 using BatteryForecast.Core;
 using BatteryForecast.Core.Battery;
+using BatteryForecast.Core.Forecasting;
 using BatteryForecast.Core.Notifications;
 using BatteryForecast.Core.Storage;
 
@@ -68,6 +69,22 @@ public sealed class NotificationTests : IDisposable
         Assert.Null(Eval(50, 20, fresh: false));
         Assert.Null(Eval(50, 20, demo: true));
         Assert.Null(Eval(50, 20, ac: true));
+    }
+
+    [Fact]
+    public void A_new_battery_reading_does_not_extend_the_model_notification_window()
+    {
+        var now = clock.GetUtcNow();
+        var forecast = new ForecastView(now, 50, 10, CrossingStatus.WithinHorizon,
+            now.AddMinutes(20), null, null, [], HistoryQuality.Ok, 5, 3, null, null);
+        var state = new DashboardState
+        {
+            Now = now, Battery = Bat(50), Phase = PowerPhase.Discharging, Forecast = forecast,
+            Target = new(now.AddHours(2), false),
+        };
+        Assert.True(NoticeText.Estimate(state).Fresh);
+        state = state with { Forecast = forecast with { ModelRun = now.AddMinutes(-40) } };
+        Assert.False(NoticeText.Estimate(state).Fresh);
     }
 
     [Fact]

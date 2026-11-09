@@ -21,7 +21,7 @@ public static class ChargeBlend
         var blend=new BlendInfo { PowerWeight=1,PowerMinutes=minutes,TimestralMinutes=timestral };
         var points=new List<CurvePointDto>();
         double speed=1;
-        double? Cross(Func<CurvePointDto,double> get)=>points.FirstOrDefault(p=>get(p)>=target-1e-9)?.T;
+        double? Cross(Func<CurvePointDto,double> get)=>Crossings.At(points,origin,r.Level,target,get,up:true);
         if(timestral is { } own && r.Curve.Count>0)
         {
             speed=own/minutes;                                        // >1: the measured arrival is earlier

@@ -25,10 +25,10 @@
   <data name="Beyond" xml:space="preserve"><value>Oltre le prossime {0}</value></data>
   <data name="Calculating" xml:space="preserve"><value>Calcolo della previsione…</value></data>
   <data name="CalibrationAllScope" xml:space="preserve"><value>tutto l’uso a batteria confrontabile</value></data>
-  <data name="CalibrationChargeMeasured" xml:space="preserve"><value>Carica: l’ora viene dalla ricarica misurata di questo PC, quindi non c’è nulla da correggere.</value></data>
+  <data name="CalibrationAppScope" xml:space="preserve"><value>stesse app e carico CPU</value></data>
   <data name="CalibrationArrivalsCollecting" xml:space="preserve"><value>La previsione di scarica impara dalle volte in cui è arrivata davvero alla riserva: {0}/{1} osservate finora. Fino ad allora Timestral e la potenza misurata hanno un peso fisso.</value></data>
   <data name="CalibrationArrivalsReady" xml:space="preserve"><value>Imparato da {0} arrivi osservati alla riserva: Timestral pesa il {1}% e la potenza misurata il resto, secondo quanto ha sbagliato ciascuno su questo PC. Non è una garanzia di accuratezza misurata.</value></data>
-  <data name="CalibrationAppScope" xml:space="preserve"><value>stesse app e carico CPU</value></data>
+  <data name="CalibrationChargeMeasured" xml:space="preserve"><value>Carica: l’ora viene dalla ricarica misurata di questo PC, quindi non c’è nulla da correggere.</value></data>
   <data name="CalibrationCollecting" xml:space="preserve"><value>Confronti validi raccolti: {0}/{1}, sessioni {2}/{3}. Nessuna correzione applicata per ora.</value></data>
   <data name="CalibrationFreshLoad" xml:space="preserve"><value>Attendo letture fresche del carico app per selezionare errori confrontabili.</value></data>
   <data name="CalibrationGeneralScope" xml:space="preserve"><value>stesso carico CPU e schermo</value></data>
@@ -37,17 +37,12 @@
   <data name="CalibrationReady" xml:space="preserve"><value>Correzione locale pronta: {0} confronti indipendenti, {1} sessioni, fattore velocità {2} · {3}. Non è una garanzia di accuratezza misurata.</value></data>
   <data name="CalibrationReset" xml:space="preserve"><value>Azzera apprendimento</value></data>
   <data name="CalibrationSimilarScope" xml:space="preserve"><value>carico CPU simile</value></data>
-  <data name="ChargeActiveUseLearningSource" xml:space="preserve"><value>IA in apprendimento · carica e uso continuo · {0} giorni</value></data>
-  <data name="ChargeActiveUseSource" xml:space="preserve"><value>Previsione IA · carica e uso continuo · {0} giorni</value></data>
   <data name="ChargeBeyond" xml:space="preserve"><value>Obiettivo {0}%: oltre le prossime {1}</value></data>
   <data name="ChargeCollecting" xml:space="preserve"><value>Raccolta dati di ricarica</value></data>
   <data name="ChargeCollectingHelp" xml:space="preserve"><value>Dati di ricarica continua ancora insufficienti per l’obiettivo {0}%. La fase finale può rallentare.</value></data>
-  <data name="ChargeHabitsSource" xml:space="preserve"><value>Impara dalle tue ricariche · {0} giorni di storia</value></data>
   <data name="ChargeHeld" xml:space="preserve"><value>Carica ferma al {0}: probabilmente un limite di carica protegge la batteria</value></data>
   <data name="ChargeHistorySource" xml:space="preserve"><value>Da {0} sessioni di ricarica osservate comparabili, incluso il rallentamento finale.</value></data>
-  <data name="ChargeLearningSource" xml:space="preserve"><value>Sto ancora imparando come ricarichi · {0} giorni di storia</value></data>
   <data name="ChargeReached" xml:space="preserve"><value>Obiettivo di carica {0}% raggiunto</value></data>
-  <data name="ChargeRecentLine" xml:space="preserve"><value>Carica osservata: circa {0} ({1})</value></data>
   <data name="ChargeRecentSource" xml:space="preserve"><value>Dal ritmo recente di ricarica; con lo stesso alimentatore e carico.</value></data>
   <data name="ChargeSection" xml:space="preserve"><value>Previsione di ricarica</value></data>
   <data name="ChargeTargetHelp" xml:space="preserve"><value>50–100%. Stima durante la carica; non modifica il limite hardware. Oltre 80% richiede almeno due sessioni di carica osservate comparabili.</value></data>
@@ -81,17 +76,14 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="ContextDisplayGraph" xml:space="preserve"><value>Stato dello schermo</value></data>
   <data name="ContextDisplayHelp" xml:space="preserve"><value>Stato dello schermo della sessione Windows. Lacune e intervalli di cinque minuti con stati diversi restano sconosciuti; non è una misura per singolo monitor.</value></data>
   <data name="ContextGraphsHelp" xml:space="preserve"><value>Medie osservate di cinque minuti, non previsioni. Dati assenti e lacune lunghe restano vuoti. Passa il mouse per esplorare; clicca per fissare il rombo, clicca fuori per rimuoverlo.</value></data>
-  <data name="ContextHelp" xml:space="preserve"><value>CPU, frequenza, memoria, watt batteria, schermo, luminosità, profilo e temperature disponibili. I nomi delle app richiedono la raccolta facoltativa qui sotto. Nessuna telemetria online. I sensori mancanti restano non disponibili; le zone ACPI non sono la temperatura CPU. Più dati non garantiscono maggiore accuratezza.</value></data>
+  <data name="ContextHelp" xml:space="preserve"><value>CPU, frequenza, memoria, watt batteria, schermo, luminosità, profilo e temperature disponibili. I nomi delle app richiedono la raccolta facoltativa qui sotto. Nessuna telemetria online. I sensori mancanti restano non disponibili; le zone ACPI non sono la temperatura CPU. Le letture compaiono nella diagnostica locale e aiutano a confrontare condizioni simili quando si impara dagli errori.</value></data>
   <data name="ContextHistoryHours" xml:space="preserve"><value>Ore nei grafici dello storico</value></data>
   <data name="ContextInterval" xml:space="preserve"><value>Intervallo contesto (secondi)</value></data>
   <data name="ContextIntervalHelp" xml:space="preserve"><value>30–120 secondi; lo storico batteria resta ogni minuto. Intervalli più lunghi riducono le interrogazioni.</value></data>
   <data name="ContextLastReading" xml:space="preserve"><value>Ultima lettura: {0}</value></data>
   <data name="ContextLastSaved" xml:space="preserve"><value>Ultimo salvataggio: {0}</value></data>
-  <data name="ContextLastUsed" xml:space="preserve"><value>Ultima previsione: canali usati {0}</value></data>
   <data name="ContextMemoryGraph" xml:space="preserve"><value>Memoria utilizzata</value></data>
-  <data name="ContextModelOff" xml:space="preserve"><value>Uso dei sensori nel modello disattivato.</value></data>
   <data name="ContextNeverSaved" xml:space="preserve"><value>Nessun campione di contesto salvato in questo periodo.</value></data>
-  <data name="ContextNotYetUsed" xml:space="preserve"><value>Nessun canale sensore usato nella previsione disponibile. Servono almeno sei intervalli osservati di cinque minuti e valori variabili per canale.</value></data>
   <data name="ContextOff" xml:space="preserve"><value>Raccolta contesto disattivata. Lo storico precedente resta.</value></data>
   <data name="ContextPowerGraph" xml:space="preserve"><value>Potenza batteria · scarica +W / carica −W</value></data>
   <data name="ContextReadFailed" xml:space="preserve"><value>Impossibile leggere lo storico. Prova ad aggiornare.</value></data>
@@ -99,7 +91,6 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="ContextSettingsInvalid" xml:space="preserve"><value>Usa 30–120 secondi e 1–168 ore.</value></data>
   <data name="ContextStored" xml:space="preserve"><value>{0} campioni di contesto salvati nelle ultime {1} ore.</value></data>
   <data name="ContextTools" xml:space="preserve"><value>Verifica sensori e storico osservato</value></data>
-  <data name="ContextUsed" xml:space="preserve"><value>Sensori storici usati: {0}</value></data>
   <data name="Coverage" xml:space="preserve"><value>{0} giorni di storico · {1} campioni</value></data>
   <data name="CustomInvalid" xml:space="preserve"><value>Controlla orari HH:mm, percentuali e scorciatoia. I valori non validi non sono stati salvati.</value></data>
   <data name="CustomSaved" xml:space="preserve"><value>Impostazioni salvate.</value></data>
@@ -134,8 +125,6 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="FullyCharged" xml:space="preserve"><value>Carica completa</value></data>
   <data name="HabitualRecharge" xml:space="preserve"><value>Di solito colleghi l'alimentatore verso le {0}: oltre, la curva prosegue al ritmo medio previsto.</value></data>
   <data name="HabitualRechargeNoRate" xml:space="preserve"><value>Di solito colleghi l'alimentatore verso le {0}: oltre, le abitudini non dicono quanto consumeresti a batteria.</value></data>
-  <data name="HabitualUnplug" xml:space="preserve"><value>Di solito stacchi l’alimentatore verso le {0}: oltre, la curva prosegue con il rallentamento tipico vicino al pieno.</value></data>
-  <data name="HabitualUnplugNoRate" xml:space="preserve"><value>Di solito stacchi l’alimentatore verso le {0}: oltre, le abitudini non dicono come proseguirebbe la carica.</value></data>
   <data name="HealthDetail" xml:space="preserve"><value>{0} Wh a piena carica su {1} Wh di progetto · rilevato {2}</value></data>
   <data name="HealthOver" xml:space="preserve"><value>Sopra il valore nominale: succede con batterie nuove o firmware che arrotonda le capacità.</value></data>
   <data name="HealthTitle" xml:space="preserve"><value>Salute della batteria</value></data>
@@ -270,9 +259,6 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="SegmentRow" xml:space="preserve"><value>{0}% → {1}% in {2}</value></data>
   <data name="SegmentsNote" xml:space="preserve"><value>Solo tratti continui registrati mentre Battery Forecast era in esecuzione: sospensioni, lacune e alimentatore interrompono un tratto. Non sono cicli completi.</value></data>
   <data name="SegmentsTitle" xml:space="preserve"><value>Scariche osservate</value></data>
-  <data name="SensorAppCpu" xml:space="preserve"><value>CPU: {0}</value></data>
-  <data name="SensorAppMemory" xml:space="preserve"><value>Memoria di lavoro: {0}</value></data>
-  <data name="SensorAppPast" xml:space="preserve"><value>Carico di un’app osservata in precedenza</value></data>
   <data name="SensorBatteryTemp" xml:space="preserve"><value>Batteria {0:0.0} °C</value></data>
   <data name="SensorBrightness" xml:space="preserve"><value>Luminosità {0:0}%</value></data>
   <data name="SensorCharge" xml:space="preserve"><value>Carica {0:0.0} W</value></data>
@@ -375,7 +361,6 @@ Fascia indicativa {2}–{3}%</value></data>
   <data name="UpdatedAt" xml:space="preserve"><value>alle {0}</value></data>
   <data name="UpdatesTitle" xml:space="preserve"><value>Aggiornamenti</value></data>
   <data name="UseCalibration" xml:space="preserve"><value>Impara dagli errori delle previsioni</value></data>
-  <data name="UseContext" xml:space="preserve"><value>Usa sensori storici in Timestral (sperimentale)</value></data>
   <data name="VersionLine" xml:space="preserve"><value>Versione {0}</value></data>
   <data name="WindowsLine" xml:space="preserve"><value>Stima di Windows: {0}</value></data>
 </root>

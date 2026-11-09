@@ -162,15 +162,30 @@ def test_real_model_receives_different_app_load_channels_and_recurring_profiles(
     assert len(response['curve'])==288
 
 
-def test_discharge_curve_comes_from_the_drain_when_measured(engine):
-    from battery_forecast import protocol
+def test_discharge_curve_comes_from_the_drain_when_measured(engine, monkeypatch):
+    from battery_forecast import drain as drain_input, protocol
+    calls = []
+    forecast = engine.fc.forecast
+
+    def record(context, **kwargs):
+        calls.append((context.shape, set(kwargs)))
+        return forecast(context, **kwargs)
+
+    monkeypatch.setattr(engine.fc, "forecast", record)
     # 8%/h on battery in the synthetic days, as in synthetic_days()
     drain = [[t, 8.0] for t, _, ac in synthetic_days() if ac == 0]
-    r = engine.predict(protocol.parse_request(json.dumps(request(drain_pct_per_hour=drain)).encode()))
+    req = request(drain_pct_per_hour=drain, past_covariates={
+        "cpu_pct": [[NOW - i * 300, 10 + i % 4] for i in range(30, -1, -1)],
+    })
+    r = engine.predict(protocol.parse_request(json.dumps(req).encode()))
     assert r["method"] == "drain"
+    steps = min(len(drain), drain_input.MAX_STEPS)
+    assert calls == [((1, 1, steps), {"prediction_length"})]
+    assert r["quality"]["model_context_steps"] == steps
+    assert r["context_features"] == []
     curve = np.array([[p["p10"], p["p50"], p["p90"]] for p in r["curve"]])
     assert (curve <= 60).all() and (np.diff(curve, axis=0) <= 1e-9).all() and (np.diff(curve, axis=1) >= -1e-9).all()
-    assert r["extrapolated_from_utc"] is None
+    assert r["extrapolated_from_utc"] is None and r["habitual_recharge_utc"] is None    # the level forecast is not run
     # a steady 8%/h: one hour later the central level is close to 52%
     assert abs(r["curve"][11]["p50"] - 52) < 3
     plain = engine.predict(protocol.parse_request(json.dumps(request()).encode()))

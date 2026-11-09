@@ -105,6 +105,11 @@ uncertainty or accuracy claim is made. Real-session validation for charging rema
 
 ## Historical system context (experimental)
 
+In the development version, the app uses recorded context for local diagnostics and comparison of
+operating conditions in the level-forecast correction. It no longer submits the optional sensor or
+app-workload covariates to Timestral. The level engine still supports them for replay and diagnostic
+requests. The following describes collection and the optional protocol inputs.
+
 Windows optionally records aggregate CPU utilization and reported frequency, memory load, battery
 charge/discharge watts, display brightness, power profile and available temperatures. Battery temperature
 uses the read-only battery-class driver query. CPU temperature is read only from an already installed
@@ -127,7 +132,7 @@ The fixed Timestral API receives numeric `past_covariates` and categorical
 `categorical_past_covariates`; their lengths cover **history only**. CPU load, power, brightness and
 temperatures are not assumed known in the future. Only the chosen adapter scenario remains a known
 future covariate. `context_features` in each response/cache identifies channels actually passed to the
-model. Collection and model use can be switched off separately in Preferences.
+model. Collection can be switched off in Preferences.
 
 New rows preserve CPU interval start and exact reading time, collection trigger and optional-probe
 acquisition time. Only completed CPU intervals of at most 150 seconds are integrated; intervals crossing
@@ -167,16 +172,15 @@ discharge watts for similar app CPU bands, other-CPU load, app mix and available
 It requires six distinct five-minute bins and excludes interruption bins. This is an observational
 association, never a claim that a process consumed those watts. These summaries are rebuilt from local
 history; process data follows context retention/wipe and appears only in an explicit context CSV export.
-The diagnostic ZIP continues to omit history and process names. Turning the option off also excludes
-stored app channels from subsequent model requests. No sensitive workload detail is added to the popup.
+The diagnostic ZIP continues to omit history and process names. Turning app-workload collection off
+also excludes those readings from subsequent local calibration. Workload details appear in Preferences.
 
 
 ### Inspecting collection without changing the compact popup
 
-Preferences → Data and privacy shows current sensor availability, per-channel saved observations,
-last saved time and the channels listed by the applicable forecast response. An explicit refresh obtains
-new readings; unavailable values remain unavailable. Collection is enabled by default, separately from
-model use, with a default 60-second context interval configurable from 30 to 120 seconds. Battery history
+Preferences → Data and privacy shows current sensor availability, per-channel saved observations and
+the last saved time. An explicit refresh obtains new readings; unavailable values remain unavailable.
+Collection is enabled by default, with a 60-second context interval configurable from 30 to 120 seconds. Battery history
 keeps its existing one-minute cadence. Optional firmware/WMI temperature and brightness probes can be
 disabled while aggregate CPU, memory and battery power remain collected.
 

@@ -73,7 +73,7 @@ temperature, display state and workload are not known. More sensors do not guara
 
 ## The actual local-model path
 
-The fixed Timestral model receives the battery series, historical context and one explicit future adapter
+The level-forecast path supports the battery series, optional historical context and one explicit future adapter
 scenario: remain unplugged or remain plugged in. The app does not retrain the weights. It obtains
 P10/P50/P90 level curves and applies the documented physical direction, range and ordering constraints.
 Future points start five minutes after the actual request time and end 24 hours after it. Historical bins
@@ -114,6 +114,12 @@ step by step, which gives a wide, cautious band. The response says `"method": "d
 still runs, but only to report the habitual recharge time; it no longer shapes the curve. Without enough
 measured drain, or in the charging scenario, nothing changes (`"method": "level"`).
 
+In the development version, P50 integrates a spacing-weighted average of the central 10th–90th
+percentile drain estimates. With enough measured drain, the engine runs only the drain forecast and
+omits the habitual recharge prediction. App requests omit experimental CPU, brightness and app-workload
+covariates. Recorded sensor history remains available for local diagnostics and matching conditions in
+the level-forecast correction. The optional inputs remain supported by the level engine and replay CLI.
+
 The level-band correction from past errors is not applied to these curves: replayed on a real history it
 made them worse. They still learn from this PC's errors through the arrival weight below, using only past
 forecasts made the same way. Before five observed arrivals the measured power has a fixed weight of 0.3.
@@ -140,6 +146,13 @@ Since 0.9.8 the discharge arrival at the reserve combines this measured-power es
 curve, weighted per PC by the inverse squared error of each on the arrivals actually observed (at least
 five; before that a fixed prior), and the curve is retimed to that arrival. No method is claimed to win
 universally.
+
+The development version uses a single weight for each forecast method. After five observed arrivals,
+it averages the learned weight with the fixed prior, which counts for 30 evaluations. Between model runs,
+the discharge panel anchors the original forecast's remaining drain to the latest battery reading and
+combines its arrival again with the available recent consumption estimate. This updates the chart and
+the time to reserve together. The active discharge must remain continuous. The original run still
+determines refresh and notification age, and the archived forecast stays as issued.
 
 ## Optional local correction from past errors (0.9.2)
 

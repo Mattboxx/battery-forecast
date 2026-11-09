@@ -137,7 +137,7 @@ public class PresenterTests
         Assert.Equal("circa 4 h 10 min · fascia indicativa 13:35–15:00", m.Detail);
         Assert.Equal("Dal ritmo recente di ricarica; con lo stesso alimentatore e carico.", m.SourceLine);
         Assert.Null(m.RecentLine);                                           // the headline already is the measured time
-        Assert.Contains("Di solito stacchi l’alimentatore verso le 16:00", m.RechargeLine);
+        Assert.Null(m.RechargeLine);            // the usual unplug time was over an hour and a half off on real charges
         Assert.False(m.ShowEveningMarker);
         Assert.Same(cf, m.Chart);
         // not retimed to a measurement: the measured estimate, or "measuring", not the Timestral time

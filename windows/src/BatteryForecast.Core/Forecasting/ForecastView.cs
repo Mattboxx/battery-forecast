@@ -13,10 +13,12 @@ public sealed record ForecastView(
     HistoryQuality Quality, double ObservedDays, int Sessions, string? ModelId, string? ModelRevision,
     DateTimeOffset? HabitualRecharge = null, DateTimeOffset? ExtrapolatedFrom = null)
 {
-    public IReadOnlyList<string> ContextFeatures { get; init; } = [];
     public string TimeBasis { get; init; } = "calendar";
     public CalibrationInfo? Calibration { get; init; }
     public BlendInfo? Blend { get; init; }
+    /// <summary>When the model ran, for a forecast re-anchored since then to a later reading (see <see cref="LiveForecast"/>);
+    /// null for the forecast as the model issued it, whose <see cref="Generated"/> is that time.</summary>
+    public DateTimeOffset? ModelRun { get; init; }
     /// <summary>Previsione di carica ("resto collegato"): ReservePct è allora l'obiettivo di carica.</summary>
     public bool IsCharge { get; init; }
     /// <summary>In carica: ora in cui di solito si stacca l'alimentatore, secondo il modello.</summary>
@@ -38,7 +40,6 @@ public sealed record ForecastView(
         r.Quality.ObservedDays, r.Scenario == "charge" ? r.Quality.ChargeSessions : r.Quality.DischargeSessions, r.ModelId, r.ModelRevision,
         Opt(r.HabitualRechargeUtc), Opt(r.ExtrapolatedFromUtc))
     {
-        ContextFeatures = r.ContextFeatures,
         TimeBasis = r.TimeBasis,
         Calibration = r.Calibration,
         Blend = r.Blend,

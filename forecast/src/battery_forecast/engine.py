@@ -125,15 +125,28 @@ class Engine:
         h = req["horizon"]
         charge = req["scenario"] == "charge"
         method = "level"
-        # Covariata nota del futuro: lo scenario. "no_charge" = alimentatore scollegato, "charge" = collegato.
-        past, categories, context_features = series.past_covariates(req.get("past_covariates", {}), s)
-        active_level,active_ac,active_mask,past,categories=series.active_inputs(s,past,categories)
-        known = np.concatenate([active_ac, np.full(h, 1.0 if charge else 0.0, np.float32)])
-        with self._torch.inference_mode():
-            q = self.fc.forecast(active_level[None, None], prediction_length=h,
-                                 observation_mask=active_mask[None,None],
-                                 known_covariates=known[None, None], past_covariates=past,
-                                 categorical_past_covariates=categories).quantiles[0, 0].numpy()
+        # Discharge with enough measured drain: the curve comes from the drain forecast alone (see drain.py).
+        # The level forecast is not run at all then: its only remaining output, the usual plug-in time, was on
+        # average more than three hours from the real one on a real history.
+        from_drain = None
+        drain_history = req.get("drain", ())
+        if not charge:
+            with self._torch.inference_mode():
+                from_drain = drain.curves(self.fc, drain_history, req["level"], h)
+        if from_drain is None:
+            past, categories, context_features = series.past_covariates(req.get("past_covariates", {}), s)
+            active_level, active_ac, active_mask, past, categories = series.active_inputs(s, past, categories)
+            # The adapter scenario is the only known future covariate of the level forecast.
+            known = np.concatenate([active_ac, np.full(h, 1.0 if charge else 0.0, np.float32)])
+            model_context_steps = len(active_level)
+            with self._torch.inference_mode():
+                q = self.fc.forecast(active_level[None, None], prediction_length=h,
+                                     observation_mask=active_mask[None,None],
+                                     known_covariates=known[None, None], past_covariates=past,
+                                     categorical_past_covariates=categories).quantiles[0, 0].numpy()
+        else:
+            context_features = []
+            model_context_steps = min(len(drain_history), drain.MAX_STEPS)
         # The current anchor is the request time, not the beginning of its historical bin.
         times = req["now"] + STEP_SECONDS * np.arange(1, h + 1, dtype=np.float64)
         if charge:
@@ -143,14 +156,11 @@ class Engine:
             up = [physics.crossing_up(q[:, k], times, threshold, req["level"], req["now"]) for k in range(3)]
             cross = [up[2], up[1], up[0]]
         else:
-            q, change, rate = self._no_charge(q[:, self.qi], req["level"], s)
             threshold = req["reserve"]
-            # The level forecast above still tells when this PC is usually plugged in; the curve itself comes
-            # from the drain forecast when there is enough measured drain (see drain.py).
-            with self._torch.inference_mode():
-                from_drain = drain.curves(self.fc, req.get("drain", ()), req["level"], h)
             if from_drain is not None:
-                q, rate, method = physics.constrain_no_charge(from_drain, req["level"]), None, "drain"
+                q, change, rate, method = physics.constrain_no_charge(from_drain, req["level"]), None, None, "drain"
+            else:
+                q, change, rate = self._no_charge(q[:, self.qi], req["level"], s)
             cross = [physics.crossing(q[:, k], times, threshold, req["level"], req["now"]) for k in range(3)]
         plug = change
         return {
@@ -171,7 +181,7 @@ class Engine:
             # "drain": curve integrated from the forecast drain (drain.py); "level": the level forecast itself
             "method": method,
             "quality": {
-                "model_context_steps":len(active_level),
+                "model_context_steps": model_context_steps,
                 "calendar_context_steps":len(s.level),
                 "state": quality_state(s, req["scenario"]),
                 "observed_days": s.observed_days,

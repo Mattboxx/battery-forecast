@@ -21,6 +21,7 @@ sealed class FakeEngine : IForecastEngine
     public int Calls;
     public bool Fail;
     public double DropPerStep = 0.5;
+    public string Source = "fake";
     public WorkerReady? Info => new("fake", "0", 1);
     public bool IsWarm => true;
     public Task WarmUpAsync(CancellationToken ct = default) => Task.CompletedTask;
@@ -61,7 +62,7 @@ sealed class FakeEngine : IForecastEngine
         var early = curve.FirstOrDefault(p => p.P10 <= r.ReservePct);
         return Task.FromResult(new ForecastResponse
         {
-            ContextEndUtc = now, GeneratedAtUtc = now, Level = r.Level, ReservePct = r.ReservePct, Source = "fake",
+            ContextEndUtc = now, GeneratedAtUtc = now, Level = r.Level, ReservePct = r.ReservePct, Source = Source, Scenario = "no_charge",
             Quality = new QualityDto { State = "ok", ObservedDays = 5, DischargeSessions = 5 },
             Crossing = new CrossingDto { Status = cross is null ? "beyond_horizon" : "within_horizon", CentralUtc = cross?.T, EarlyUtc = early?.T },
             Curve = curve,
@@ -213,6 +214,29 @@ public sealed class CoordinatorTests : IDisposable
         Assert.False(c.State!.ForecastFresh);               // oltre 10 minuti: attenuata nel pannello
         Minutes(1);
         Wait(c, _ => engine.Calls == 2);
+    }
+
+    [Fact]
+    public void Between_two_model_runs_the_forecast_follows_the_level_just_read()
+    {
+        engine.Source = "timestral";
+        var c = Start();
+        var first = Wait(c, s => s.Forecast is not null && !s.Updating).Forecast!;
+        Assert.Null(first.ModelRun);
+        battery.Level -= 4;                                 // 4 points in 20 minutes: the model said 2
+        Minutes(20);
+        var s = Wait(c, s => s.Forecast is { Level: 56 } && s.Now >= first.Generated.AddMinutes(20));
+        Assert.Equal(1, engine.Calls);                      // no new model run
+        Assert.Equal(first.Generated, s.Forecast!.ModelRun);
+        Assert.True(s.ForecastFresh);                       // followed, so not dimmed in the panel
+        // the same forecast drain from a level two points lower: 20 minutes earlier
+        Assert.Equal(-20, (s.Forecast.Central!.Value - first.Central!.Value).TotalMinutes, 0);
+        Assert.Equal(56, s.Forecast.At(s.Forecast.Generated)!.Value.P50);
+        var saved = Assert.Single(store.DischargeSnapshots(first.Generated.AddMinutes(-1), s.Now));
+        Assert.Equal(60, saved.Response.Level);
+        Assert.Equal(first.Generated.ToUnixTimeSeconds(), saved.Response.ContextEndUtc);
+        Minutes(10);
+        Wait(c, _ => engine.Calls == 2);                    // the model still runs every 30 minutes
     }
 
     [Fact]

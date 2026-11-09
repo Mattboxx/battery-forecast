@@ -241,7 +241,7 @@ public class LocalCalibrationTests
                 store.PreserveCachedForecast(Forecast(origin),origin.AddSeconds(1));
             }
             using var collector=new Collector(new CalibrationBattery(clock),store,clock);
-            using var coordinator=new ForecastCoordinator(collector,store,new CalibrationEngine(),()=>new Settings { UseSystemContext=false },clock:clock);
+            using var coordinator=new ForecastCoordinator(collector,store,new CalibrationEngine(),()=>new Settings { CollectSystemContext=false },clock:clock);
             coordinator.Start();
             Assert.True(SpinWait.SpinUntil(()=>coordinator.State is { Updating:false,Forecast.Calibration.Ready:true },TimeSpan.FromSeconds(5)));
             Assert.Equal(1.2,coordinator.State!.Forecast!.Calibration!.Factor,8);

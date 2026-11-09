@@ -43,7 +43,6 @@ public sealed record PanelModel
     public string? SavingTitle { get; init; }
     public string? SavingDetail { get; init; }
     public string? SensorLine { get; init; }
-    public string? ContextLine { get; init; }
     public string? ExtraTargets { get; init; }
     public string Tooltip { get; init; } = "Battery Forecast";
 }
@@ -68,7 +67,6 @@ public static class PanelPresenter
             DemoLine = s.Demo ? L.T(s.Battery.OnAc == true ? "DemoCharging" : "Demo") : null,
             SectionTitle = L.T("ExpectedRuntime"),
             SensorLine = SensorLine(s),
-            ContextLine = s.Forecast?.ContextFeatures.Count > 0 ? L.F("ContextUsed", string.Join(", ",s.Forecast.ContextFeatures.Select(k=>L.T("Sensor_"+k)))) : null,
         };
 
         switch (s.Phase)
@@ -230,10 +228,7 @@ public static class PanelPresenter
     {
         var now = s.Now;
         var target = (int)Math.Round(cf.ReservePct);
-        var unplug = cf.HabitualUnplug is { } hu
-            ? L.F(cf.ExtrapolatedFrom is null ? "HabitualUnplugNoRate" : "HabitualUnplug", Clock(Round5(hu), zone)) : null;
         // retimed to the measured charging (ChargeBlend): the headline is that time, so say where it comes from
-        string? recent = null;
         var source = s.Charging is { Kind: ChargeEstimateKind.PastSessions, Sessions: var n } ? L.F("ChargeHistorySource", n) : L.T("ChargeRecentSource");
         m = m with
         {
@@ -243,8 +238,6 @@ public static class PanelPresenter
             Stale = !s.ChargeForecastFresh,
             Source = EstimateSource.Habits,
             SourceLine = source,
-            RechargeLine = unplug,
-            RecentLine = recent,
             Chart = cf,
             ChartSummary = Summary(cf, now),
             ShowEveningMarker = false,
@@ -308,7 +301,7 @@ public static class PanelPresenter
     static PanelModel HabitHeadline(PanelModel m, ForecastView f, DashboardState s, TimeZoneInfo zone)
     {
         var now = s.Now;
-        var source = ModelSource(f, charging: false);
+        var source = ModelSource(f);
         var recharge = f.HabitualRecharge is { } hr
             ? L.F(f.ExtrapolatedFrom is null ? "HabitualRechargeNoRate" : "HabitualRecharge", Clock(Round5(hr), zone)) : null;
         m = m with { Source = EstimateSource.Habits, SourceLine = source, RechargeLine = recharge };
@@ -339,16 +332,14 @@ public static class PanelPresenter
         }
     }
 
-    static string ModelSource(ForecastView forecast, bool charging)
+    static string ModelSource(ForecastView forecast)
     {
         if(forecast.Calibration is { Enabled:true,Ready:true } calibration && Math.Abs(calibration.Factor-1)>.001)
             return L.T("PersonalForecastSource");
-        var key=(charging,forecast.TimeBasis=="active_use",forecast.Quality==HistoryQuality.Learning) switch
+        var key=(forecast.TimeBasis=="active_use",forecast.Quality==HistoryQuality.Learning) switch
         {
-            (true,true,true)=>"ChargeActiveUseLearningSource", (true,true,false)=>"ChargeActiveUseSource",
-            (false,true,true)=>"ActiveUseLearningSource", (false,true,false)=>"ActiveUseSource",
-            (true,false,true)=>"ChargeLearningSource", (true,false,false)=>"ChargeHabitsSource",
-            (false,false,true)=>"SourceLearning", _=>"SourceHabits",
+            (true,true)=>"ActiveUseLearningSource", (true,false)=>"ActiveUseSource",
+            (false,true)=>"SourceLearning", _=>"SourceHabits",
         };
         return L.F(key,Days(forecast.ObservedDays));
     }

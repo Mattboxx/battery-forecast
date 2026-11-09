@@ -465,7 +465,7 @@ public partial class App : Application
         if (prev.RetentionDays != Settings.RetentionDays)
             Task.Run(() => Store?.Prune(DateTimeOffset.UtcNow, Settings.RetentionDays));
         var modelChanged = prev.ReservePct != Settings.ReservePct || prev.ChargeTargetPct != Settings.ChargeTargetPct
-            || prev.UseSystemContext != Settings.UseSystemContext || prev.CollectSystemContext != Settings.CollectSystemContext
+            || prev.CollectSystemContext != Settings.CollectSystemContext
             || prev.CollectProcesses!=Settings.CollectProcesses;
         if(prev.CollectProcesses!=Settings.CollectProcesses) collector?.ResetContextIntervals();
         if (prev.CollectSystemContext != Settings.CollectSystemContext || prev.CollectAdvancedSensors != Settings.CollectAdvancedSensors

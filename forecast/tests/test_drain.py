@@ -77,3 +77,12 @@ def test_curve_integrates_the_forecast_drain():
 def test_curve_never_goes_below_empty():
     q = drain.curves(FakeForecaster(100.0), drain.parse(pairs(100, rate=100), NOW), 20, 24)
     assert (q >= 0).all() and q[-1, 1] == 0
+
+
+def test_central_drain_ignores_the_extreme_tail_quantiles():
+    levels = np.array([.01, .05, .1, .3, .5, .7, .9, .95, .99])
+    q = np.array([[1, 2, 10, 11, 12, 13, 14, 60, 200.0]])           # a rare peak stretches only the top quantiles
+    assert drain.central(q, levels)[0] == pytest.approx(12, abs=.2)
+    assert q.mean() > 30                                              # the plain mean would follow the peak
+    # too few central quantiles: the plain mean
+    assert drain.central(np.array([[4.0, 8.0]]), np.array([.05, .95]))[0] == 6

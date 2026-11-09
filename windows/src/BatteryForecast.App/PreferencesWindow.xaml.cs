@@ -50,8 +50,6 @@ public partial class PreferencesWindow : Window
         ContextInterval.Text = s.ContextIntervalSeconds.ToString(CultureInfo.InvariantCulture);
         ContextHours.Text = s.ContextHistoryHours.ToString(CultureInfo.InvariantCulture);
         CollectContext.IsChecked = s.CollectSystemContext;
-        UseContext.IsChecked = s.UseSystemContext;
-        UseContext.IsEnabled = s.CollectSystemContext;
 
         Reserve.Text = s.ReservePct.ToString("0.##", CultureInfo.InvariantCulture);
         Target.Text = s.TargetTime.ToString("HH:mm", CultureInfo.InvariantCulture);
@@ -95,7 +93,7 @@ public partial class PreferencesWindow : Window
         ShowUpdate(app.AvailableUpdate);
 
         foreach (var c in new[] { RefreshBox, ThemeBox, LanguageBox, Retention }) c.SelectionChanged += (_, _) => Save();
-        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, OpenOnHover, QuietEnabled, CollectContext, UseContext, EveningEnabled, AdvancedSensors,CollectProcesses,UseCalibration }) c.Click += (_, _) => Save();
+        foreach (var c in new[] { NotifyEnabled, NotifyDrain, ShowChart, KeepOpenDefault, OpenOnHover, QuietEnabled, CollectContext, EveningEnabled, AdvancedSensors,CollectProcesses,UseCalibration }) c.Click += (_, _) => Save();
         TrayPercent.Click += (_, _) => Save();
         Login.Click += (_, _) =>
         {
@@ -168,7 +166,6 @@ public partial class PreferencesWindow : Window
             CollectProcesses=CollectProcesses.IsChecked==true,
             UseLocalCalibration=UseCalibration.IsChecked==true,
             CollectSystemContext = CollectContext.IsChecked == true,
-            UseSystemContext = UseContext.IsChecked == true,
             ShowChart = ShowChart.IsChecked == true,
             KeepPanelOpen = KeepOpenDefault.IsChecked == true,
             OpenOnHover = OpenOnHover.IsChecked == true,
@@ -189,7 +186,7 @@ public partial class PreferencesWindow : Window
             },
         });
         NotifyOptions.IsEnabled = NotifyEnabled.IsChecked == true;
-        UseContext.IsEnabled = AdvancedSensors.IsEnabled = CollectProcesses.IsEnabled=CollectContext.IsChecked == true;
+        AdvancedSensors.IsEnabled = CollectProcesses.IsEnabled=CollectContext.IsChecked == true;
         Target.IsEnabled = ExtraTimes.IsEnabled = EveningEnabled.IsChecked == true;
     }
 
@@ -420,7 +417,7 @@ public partial class PreferencesWindow : Window
                 Core.Forecasting.PowerPhase.PluggedIn => state.HeldForecast,
                 _ => state?.Forecast,
             };
-            ContextStatus.Text = ContextPresenter.Present(app.Settings, app.CurrentSystemContext, store.ContextSummary(start), forecast?.ContextFeatures ?? []);
+            ContextStatus.Text = ContextPresenter.Present(app.Settings, app.CurrentSystemContext, store.ContextSummary(start));
             ShowCalibration();
             if(app.Settings.CollectProcesses && app.Settings.CollectSystemContext && app.CurrentSystemContext is { } currentApps)
             {

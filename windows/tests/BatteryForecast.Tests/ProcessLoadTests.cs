@@ -107,7 +107,7 @@ public class ProcessLoadTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void ProcessOptOutAlsoStopsUsingStoredAppChannels(bool enabled)
+    public void RecordedAppsNeverReachTheModel(bool enabled)
     {
         var path=Path.Combine(Path.GetTempPath(),$"bf-app-optout-{Guid.NewGuid():N}.db");
         var clock=new FakeTimeProvider(DateTimeOffset.UtcNow);
@@ -121,8 +121,7 @@ public class ProcessLoadTests
             using var coordinator=new ForecastCoordinator(collector,store,engine,()=>new Settings { CollectProcesses=enabled },clock:clock);
             coordinator.Start();
             Assert.True(SpinWait.SpinUntil(()=>engine.Request is not null,TimeSpan.FromSeconds(5)));
-            Assert.Equal(enabled,engine.Request!.PastCovariates!.ContainsKey("workload_profile"));
-            Assert.Equal(enabled,engine.Request.PastCovariates.ContainsKey(ProcessFeatures.Cpu("chrome")));
+            Assert.Null(engine.Request!.PastCovariates);     // whatever is recorded stays in the charts and the CSV
             Assert.False(new Settings().CollectProcesses);
         }
         finally { foreach(var p in new[]{path,path+"-wal",path+"-shm"})File.Delete(p); }

@@ -360,11 +360,6 @@
                         <TextBlock Text="{app:T ContextHelp}" Style="{StaticResource RowHelp}"/></StackPanel>
                 </DockPanel></Border>
                 <Border Style="{StaticResource Row}"><DockPanel>
-                    <TextBlock Text="&#xE9D2;" Style="{StaticResource RowIcon}"/>
-                    <CheckBox x:Name="UseContext" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T UseContext}"/>
-                    <TextBlock Text="{app:T UseContext}" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
-                </DockPanel></Border>
-                <Border Style="{StaticResource Row}"><DockPanel>
                     <TextBlock Text="&#xE9CA;" Style="{StaticResource RowIcon}"/>
                     <CheckBox x:Name="AdvancedSensors" DockPanel.Dock="Right" VerticalAlignment="Center" AutomationProperties.Name="{app:T AdvancedSensors}"/>
                     <StackPanel><TextBlock Text="{app:T AdvancedSensors}" Style="{StaticResource RowTitle}"/>

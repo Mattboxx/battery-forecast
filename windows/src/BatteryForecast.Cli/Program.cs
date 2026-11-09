@@ -255,6 +255,7 @@ switch (cmd)
         var windowsErr = new List<double>(); var powerErr = new List<double>(); var blendErr = new List<double>();
         var levelErr = new[] { 60, 120 }.ToDictionary(m => m, _ => (raw: new List<double>(), cal: new List<double>()));
         using var dump = Opt("--dump") is { } dumpPath ? new StreamWriter(dumpPath) : null;   // CSV per confronti esterni
+        var liveErr = new[] { 10, 20, 30 }.ToDictionary(m => m, _ => (stood: new List<double>(), live: new List<double>()));
         dump?.WriteLine("origin,level,reserve,arrival,combined,power,raw,corrected");
         foreach (var snap in snaps)
         {
@@ -298,11 +299,36 @@ switch (cmd)
                 windowsErr.Add(os / 60.0 * (lvl - raw.ReservePct) / lvl - actualMinutes);
             if (recent?.ReserveAt is { } ra) powerErr.Add((ra - origin).TotalMinutes - actualMinutes);
             if (Err(blended) is { } m) blendErr.Add(m);
+            // the forecast on screen N minutes after the model ran: as it stood, and following the battery (LiveForecast)
+            if (Err(blended) is { } stood && store.ModelDiscontinuities(origin, arrival.Value).Count == 0)
+            {
+                foreach (var (age, errors) in liveErr)
+                {
+                    var at = origin.AddMinutes(age);
+                    int k = i;
+                    while (k + 1 < samples.Count && samples[k + 1].TimestampUtc <= at && samples[k + 1].IsDischarging &&
+                           samples[k + 1].TimestampUtc - samples[k].TimestampUtc <= TimeSpan.FromMinutes(3)) k++;
+                    var reading = samples[k];
+                    if (!reading.IsDischarging || (at - reading.TimestampUtc).TotalSeconds > 120 ||
+                        reading.TimestampUtc >= arrival.Value || reading.LevelPct is not double then ||
+                        LiveForecast.Anchor(corrected, reading.TimestampUtc, then) is not { } anchored) continue;
+                    var start = reading.TimestampUtc.AddMinutes(-70);
+                    var breaks = store.ModelDiscontinuities(start, reading.TimestampUtc);
+                    if (breaks.Count > 0) start = breaks[^1];
+                    var recentThen = RecentRate.Estimate(store.Samples(start, reading.TimestampUtc), raw.ReservePct);
+                    var followedCurve = EstimateBlend.Apply(anchored, recentThen ?? EstimateBlend.FromWindows(reading, raw.ReservePct), blendInfo);
+                    if (Err(followedCurve) is not { } followed) continue;
+                    errors.stood.Add(stood);
+                    errors.live.Add(followed);
+                    if (args.Contains("--why") && Math.Abs(followed) > Math.Abs(stood) + 8 && followedCurve.Blend is { } lb)
+                        Console.WriteLine($"  dopo {age}: ferma {stood:+0;-0} · viva {followed:+0;-0} · a {reading.TimestampUtc.ToLocalTime():dd/MM HH:mm} livello {then} · Timestral riancorato {lb.TimestralMinutes:0} min · potenza {lb.PowerMinutes:0} min (finestra {lb.PowerWindowMinutes:0}) · peso {lb.PowerWeight:0.00} · reale {(arrival.Value - reading.TimestampUtc).TotalMinutes:0}");
+                }
+            }
             dump?.WriteLine(FormattableString.Invariant($"{origin.ToUnixTimeSeconds()},{samples[i].LevelPct},{raw.ReservePct},{arrival.Value.ToUnixTimeSeconds()},{Err(blended)},{(recent?.ReserveAt is { } rr ? (rr - origin).TotalMinutes - actualMinutes : null)},{Err(raw)},{Err(corrected)}"));
             if (Err(raw) is { } a && Err(corrected) is { } b)
             {
                 rawErr.Add(a); calErr.Add(b);
-                var bands = $" · peso potenza {blendInfo.PowerWeight:0.00} ({blendInfo.Evaluations} arrivi passati, errori {blendInfo.PowerError:0} / {blendInfo.TimestralError:0} min) · per durata {string.Join("/", blendInfo.StretchWeights?.Select(w => w?.ToString("0.00") ?? "-") ?? [])} · usato {blended.Blend?.PowerWeight:0.00} su {recent?.Window.TotalMinutes:0} min · combinato {Err(blended):+0;-0}";
+                var bands = $" · peso potenza {blendInfo.PowerWeight:0.00} ({blendInfo.Evaluations} arrivi passati, errori {blendInfo.PowerError:0} / {blendInfo.TimestralError:0} min) · usato {blended.Blend?.PowerWeight:0.00} su {recent?.Window.TotalMinutes:0} min · combinato {Err(blended):+0;-0}";
                 Console.WriteLine($"{snap.IssuedAt.ToLocalTime():dd/MM HH:mm} reale tra {(arrival.Value - origin).TotalMinutes,4:0} min · originale {a,+5:+0;-0} · corretta {b,+5:+0;-0} min · {(report.Ready ? $"{report.Scope} {report.Factor:0.00}" : $"in raccolta {report.Windows}")}{bands}");
             }
         }
@@ -314,6 +340,9 @@ switch (cmd)
         Console.WriteLine($"Timestral corretto:          {Summary(calErr)}");
         Console.WriteLine($"potenza misurata:            {Summary(powerErr)}");
         Console.WriteLine($"combinato (nuovo titolo):    {Summary(blendErr)}");
+        foreach (var (age, e) in liveErr)
+            if (e.stood.Count > 0)
+                Console.WriteLine($"sullo schermo dopo {age} min ({e.stood.Count}): ferma {e.stood.Average(Math.Abs):0.0} min · seguendo la batteria {e.live.Average(Math.Abs):0.0} min");
         foreach (var (minutes, e) in levelErr)
             if (e.raw.Count > 0)
                 Console.WriteLine($"livello a +{minutes} min ({e.raw.Count} previsioni): errore medio assoluto originale {e.raw.Average(Math.Abs):0.0} punti " +

@@ -5,7 +5,7 @@ namespace BatteryForecast.Core.Presentation;
 /// <summary>Local sensor evidence, for Preferences only. No measurements are substituted for unavailable values.</summary>
 public static class ContextPresenter
 {
-    public static string Present(Settings settings, SystemSample? sample, ContextHistory history, IReadOnlyList<string> used)
+    public static string Present(Settings settings, SystemSample? sample, ContextHistory history)
     {
         var lines = new List<string>
         {
@@ -31,24 +31,10 @@ public static class ContextPresenter
                 : L.T("SensorUnavailableValue");
             lines.Add(L.F("ContextChannel", L.T("Sensor_" + key), text, history.Observations.GetValueOrDefault(key)));
         }
-        lines.Add(!settings.UseSystemContext || !settings.CollectSystemContext ? L.T("ContextModelOff")
-            : used.Count > 0 ? L.F("ContextLastUsed", string.Join(", ", used.Select(k => SensorLabel(k,sample))))
-            : L.T("ContextNotYetUsed"));
         lines.Add(settings.CollectProcesses && settings.CollectSystemContext ? L.T("ProcessesOn") : L.T("ProcessesOff"));
         if(settings.CollectProcesses && settings.CollectSystemContext && sample?.ProcessLoads is { Count:>0 } processes)
             foreach(var process in processes)
                 lines.Add(L.F("ProcessReading",process.Name,process.CpuPct?.ToString("0.#",L.Culture)??"—",process.WorkingSetMB.ToString("0.#",L.Culture)));
         return string.Join(Environment.NewLine, lines);
-    }
-
-    static string SensorLabel(string key,SystemSample? sample)
-    {
-        if(!key.StartsWith("app_",StringComparison.Ordinal)) return L.T("Sensor_"+key);
-        foreach(var app in sample?.ProcessLoads??[])
-        {
-            if(key==ProcessFeatures.Cpu(app.Name)) return L.F("SensorAppCpu",app.Name);
-            if(key==ProcessFeatures.Memory(app.Name)) return L.F("SensorAppMemory",app.Name);
-        }
-        return L.T("SensorAppPast");
     }
 }

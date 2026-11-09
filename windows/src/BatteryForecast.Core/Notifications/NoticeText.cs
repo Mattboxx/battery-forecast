@@ -23,7 +23,8 @@ public static class NoticeText
     {
         // il modello gira al massimo ogni 30 minuti: per gli avvisi basta una previsione recente e coerente
         if (s.Forecast is { Quality: not HistoryQuality.Insufficient } f && (s.ForecastFresh ||
-            (s.Now - f.Generated < TimeSpan.FromMinutes(40) && s.Battery.LevelPct is double l && Math.Abs(l - f.Level) <= 3)))
+            (s.Now - (f.ModelRun ?? f.Generated) < TimeSpan.FromMinutes(40) &&
+             s.Battery.LevelPct is double l && Math.Abs(l - f.Level) <= 3)))
             return (f.Crossing == CrossingStatus.WithinHorizon ? f.Central : null, true, "habits");
         if (s.Recent?.ReserveAt is { } r)
             return (r, true, "recent");

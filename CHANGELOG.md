@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- The discharge panel follows new battery readings between Timestral runs. The curve starts at the current
+  level and its arrival time is recombined with recent consumption. Saved forecasts still reflect the original run.
+- The drain forecast averages the central 10th–90th percentile estimates and skips the separate level-model call
+  when measured drain is available. A single learned weight gradually replaces the prior as evidence builds.
+- Preferences keep local sensor and app-workload diagnostics and remove the experimental sensor input to
+  Timestral. Charging keeps its measured target time and drops the habitual unplug message.
+
 ## 0.9.10
 
 - **Charging time from the measured charging.** Replayed on a real laptop's history (151 moments of 18 charges that
