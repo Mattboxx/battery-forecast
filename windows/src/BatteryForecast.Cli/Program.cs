@@ -109,17 +109,23 @@ switch (cmd)
         var launch = EngineLocator.Find(AppContext.BaseDirectory) ?? throw new InvalidOperationException("motore non trovato");
         await using var worker = new ForecastWorker(launch, new WorkerOptions { RequestTimeout = TimeSpan.FromSeconds(120) });
         DateTimeOffset last = DateTimeOffset.MinValue; int count = 0, drained = 0;
+        bool charge = args.Contains("--charge"), context = args.Contains("--context");
         foreach (var now in samples)
         {
-            if (now.OnAc != false || now.LevelPct <= 11 || now.TimestampUtc - last < every) continue;
+            bool eligible = charge ? now is { OnAc: true, State: ChargeState.Charging } && now.LevelPct < 79 : now.OnAc == false && now.LevelPct > 11;
+            if (!eligible || now.TimestampUtc - last < every) continue;
             last = now.TimestampUtc;
             var origin = now.TimestampUtc;
-            var r = await worker.ForecastAsync(new ForecastRequest(origin, now.LevelPct!.Value, false, 10,
-                store.ModelSamples(origin.AddDays(-110), origin), null,
+            double threshold = charge ? 80 : 10;
+            // --context: sensor history as in the app with default settings (no per-app channels)
+            var covariates = context ? store.ModelCovariates(origin.AddDays(-110), origin, currentBatteryOnly: true, includeApps: false) : null;
+            foreach (var key in new[] { "process_cpu_pct", "process_memory_mb", "workload_profile" }) covariates?.Remove(key);
+            var r = await worker.ForecastAsync(new ForecastRequest(origin, now.LevelPct!.Value, charge, threshold,
+                store.ModelSamples(origin.AddDays(-110), origin), covariates, Charge: charge, TargetPct: threshold,
                 Discontinuities: store.ModelDiscontinuities(origin.AddDays(-110), origin),
                 Drain: args.Contains("--no-drain") ? null : store.ModelDrain(origin.AddDays(-30), origin)));
             r = r with { Conditions = ForecastConditions.Capture(now, null, false) };
-            store.RecordForecast(origin, r.Source, now.LevelPct!.Value, 10, r.Crossing.Status, null, null, null, r.Quality.State,
+            store.RecordForecast(origin, charge ? r.Source + ":charge" : r.Source, now.LevelPct!.Value, threshold, r.Crossing.Status, null, null, null, r.Quality.State,
                 r.ModelId, r.ModelRevision, r.ElapsedMs, snapshot: r, issuedAt: origin);
             count++; if (r.FromDrain) drained++;
             if (count % 50 == 0) Console.WriteLine($"{count} previsioni ({drained} dal consumo) · {origin.ToLocalTime():dd/MM HH:mm}");
@@ -160,6 +166,52 @@ switch (cmd)
         var info = EstimateBlend.Learn(store.DischargeSnapshots(now.AddDays(-30), now), store.Samples(now.AddDays(-30), now), now, trace);
         foreach (var t in trace) Console.WriteLine($"{t.Origin.ToLocalTime():dd/MM HH:mm} reale {t.Actual,4:0} · potenza {t.Power - t.Actual,+5:+0;-0} · timestral {t.Timestral - t.Actual,+5:+0;-0}");
         Console.WriteLine($"peso {info.PowerWeight:0.00}, errori {info.PowerError:0} / {info.TimestralError:0}");
+        return 0;
+    }
+
+    case "chargetest":
+    {
+        // Come `backtest`, per la carica: per ogni previsione di carica salvata, l'arrivo reale all'obiettivo
+        // (collegato, senza buchi oltre 3 minuti), Timestral originale, corretto con i soli dati precedenti, e la
+        // stima dalla velocità di carica misurata. Usare una COPIA del database.
+        var db = Opt("--db") ?? throw new ArgumentException("--db FILE");
+        using var store = new HistoryStore(db);
+        var samples = store.Samples(DateTimeOffset.UnixEpoch).Where(s => s.Source == "windows" && s.LevelPct is not null).OrderBy(s => s.TimestampUtc).ToList();
+        var snaps = store.ForecastSnapshots(DateTimeOffset.UnixEpoch, DateTimeOffset.UtcNow.AddDays(1), 20000)
+            .Where(s => s.Source == "timestral:charge" && s.Response.TimeBasis == "active_use" && s.Response.Conditions is { OnAc: true })
+            .OrderBy(s => s.IssuedAt).ToList();
+        var rawErr = new List<double>(); var calErr = new List<double>(); var rateErr = new List<double>(); int ready = 0;
+        foreach (var snap in snaps)
+        {
+            var raw = LocalCalibration.Apply(snap.Response, new CalibrationInfo { Enabled = false });
+            var origin = DateTimeOffset.FromUnixTimeMilliseconds((long)(raw.ContextEndUtc * 1000));
+            int i = samples.FindIndex(s => s.TimestampUtc >= origin);
+            if (i <= 0 || (samples[i].TimestampUtc - origin).TotalSeconds > 150) continue;
+            DateTimeOffset? arrival = null;
+            for (int k = i; k < samples.Count; k++)
+            {
+                if (samples[k].OnAc != true || k > i && samples[k].TimestampUtc - samples[k - 1].TimestampUtc > TimeSpan.FromMinutes(3)) break;
+                if (samples[k].LevelPct >= raw.ReservePct) { arrival = samples[k].TimestampUtc; break; }
+            }
+            if (arrival is null || arrival == samples[i].TimestampUtc) continue;
+            var since = origin.AddDays(-30);
+            var report = LocalCalibration.Learn(raw, store.CalibrationSnapshots(since, origin, true), store.Samples(since, origin),
+                store.ModelDiscontinuities(since, origin), store.CalibrationContext(since, origin, false), origin);
+            if (report.Ready) ready++;
+            var corrected = LocalCalibration.Apply(raw, report);
+            double? Err(ForecastResponse r) => r.Crossing.CentralUtc is { } c ? (c - arrival.Value.ToUnixTimeMilliseconds() / 1000.0) / 60 : null;
+            if (Err(raw) is not { } a || Err(corrected) is not { } b) continue;
+            rawErr.Add(a); calErr.Add(b);
+            var rate = ChargeRate.Estimate(samples.Where(s => s.TimestampUtc < origin && s.TimestampUtc >= since).ToList(), samples[i], (int)raw.ReservePct);
+            if (rate.TargetAt is { } at) rateErr.Add((at - arrival.Value).TotalMinutes);
+            Console.WriteLine($"{origin.ToLocalTime():dd/MM HH:mm} {samples[i].LevelPct,3:0}% reale tra {(arrival.Value - origin).TotalMinutes,4:0} min · originale {a,+5:+0;-0} · corretta {b,+5:+0;-0} · velocità misurata {(rate.TargetAt is { } t ? $"{(t - arrival.Value).TotalMinutes:+0;-0}" : "—")} · {(report.Ready ? $"{report.Scope} {report.Factor:0.00}" : $"in raccolta {report.Windows}")}");
+        }
+        static string Summary(List<double> e) => e.Count == 0 ? "—" :
+            $"n={e.Count}, errore medio assoluto {e.Average(Math.Abs):0.0} min, mediana {e.Order().ElementAt(e.Count / 2):+0;-0} min, entro 10 min {e.Count(x => Math.Abs(x) <= 10) * 100 / e.Count}%";
+        Console.WriteLine($"\n{rawErr.Count} previsioni di carica con arrivo all'obiettivo osservato, correzione pronta in {ready}");
+        Console.WriteLine($"Timestral originale:  {Summary(rawErr)}");
+        Console.WriteLine($"Timestral corretto:   {Summary(calErr)}");
+        Console.WriteLine($"velocità misurata:    {Summary(rateErr)}");
         return 0;
     }
 
@@ -244,6 +296,6 @@ switch (cmd)
     }
 
     default:
-        Console.Error.WriteLine("comandi: battery | sensors | forecast [--db FILE] | record --db FILE [--minutes N] | calibration --db COPIA [--no-apps] | backtest --db COPIA [--dump FILE.csv] | replay --db COPIA [--every MIN] [--no-drain]");
+        Console.Error.WriteLine("comandi: battery | sensors | forecast [--db FILE] | record --db FILE [--minutes N] | calibration --db COPIA [--no-apps] | backtest --db COPIA [--dump FILE.csv] | replay --db COPIA [--every MIN] [--no-drain] [--charge] [--context] | chargetest --db COPIA");
         return 1;
 }

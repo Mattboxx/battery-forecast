@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.9 (not released yet)
+## 0.9.9
 
 - **Timestral now forecasts the power, not the percentage.** On battery the level falls exactly as fast as energy
   is used, so the uncertain part is the future drain. The app sends the measured drain (percent per hour, battery
@@ -11,7 +11,12 @@
 - The level-band correction from past errors is not applied to these curves (it made them worse); they learn
   through the per-PC weight of measured power and Timestral, only from forecasts made the same way. Preferences say
   how many observed arrivals that weight is based on.
-- Without an hour of measured drain, and when charging, forecasts work as before.
+- Without an hour of measured drain, and when charging, forecasts work as before. Both options that still act on
+  charging were measured before keeping them, by replaying past charging forecasts: learning from past errors
+  brought the error at the charge target from 15 to 9 minutes (16 charges, median +8 to +3), and the sensor
+  history in Timestral cut charge forecasts more than two hours off from 14 to 5 (65 moments, same median).
+- **Learn from past forecast errors** now also governs the discharge weight: off means fixed weights, and Reset
+  restarts that learning too. Its help text describes what it does for discharge and for charging.
 - Diagnostics: `tilldusk replay --db <copy>` redoes past discharge forecasts with the current engine so that
   `tilldusk backtest` measures the whole chain; `backtest --dump` writes the per-forecast errors as CSV.
 

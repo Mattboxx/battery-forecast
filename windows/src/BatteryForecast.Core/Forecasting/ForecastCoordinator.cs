@@ -322,7 +322,12 @@ public sealed class ForecastCoordinator : IDisposable
                 {
                     var since=origin.AddDays(-Math.Min(30,options.RetentionDays));
                     var past=store.Samples(since,origin);
-                    blend=EstimateBlend.Learn(store.DischargeSnapshots(since,origin),past,origin,drain:r.FromDrain);
+                    // "Learn from past forecast errors" and its reset govern this weight too: off = fixed prior
+                    if(options.UseLocalCalibration && !demo)
+                    {
+                        var learnSince=options.CalibrationResetUtc is { } reset && reset>since ? reset : since;
+                        blend=EstimateBlend.Learn(store.DischargeSnapshots(learnSince,origin),past,origin,drain:r.FromDrain);
+                    }
                     measured??=EstimateBlend.FromHistory(past.Where(p=>p.TimestampUtc>=origin.AddDays(-7)).ToList(),s,reserve);
                 }
                 catch(Microsoft.Data.Sqlite.SqliteException) { }

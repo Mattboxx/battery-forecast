@@ -6,12 +6,12 @@ public static class CalibrationPresenter
 {
     public static string Present(bool enabled,CalibrationInfo? report,BlendInfo? blend=null)
     {
+        if(!enabled) return L.T("CalibrationOff");
         // discharge curve from the forecast drain: it learns through the weight of the arrival at the reserve
         if(report?.Reason==LocalCalibration.DrainReason)
             return blend is { Evaluations: var n } && n>=EstimateBlend.MinimumEvaluations
                 ? L.F("CalibrationArrivalsReady",n,Math.Round((1-blend.PowerWeight)*100).ToString("0",L.Culture))
                 : L.F("CalibrationArrivalsCollecting",blend?.Evaluations??0,EstimateBlend.MinimumEvaluations);
-        if(!enabled) return L.T("CalibrationOff");
         if(report?.Ready==true)
             return L.F("CalibrationReady",report.Windows,report.Sessions,report.Factor.ToString("0.00",L.Culture),
                 L.T(report.Scope switch
