@@ -107,7 +107,7 @@
       <p class="eyebrow">On battery and on the charger</p>
       <div class="split">
         <h2>Two forecasts.<br>One panel.</h2>
-        <p>The same local AI reads your battery history and answers the question that fits the moment: how long you will last, or when you will be charged.</p>
+        <p>On battery, the local forecast combines Timestral with measured consumption. On the charger, earlier charges or the current charging speed tell you when you will reach your target.</p>
       </div>
       <div class="trio">
         <figure>
@@ -135,8 +135,8 @@
       <div class="duo">
         <ul class="checks">
           <li><b>One clear scenario at a time.</b> On battery: how long if you keep going as you usually do, without plugging in. While charging: when you reach your target if you stay plugged in.</li>
-          <li><b>Habits and the present, side by side.</b> The forecast from your habits always comes with the estimate at your current rate, and with Windows' own.</li>
-          <li><b>Honest about the unknown.</b> When you usually plug in, the model can't know what you'd use on battery; the chart says so and continues at the expected rate, dashed.</li>
+          <li><b>A forecast that follows the battery.</b> Between model runs, new readings update the curve and time to reserve together. The original forecast stays saved in Battery trend.</li>
+          <li><b>Compare other estimates.</b> See the projection from recent consumption or the estimate reported by Windows when available.</li>
           <li><b>Health and history.</b> Full-charge vs design capacity, and the discharges it has observed, without inventing cycles.</li>
         </ul>
         <picture>
@@ -181,8 +181,8 @@
       <div class="cards" style="margin-top:32px">
         <article class="card"><h3>Explore any hour</h3><p>Hover over the chart to move its dot and read the date, time, expected percentage and indicative range. Keyboard arrows work too.</p></article>
         <article class="card"><h3>Your own targets</h3><p>Type any HH:mm target and up to four extra times. Open and close the panel with a shortcut you record (initially Ctrl+Alt+B), or just rest the pointer on the icon. Make the panel as large as you like.</p></article>
-        <article class="card"><h3>Charging, too</h3><p>Choose a charging target from 50–100%. While charging, the same AI learns from your past charges and tells you when you will reach it, slowdown near full included, next to the current charging rate. It does not control the hardware. When a charge limit holds the battery, it shows how long it would last if you unplugged now.</p></article>
-        <article class="card"><h3>Useful local context</h3><p>Optionally record CPU load and frequency, memory, battery watts, brightness, power profile and available temperatures. Timestral receives usable historical channels; future values are not invented.</p></article>
+        <article class="card"><h3>Charging, too</h3><p>Choose a charging target from 50–100%. The estimate uses comparable earlier charges or recent charging speed. When a charge limit holds the battery, the panel shows how long it would last if you unplugged now.</p></article>
+        <article class="card"><h3>Useful local context</h3><p>Optionally record CPU load and frequency, memory, battery watts, brightness, power profile and available temperatures. Inspect the readings in Data and privacy and use them to match comparable conditions in local error correction.</p></article>
         <article class="card"><h3>Make it yours</h3><p>Custom alert thresholds, quiet hours, chart visibility and a keep-open preference. Export battery and sensor CSV files.</p></article>
         <article class="card"><h3>Diagnostics you control</h3><p>Create a local diagnostic ZIP without battery history or logs. Nothing is uploaded automatically. Missing sensors stay unavailable; an ACPI thermal zone is not labelled CPU temperature.</p></article>
       </div>
@@ -197,13 +197,13 @@
           <img src="assets/preferences-light.png" width="867" height="625" alt="Preferences window with sections and icons: forecast reserve, evening target, charge target and refresh" loading="lazy">
         </picture>
       </div>
-      <p class="caption">Charging and sensor context are experimental. Functional tests use the real local model; accuracy gains have not been established.</p>
+      <p class="caption">Sensor availability varies by device. Readings and forecasts stay on your PC.</p>
     </section>
 
     <section class="wrap reveal">
-      <p class="eyebrow">New in 0.9.5</p>
-      <h2>One clear forecast.<br>Comparisons when you want them.</h2>
-      <p>The chart and main duration follow the same AI forecast. Open <b>Compare other estimates</b> for the separate recent-consumption and Windows calculations, which can differ substantially. Learning status is explicit, and the time horizon follows the actual curve. Model weights and estimator calculations are unchanged.</p>
+      <p class="eyebrow">New in 0.9.11</p>
+      <h2>A forecast that follows your battery.</h2>
+      <p>New readings keep the discharge chart and time to reserve in step between Timestral runs. In Battery trend, compare your readings with the forecast originally saved.</p>
     </section>
 
     <section class="wrap reveal">
@@ -269,7 +269,7 @@
       </div>
       <details>
         <summary>Is the forecast exact?</summary>
-        <p>No forecast of the future can be. Battery Forecast shows a central estimate with a range, says which model produced it, and tells you when it is still learning. Measured so far on one real laptop: replaying 93 discharge forecasts with only the data available at each moment, the time to the reserve was on average 13 minutes off (72% within 15 minutes), against 27 minutes for Windows' own estimate. Charging to 80% (151 moments of 18 charges) was on average 2.5 minutes off, 98% within 10 minutes. Other laptops may differ.</p>
+        <p>Battery Forecast shows a central estimate with a range and explains its source. In a replay on one laptop, the 0.9.11 live update reduced the mean error after 30 minutes from 11.6 to 8.8 minutes across 72 paired discharge forecasts. In a separate earlier replay, charging to 80% averaged 2.5 minutes of error across 151 moments from 18 charges. Results depend on the laptop and how it is used.</p>
       </details>
       <details>
         <summary>Why is the download that large?</summary>
@@ -382,8 +382,8 @@
       // ripiego se l'API di GitHub non risponde (limite di richieste, rete): l'ultima versione nota
       let release = { assets: {} };
       for (const arch of ['x64', 'arm64']) {
-        const name = `BatteryForecast-Setup-0.9.10-${arch}.exe`;
-        const url = `https://github.com/${repo}/releases/download/v0.9.10/${name}`;
+        const name = `BatteryForecast-Setup-0.9.11-${arch}.exe`;
+        const url = `https://github.com/${repo}/releases/download/v0.9.11/${name}`;
         release.assets[arch] = { url, name, size: 0, sha: url + '.sha256' };
       }
       const loaded = fetch(`https://api.github.com/repos/${repo}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } })

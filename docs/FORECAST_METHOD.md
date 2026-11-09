@@ -114,7 +114,7 @@ step by step, which gives a wide, cautious band. The response says `"method": "d
 still runs, but only to report the habitual recharge time; it no longer shapes the curve. Without enough
 measured drain, or in the charging scenario, nothing changes (`"method": "level"`).
 
-In the development version, P50 integrates a spacing-weighted average of the central 10th–90th
+Since 0.9.11, P50 integrates a spacing-weighted average of the central 10th–90th
 percentile drain estimates. With enough measured drain, the engine runs only the drain forecast and
 omits the habitual recharge prediction. App requests omit experimental CPU, brightness and app-workload
 covariates. Recorded sensor history remains available for local diagnostics and matching conditions in
@@ -147,7 +147,7 @@ curve, weighted per PC by the inverse squared error of each on the arrivals actu
 five; before that a fixed prior), and the curve is retimed to that arrival. No method is claimed to win
 universally.
 
-The development version uses a single weight for each forecast method. After five observed arrivals,
+Version 0.9.11 uses a single weight for each forecast method. After five observed arrivals,
 it averages the learned weight with the fixed prior, which counts for 30 evaluations. Between model runs,
 the discharge panel anchors the original forecast's remaining drain to the latest battery reading and
 combines its arrival again with the available recent consumption estimate. This updates the chart and

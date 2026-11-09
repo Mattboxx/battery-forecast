@@ -27,7 +27,9 @@
 </p>
 <p align="center"><sub>Interfaccia demo · storico sintetico; previsioni calcolate dal vero modello locale.</sub></p>
 
-> **Accuratezza delle previsioni.** Misurata finora su un solo portatile reale: rifacendo 93 previsioni di scarica
+> **Accuratezza delle previsioni.** Su un portatile reale, dopo 30 minuti dall’inferenza l’aggiornamento della 0.9.11
+> ha ridotto l’errore medio da 11,6 a 8,8 minuti, confrontando le stesse 72 previsioni ferme e riallineate.
+> Nella precedente prova della 0.9.9, rifacendo 93 previsioni di scarica
 > (6 scariche) con i soli dati disponibili in ogni momento, l’ora della riserva ha sbagliato in media di 13 minuti, il
 > 72% entro 15 minuti, contro 27 minuti della stima di Windows. Carica all’80% (151 momenti di 18 cariche): 2,5 minuti
 > di errore medio, il 98% entro 10 minuti. Altri portatili e usi possono dare risultati diversi;
@@ -36,8 +38,8 @@
 ## Due previsioni, un pannello
 
 Windows mostra una percentuale. Battery Forecast ti dice cosa significa per il resto della giornata, a batteria e
-con l'alimentatore. Entrambe le previsioni vengono dallo stesso modello di intelligenza artificiale locale, che
-legge come contesto il tuo storico della batteria: nulla viene caricato in rete e il modello non viene riaddestrato.
+con l'alimentatore. Timestral gira in locale. In scarica la stima combina la sua curva con il consumo misurato.
+In carica, l’orario viene dalle ricariche osservate su questo PC o dalla velocità di ricarica recente.
 
 <table>
   <tr>
@@ -101,13 +103,13 @@ legge come contesto il tuo storico della batteria: nulla viene caricato in rete 
 
 1. Mentre è aperta, l'app registra ogni minuto livello e alimentazione, più sospensioni, riprese e alimentatore.
    Le lacune restano lacune: per il tempo a PC spento non si inventa nulla.
-2. [Timestral](https://github.com/mistralai/timestral), un modello di Mistral AI per le serie temporali, legge
-   fino a 110 giorni di storico su una griglia di 5 minuti e prevede le prossime 24 ore.
+2. [Timestral](https://github.com/mistralai/timestral), un modello di Mistral AI per le serie temporali, fa previsioni
+   su una griglia di cinque minuti. Quando ci sono misure sufficienti, prevede il consumo e ne ricava la curva della batteria.
 3. Ogni previsione risponde a uno scenario chiaro. A batteria, o collegato con la carica ferma: *uso abituale,
    senza collegare l'alimentatore da adesso*, quindi la curva non risale. In carica: *resto collegato*, quindi la
    curva non scende e si ferma al 100%. Lo scenario arriva al modello come dato futuro noto.
-4. Quando di solito colleghi (o stacchi) l'alimentatore a una certa ora, il modello non può sapere cosa
-   succederebbe dopo: il pannello lo dice e il grafico prosegue, tratteggiato, al ritmo medio previsto.
+4. In scarica, ogni nuova lettura aggiorna il grafico e il tempo alla riserva tra due calcoli del modello.
+   Le previsioni originali restano in Andamento. La diagnostica dei sensori resta in Dati e privacy.
 5. Finché lo storico non basta (qualche ora di scariche o alcune ricariche), si mostra la stima al ritmo attuale,
    e il pannello lo dice.
 

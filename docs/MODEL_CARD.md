@@ -105,7 +105,7 @@ uncertainty or accuracy claim is made. Real-session validation for charging rema
 
 ## Historical system context (experimental)
 
-In the development version, the app uses recorded context for local diagnostics and comparison of
+Since 0.9.11, the app uses recorded context for local diagnostics and comparison of
 operating conditions in the level-forecast correction. It no longer submits the optional sensor or
 app-workload covariates to Timestral. The level engine still supports them for replay and diagnostic
 requests. The following describes collection and the optional protocol inputs.

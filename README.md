@@ -27,7 +27,9 @@
   <a href="https://ko-fi.com/mattboxx"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-support-C2416B?logo=kofi&logoColor=white"></a>
 </p>
 
-> **Forecast accuracy.** Measured so far on one real laptop only: replaying 93 discharge forecasts (6 discharges) with
+> **Forecast accuracy.** On one real laptop, the 0.9.11 live update reduced mean error from 11.6 to 8.8 minutes
+> at 30 minutes after inference, comparing the same 72 forecasts left fixed and updated with new readings.
+> In the earlier 0.9.9 replay of 93 discharge forecasts (6 discharges) with
 > just the data available at each moment, the time to the reserve was on average 13 minutes off, 72% within 15
 > minutes, against 27 minutes for Windows' own estimate. Charging to 80% (151 moments of 18 charges): 2.5 minutes
 > off on average, 98% within 10 minutes. Other laptops and uses may differ; the app always shows a range and where
@@ -36,8 +38,8 @@
 ## Two forecasts, one panel
 
 Windows shows a percentage. Battery Forecast tells you what that percentage means for the rest of your day,
-on battery and on the charger. Both forecasts come from the same local AI model, which reads your own battery
-history as context; nothing is uploaded and the model is not retrained.
+on battery and on the charger. Timestral runs locally. The discharge forecast combines its curve with
+measured consumption, and the charging time comes from this PC's observed charges or recent charging speed.
 
 <table>
   <tr>
@@ -107,13 +109,13 @@ Windows battery API ──► local history (SQLite, 1 sample/min) ──► Tim
 
 1. While it runs, Battery Forecast records your battery level and power source every minute, plus sleep, resume
    and charger events. Gaps stay gaps: nothing is invented for the time the PC was off.
-2. [Timestral](https://github.com/mistralai/timestral), a time-series model by Mistral AI, reads up to 110 days of
-   that history on a 5-minute grid and forecasts the next 24 hours, with percentiles.
+2. [Timestral](https://github.com/mistralai/timestral), a time-series model by Mistral AI, forecasts on a
+   five-minute grid. When enough measured drain is available it predicts consumption and integrates it into a battery curve.
 3. Each forecast answers one clear scenario. On battery, or plugged in with the charge held: *your usual use,
    without plugging in from now on*, so the curve never rises. While charging: *staying plugged in*, so the curve
    never falls and stops at 100%. The scenario is given to the model as a known future input.
-4. When your habits say you usually plug in (or unplug) at a certain time, the model cannot know what would happen
-   after it. The panel says so and the chart continues at the expected average rate, drawn dashed.
+4. On battery, each new reading updates the chart and time to reserve between model runs. The original
+   forecasts remain in Battery trend for comparison. Local sensor diagnostics remain available in Data and privacy.
 5. Until there is enough history (a couple of hours of discharges, or a few recorded charges), the estimate at
    your current rate is shown instead, and the panel says that too.
 
@@ -172,7 +174,7 @@ forecast\.venv\Scripts\python -m pytest -q forecast
 dotnet run --project windows\src\BatteryForecast.App -- --demo
 
 # full offline package and installer in artifacts\
-powershell -NoProfile -File tools\package.ps1 -Version 0.9.10
+powershell -NoProfile -File tools\package.ps1 -Version 0.9.11
 ```
 
 ARM64 installers are built natively on Windows ARM by the [release workflow](.github/workflows/release.yml),
